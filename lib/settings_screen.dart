@@ -83,7 +83,6 @@ class SettingsScreen extends StatelessWidget {
                 },
                 label: const Text('Add USB Drive'),
               ),
-              divider,
               ReusableLeftAlignedText(text: 'Paired PIT Readers'),
               Container(
                 decoration: reusableBoxDecoration,
@@ -100,6 +99,26 @@ class SettingsScreen extends StatelessWidget {
                         print('Tapped settings');
                       },
                       icon: const Icon(Icons.bluetooth_disabled),
+                    ),
+                  ],
+                ),
+              ),
+              ReusableLeftAlignedText(text: 'Merge Data Files'),
+              Container(
+                decoration: reusableBoxDecoration,
+                padding: reusablePadding,
+                child: Row(
+                  children: <Widget>[
+                    Icon(Icons.file_copy),
+                    const SizedBox(width: 8),
+                    Text('Data File: \'project_5.db\''),
+                    Spacer(),
+                    IconButton(
+                      tooltip: 'Import a data file to be merged.',
+                      onPressed: () {
+                        print('Tapped settings');
+                      },
+                      icon: const Icon(Icons.file_upload),
                     ),
                   ],
                 ),

@@ -10,26 +10,9 @@ class ProjectSelection extends StatelessWidget {
       body: SingleChildScrollView(
         child: Padding(
           padding: EdgeInsetsGeometry.all(40.0),
-          child: Column(spacing: 16.0, children: <Widget>[
-            Container(
-                decoration: reusableBoxDecoration,
-                padding: reusablePadding,
-                child: Row(
-                  children: <Widget>[
-                    Icon(Icons.file_open),
-                    const SizedBox(width: 8),
-                    Text('Electrofishing'),
-                    Spacer(),
-                    IconButton(
-                      tooltip: 'Colorado River, 11/06/2025',
-                      onPressed: () {
-                        print('Tapped settings');
-                      },
-                      icon: const Icon(Icons.arrow_forward_ios),
-                    ),
-                  ],
-                ),
-              ),
+          child: Column(
+            spacing: 16.0,
+            children: <Widget>[
               Container(
                 decoration: reusableBoxDecoration,
                 padding: reusablePadding,
@@ -68,7 +51,33 @@ class ProjectSelection extends StatelessWidget {
                   ],
                 ),
               ),
-          ]),
+              Container(
+                decoration: reusableBoxDecoration,
+                padding: reusablePadding,
+                child: Row(
+                  children: <Widget>[
+                    Icon(Icons.file_open),
+                    const SizedBox(width: 8),
+                    Text('Electrofishing'),
+                    Spacer(),
+                    IconButton(
+                      tooltip: 'Colorado River, 11/06/2025',
+                      onPressed: () {
+                        print('Tapped settings');
+                      },
+                      icon: const Icon(Icons.arrow_forward_ios),
+                    ),
+                  ],
+                ),
+              ),
+              FloatingActionButton.extended(
+                onPressed: null,
+                tooltip: 'Create a new project',
+                label: Text('Create Project'),
+                icon: Icon(Icons.add),
+              ),
+            ],
+          ),
         ),
       ),
     );

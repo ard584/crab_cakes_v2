@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'settings_screen.dart';
 import 'project_selection.dart';
+import 'export_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -57,7 +58,6 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   // Retained for now, but not actively used in this snippet
-  int _counter = 0;
 
   // This function is the handler passed to onWidgetSelected,
   // correctly placed as a direct method of the State class.
@@ -69,6 +69,12 @@ class _MyHomePageState extends State<MyHomePage> {
         Navigator.push(
           context,
           MaterialPageRoute(builder: (context) => const ProjectSelection()),
+        );
+      case 'export_data':
+        Navigator.pop(context);
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const ExportScreen()),
         );
       case 'settings':
         Navigator.pop(context);
@@ -123,11 +129,11 @@ class _MyHomePageState extends State<MyHomePage> {
               padding: const EdgeInsets.all(8.0),
               child: Column(
                 children: <Widget>[
-                  ReusableInputField(labelText: 'labelText'),
-                  ReusableInputField(labelText: 'labelText'),
-                  ReusableInputField(labelText: 'labelText'),
-                  ReusableInputField(labelText: 'labelText'),
-                  ReusableInputField(labelText: 'labelText'),
+                  ReusableInputField(labelText: 'Species'),
+                  ReusableInputField(labelText: 'Total Length'),
+                  ReusableInputField(labelText: 'Fork Length'),
+                  ReusableInputField(labelText: 'Weight'),
+                  ReusableInputField(labelText: 'Notes'),
                 ],
               ),
             ),
@@ -137,9 +143,9 @@ class _MyHomePageState extends State<MyHomePage> {
               padding: const EdgeInsets.all(8.0),
               child: Column(
                 children: <Widget>[
-                  ReusableInputField(labelText: 'labelText'),
-                  ReusableInputField(labelText: 'labelText'),
-                  ReusableInputField(labelText: 'labelText'),
+                  ReusableInputField(labelText: 'Catch Time'),
+                  ReusableInputField(labelText: 'River Mile'),
+                  ReusableInputField(labelText: 'Notes'),
                 ],
               ),
             ),
@@ -273,12 +279,23 @@ class MenuOption {
 // Define the list of options you want to appear in the pop-up menu
 final List<MenuOption> myCustomMenu = [
   MenuOption(
-    value: 'switch_project', // <--- This String is what gets returned when tapped
+    value:
+        'switch_project', // <--- This String is what gets returned when tapped
     childWidget: const Row(
       children: [
         Icon(Icons.file_open),
         SizedBox(width: 8),
         Text('Switch Project'),
+      ],
+    ),
+  ),
+  MenuOption(
+    value: 'export_data', // <--- This String is what gets returned when tapped
+    childWidget: const Row(
+      children: [
+        Icon(Icons.file_download),
+        SizedBox(width: 8),
+        Text('Export Data'),
       ],
     ),
   ),
