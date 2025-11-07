@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'settings_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -55,9 +56,9 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   // Retained for now, but not actively used in this snippet
-  int _counter = 0; 
+  int _counter = 0;
 
-  // This function is the handler passed to onWidgetSelected, 
+  // This function is the handler passed to onWidgetSelected,
   // correctly placed as a direct method of the State class.
   void _handleMenuAction(String selectedValue) {
     // Use a switch statement to determine the action based on the returned value
@@ -70,6 +71,12 @@ class _MyHomePageState extends State<MyHomePage> {
         print('Action: Initiating print sequence...');
         // Add your actual print logic here
         break;
+      case 'settings':
+        Navigator.pop(context);
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const SettingsScreen()),
+        );
       default:
         print('Unknown action selected: $selectedValue');
     }
@@ -269,13 +276,31 @@ final List<MenuOption> myCustomMenu = [
   MenuOption(
     value: 'save_data', // <--- This String is what gets returned when tapped
     childWidget: const Row(
-      children: [Icon(Icons.usb), SizedBox(width: 8), Text('Backup to USB Drive')],
+      children: [
+        Icon(Icons.usb),
+        SizedBox(width: 8),
+        Text('Backup to USB Drive'),
+      ],
     ),
   ),
   MenuOption(
     value: 'print_report', // <--- This String is what gets returned when tapped
     childWidget: const Row(
-      children: [Icon(Icons.bluetooth), SizedBox(width: 8), Text('Pair to PIT Reader')],
+      children: [
+        Icon(Icons.bluetooth),
+        SizedBox(width: 8),
+        Text('Pair to PIT Reader'),
+      ],
+    ),
+  ),
+  MenuOption(
+    value: 'settings',
+    childWidget: const Row(
+      children: [
+        Icon(Icons.settings),
+        SizedBox(width: 8),
+        Text('Open Settings Menu'),
+      ],
     ),
   ),
 ];
