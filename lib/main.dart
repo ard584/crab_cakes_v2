@@ -129,11 +129,11 @@ class _MyHomePageState extends State<MyHomePage> {
               padding: const EdgeInsets.all(8.0),
               child: Column(
                 children: <Widget>[
-                  ReusableInputField(labelText: 'Species'),
+                  ReusableInputField(labelText: 'PIT ID'),
+                  ReusableInputField(labelText: 'Species', mismatch: 'Goldfish',),
                   ReusableInputField(labelText: 'Total Length'),
                   ReusableInputField(labelText: 'Fork Length'),
                   ReusableInputField(labelText: 'Weight'),
-                  ReusableInputField(labelText: 'Notes'),
                 ],
               ),
             ),
@@ -182,30 +182,30 @@ final List<ReorderableItem> sidebarMenuItems = [
 
 // Define this class outside of your main build method
 class ReusableInputField extends StatelessWidget {
+  final String? mismatch;
   final String labelText;
   final ValueChanged<String>? onChanged;
 
   const ReusableInputField({
     super.key,
+    this.mismatch,
     required this.labelText,
     this.onChanged,
   });
-
   @override
   Widget build(BuildContext context) {
     return Container(
       // Your consistent styling (margin, decoration, padding) goes here
       margin: const EdgeInsets.only(bottom: 16.0),
       padding: const EdgeInsets.symmetric(horizontal: 12.0),
-      decoration: BoxDecoration(
-        color: Colors.grey.shade100, // Light background color
-        borderRadius: BorderRadius.circular(10.0),
-        border: Border.all(color: Colors.grey.shade300),
-      ),
-      child: TextField(
+      decoration: getBoxDecoration(mismatch, context),
+      child: TextFormField(
         onChanged: onChanged,
         decoration: InputDecoration(
           labelText: labelText,
+          errorText: (mismatch != null)
+          ? 'Expected value: $mismatch'
+          : null,
           // This removes the default underline/border of the TextField itself
           border: InputBorder.none,
           contentPadding: const EdgeInsets.symmetric(vertical: 14.0),
@@ -213,6 +213,31 @@ class ReusableInputField extends StatelessWidget {
       ),
     );
   }
+}
+
+BoxDecoration getBoxDecoration(String? mismatch, BuildContext context) {
+  if(mismatch == null) {
+    return getNormalBoxDecoration(context);
+  }
+
+  return getErrorBoxDecoration(context);
+
+}
+
+BoxDecoration getNormalBoxDecoration(BuildContext context) {
+  return BoxDecoration(
+    color: Colors.grey.shade100, // Light background color
+    borderRadius: BorderRadius.circular(10.0),
+    border: Border.all(color: Colors.grey.shade300),
+  );
+}
+
+BoxDecoration getErrorBoxDecoration(BuildContext context) {
+  return BoxDecoration(
+    color: Colors.grey.shade100, // Light background color
+    borderRadius: BorderRadius.circular(10.0),
+    border: Border.all(color: Theme.of(context).colorScheme.error),
+  );
 }
 
 class ReorderableItem {
