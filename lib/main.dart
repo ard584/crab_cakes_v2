@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'settings_screen.dart';
+import 'project_selection.dart';
 
 void main() {
   runApp(const MyApp());
@@ -31,7 +32,7 @@ class MyApp extends StatelessWidget {
         // tested with just a hot reload.
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      home: const MyHomePage(title: 'Specimen'),
     );
   }
 }
@@ -63,14 +64,12 @@ class _MyHomePageState extends State<MyHomePage> {
   void _handleMenuAction(String selectedValue) {
     // Use a switch statement to determine the action based on the returned value
     switch (selectedValue) {
-      case 'save_data':
-        print('Action: Saving data to disk...');
-        // Add your actual save logic here
-        break;
-      case 'print_report':
-        print('Action: Initiating print sequence...');
-        // Add your actual print logic here
-        break;
+      case 'switch_project':
+        Navigator.pop(context);
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const ProjectSelection()),
+        );
       case 'settings':
         Navigator.pop(context);
         Navigator.push(
@@ -274,22 +273,12 @@ class MenuOption {
 // Define the list of options you want to appear in the pop-up menu
 final List<MenuOption> myCustomMenu = [
   MenuOption(
-    value: 'save_data', // <--- This String is what gets returned when tapped
+    value: 'switch_project', // <--- This String is what gets returned when tapped
     childWidget: const Row(
       children: [
-        Icon(Icons.usb),
+        Icon(Icons.file_open),
         SizedBox(width: 8),
-        Text('Backup to USB Drive'),
-      ],
-    ),
-  ),
-  MenuOption(
-    value: 'print_report', // <--- This String is what gets returned when tapped
-    childWidget: const Row(
-      children: [
-        Icon(Icons.bluetooth),
-        SizedBox(width: 8),
-        Text('Pair to PIT Reader'),
+        Text('Switch Project'),
       ],
     ),
   ),
