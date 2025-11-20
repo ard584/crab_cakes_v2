@@ -20,10 +20,16 @@ class ProjectSelection extends StatelessWidget {
                   children: <Widget>[
                     Icon(Icons.file_open),
                     const SizedBox(width: 8),
-                    Text('Electrofishing'),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Colorado River', textScaler: TextScaler.linear(1.3),),
+                        Text('Electrofishing', textScaler: TextScaler.linear(1.0), style: TextStyle(color: Colors.blueGrey),),
+                        Text('11/24/2025', textScaler: TextScaler.linear(1.0), style: TextStyle(color: Colors.blueGrey),)
+                      ],
+                    ),
                     Spacer(),
                     IconButton(
-                      tooltip: 'Colorado River, 11/06/2025',
                       onPressed: () {
                         print('Tapped settings');
                       },
@@ -39,10 +45,16 @@ class ProjectSelection extends StatelessWidget {
                   children: <Widget>[
                     Icon(Icons.file_open),
                     const SizedBox(width: 8),
-                    Text('Electrofishing'),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Colorado River', textScaler: TextScaler.linear(1.3),),
+                        Text('Hoop Fishing', textScaler: TextScaler.linear(1.0), style: TextStyle(color: Colors.blueGrey),),
+                        Text('09/08/2025', textScaler: TextScaler.linear(1.0), style: TextStyle(color: Colors.blueGrey),)
+                      ],
+                    ),
                     Spacer(),
                     IconButton(
-                      tooltip: 'Colorado River, 11/06/2025',
                       onPressed: () {
                         print('Tapped settings');
                       },
@@ -58,10 +70,16 @@ class ProjectSelection extends StatelessWidget {
                   children: <Widget>[
                     Icon(Icons.file_open),
                     const SizedBox(width: 8),
-                    Text('Electrofishing'),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Colorado River', textScaler: TextScaler.linear(1.3),),
+                        Text('Electrofishing', textScaler: TextScaler.linear(1.0), style: TextStyle(color: Colors.blueGrey),),
+                        Text('03/11/2025', textScaler: TextScaler.linear(1.0), style: TextStyle(color: Colors.blueGrey),)
+                      ],
+                    ),
                     Spacer(),
                     IconButton(
-                      tooltip: 'Colorado River, 11/06/2025',
                       onPressed: () {
                         print('Tapped settings');
                       },
