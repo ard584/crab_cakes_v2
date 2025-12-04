@@ -129,8 +129,8 @@ class _MyHomePageState extends State<MyHomePage> {
               padding: const EdgeInsets.all(8.0),
               child: Column(
                 children: <Widget>[
-                  ReusableInputField(labelText: 'PIT ID'),
-                  ReusableInputField(labelText: 'Species', mismatch: 'Goldfish',),
+                  ReusableInputField(labelText: 'PIT ID', error: 'Warning: This tag was recently scanned',),
+                  ReusableInputField(labelText: 'Species', error: 'Expected Value: Goldfish',),
                   ReusableInputField(labelText: 'Total Length'),
                   ReusableInputField(labelText: 'Fork Length'),
                   ReusableInputField(labelText: 'Weight'),
@@ -146,6 +146,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   ReusableInputField(labelText: 'Catch Time'),
                   ReusableInputField(labelText: 'River Mile'),
                   ReusableInputField(labelText: 'Notes'),
+                  FloatingActionButton.extended(onPressed: null, label: Text("Save"))
                 ],
               ),
             ),
@@ -182,13 +183,13 @@ final List<ReorderableItem> sidebarMenuItems = [
 
 // Define this class outside of your main build method
 class ReusableInputField extends StatelessWidget {
-  final String? mismatch;
+  final String? error;
   final String labelText;
   final ValueChanged<String>? onChanged;
 
   const ReusableInputField({
     super.key,
-    this.mismatch,
+    this.error,
     required this.labelText,
     this.onChanged,
   });
@@ -198,13 +199,13 @@ class ReusableInputField extends StatelessWidget {
       // Your consistent styling (margin, decoration, padding) goes here
       margin: const EdgeInsets.only(bottom: 16.0),
       padding: const EdgeInsets.symmetric(horizontal: 12.0),
-      decoration: getBoxDecoration(mismatch, context),
+      decoration: getBoxDecoration(error, context),
       child: TextFormField(
         onChanged: onChanged,
         decoration: InputDecoration(
           labelText: labelText,
-          errorText: (mismatch != null)
-          ? 'Expected value: $mismatch'
+          errorText: (error != null)
+          ? '$error'
           : null,
           // This removes the default underline/border of the TextField itself
           border: InputBorder.none,

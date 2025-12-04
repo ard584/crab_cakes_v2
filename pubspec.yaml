@@ -31,6 +31,7 @@ dependencies:
   flutter:
     sdk: flutter
   form_builder_validators: ^11.2.0
+  path: ^1.9.1
   path_provider: ^2.1.5
   sqlite3: ^2.9.4
 
