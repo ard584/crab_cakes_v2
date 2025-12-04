@@ -121,33 +121,55 @@ class _MyHomePageState extends State<MyHomePage> {
           ],
         ),
       ),
-      body: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Column(
-                children: <Widget>[
-                  ReusableInputField(labelText: 'PIT ID', error: 'Warning: This tag was recently scanned',),
-                  ReusableInputField(labelText: 'Species', error: 'Expected Value: Goldfish',),
-                  ReusableInputField(labelText: 'Total Length'),
-                  ReusableInputField(labelText: 'Fork Length'),
-                  ReusableInputField(labelText: 'Weight'),
-                ],
+      body: Column(
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Column(
+                    children: <Widget>[
+                      ReusableInputField(
+                        labelText: 'PIT ID',
+                        error: 'Warning: This tag was recently scanned',
+                      ),
+                      ReusableInputField(
+                        labelText: 'Species',
+                        error: 'Expected Value: Goldfish',
+                      ),
+                      ReusableInputField(labelText: 'Total Length'),
+                      ReusableInputField(labelText: 'Fork Length'),
+                      ReusableInputField(labelText: 'Weight'),
+                    ],
+                  ),
+                ),
               ),
-            ),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Column(
+                    children: <Widget>[
+                      ReusableInputField(labelText: 'Catch Time'),
+                      ReusableInputField(labelText: 'River Mile'),
+                      ReusableInputField(labelText: 'Notes'),
+                    ],
+                  ),
+                ),
+              ),
+            ],
           ),
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Column(
-                children: <Widget>[
-                  ReusableInputField(labelText: 'Catch Time'),
-                  ReusableInputField(labelText: 'River Mile'),
-                  ReusableInputField(labelText: 'Notes'),
-                  FloatingActionButton.extended(onPressed: null, label: Text("Save"))
-                ],
+          Align(
+            alignment: Alignment.centerRight,
+            child: Container(
+              margin: const EdgeInsets.all(20.0),
+              child: FloatingActionButton.extended(
+                onPressed: null,
+                label: Padding(
+                  padding: const EdgeInsets.all(20.0),
+                  child: Text("Save Record"),
+                ),
               ),
             ),
           ),
@@ -204,9 +226,7 @@ class ReusableInputField extends StatelessWidget {
         onChanged: onChanged,
         decoration: InputDecoration(
           labelText: labelText,
-          errorText: (error != null)
-          ? '$error'
-          : null,
+          errorText: (error != null) ? '$error' : null,
           // This removes the default underline/border of the TextField itself
           border: InputBorder.none,
           contentPadding: const EdgeInsets.symmetric(vertical: 14.0),
@@ -217,12 +237,11 @@ class ReusableInputField extends StatelessWidget {
 }
 
 BoxDecoration getBoxDecoration(String? mismatch, BuildContext context) {
-  if(mismatch == null) {
+  if (mismatch == null) {
     return getNormalBoxDecoration(context);
   }
 
   return getErrorBoxDecoration(context);
-
 }
 
 BoxDecoration getNormalBoxDecoration(BuildContext context) {
