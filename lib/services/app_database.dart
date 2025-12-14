@@ -1,0 +1,50 @@
+import 'package:drift/drift.dart';
+import 'package:drift_flutter/drift_flutter.dart';
+import 'package:path_provider/path_provider.dart';
+
+part 'app_database.g.dart';
+
+// Define constants
+const int EXPECTED_VERSION = 1;
+
+class Projects extends Table {
+  BlobColumn get id => 
+    blob().customConstraint('NOT NULL CHECK(length(id) = 16)')();
+
+  TextColumn get title => text()();
+  TextColumn get description => text().nullable()();
+  IntColumn get createdAt => integer()();
+  IntColumn get updatedAt => integer()();
+  BlobColumn get createdByDevice => 
+    blob().customConstraint('NOT NULL CHECK(length(created_by_device) = 16)')();
+  BlobColumn get updatedByDevice => 
+    blob().customConstraint('NOT NULL CHECK(length(updated_by_device) = 16)')();
+  TextColumn get dbPath => text().unique()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+
+}
+
+@DriftDatabase(tables: [Projects])
+class AppDatabase extends _$AppDatabase {
+  // After generating code, this class needs to define a `schemaVersion` getter
+  // and a constructor telling drift where the database should be stored.
+  // These are described in the getting started guide: https://drift.simonbinder.eu/setup/
+  AppDatabase([QueryExecutor? executor]) : super(executor ?? _openConnection());
+
+  @override
+  int get schemaVersion => 1;
+
+  static QueryExecutor _openConnection() {
+    return driftDatabase(
+      name: 'my_database',
+      native: const DriftNativeOptions(
+        // By default, `driftDatabase` from `package:drift_flutter` stores the
+        // database files in `getApplicationDocumentsDirectory()`.
+        databaseDirectory: getApplicationSupportDirectory,
+      ),
+      // If you need web support, see https://drift.simonbinder.eu/platforms/web/
+    );
+  }
+}
