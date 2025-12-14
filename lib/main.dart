@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'settings_screen.dart';
-import 'project_selection.dart';
-import 'export_screen.dart';
+import 'screens/settings_screen.dart';
+import 'screens/project_selection.dart';
+import 'screens/export_screen.dart';
 
 void main() {
   runApp(const MyApp());
