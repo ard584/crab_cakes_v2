@@ -22,7 +22,7 @@ Future<Uint8List> getOrCreateDeviceID({
   }
 
   // Otherwise, generate a new Uuid from the passed-in function
-  final id = newUuidV4();
+  final id = uuidGen();
 
   // Write to secure storage
   await storage.write(key: _deviceIdKey, value: String.fromCharCodes(id));

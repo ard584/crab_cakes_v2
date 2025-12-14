@@ -7,7 +7,7 @@ void main() {
   test('getOrCreateDeviceID generates and persists a device ID', () async {
 
     // Step 1: Create a fake storage
-    final storage = FakeSecureStorage();
+    final fakeStorage = FakeSecureStorage();
 
     // Step 2: Create a predictable Uuid generator
     int calls = 0;
@@ -17,7 +17,7 @@ void main() {
     }
 
     // Step 3: First call should generate a new UUID
-    final first = await getOrCreateDeviceID(uuidGen: fakeUuid, storage: storage);
+    final first = await getOrCreateDeviceID(uuidGen: fakeUuid, storage: fakeStorage);
 
     // Check the UUID has the right length
     expect(first.length, 16);
@@ -26,7 +26,7 @@ void main() {
     expect(calls, 1);
 
     // Step 4: Second call should reuse stored UUID
-    final second = await getOrCreateDeviceID(uuidGen: fakeUuid, storage: storage);
+    final second = await getOrCreateDeviceID(uuidGen: fakeUuid, storage: fakeStorage);
 
     // Check it’s exactly the same
     expect(second, equals(first));
