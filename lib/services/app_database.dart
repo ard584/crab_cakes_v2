@@ -10,8 +10,8 @@ class Projects extends Table {
 
   TextColumn get title => text()();
   TextColumn get description => text().nullable()();
-  IntColumn get createdAt => integer()();
-  IntColumn get updatedAt => integer()();
+  TextColumn get createdAt => text()();
+  TextColumn get updatedAt => text()();
   BlobColumn get createdByDevice => 
     blob().customConstraint('NOT NULL CHECK(length(created_by_device) = 16)')();
   BlobColumn get updatedByDevice => 
