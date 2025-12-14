@@ -4,9 +4,6 @@ import 'package:path_provider/path_provider.dart';
 
 part 'app_database.g.dart';
 
-// Define constants
-const int EXPECTED_VERSION = 1;
-
 class Projects extends Table {
   BlobColumn get id => 
     blob().customConstraint('NOT NULL CHECK(length(id) = 16)')();
@@ -38,7 +35,7 @@ class AppDatabase extends _$AppDatabase {
 
   static QueryExecutor _openConnection() {
     return driftDatabase(
-      name: 'my_database',
+      name: 'projects_database',
       native: const DriftNativeOptions(
         // By default, `driftDatabase` from `package:drift_flutter` stores the
         // database files in `getApplicationDocumentsDirectory()`.
