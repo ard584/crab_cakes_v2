@@ -121,7 +121,7 @@ class _MyHomePageState extends State<MyHomePage> {
           ],
         ),
       ),
-      body: Column(
+      body: ListView(
         children: [
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
