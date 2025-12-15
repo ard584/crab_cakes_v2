@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'screens/data_entry_screen.dart';
+import 'screens/project_selection.dart';
 
 void main() {
   runApp(const MyApp());
@@ -31,7 +31,7 @@ class MyApp extends StatelessWidget {
         // tested with just a hot reload.
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
-      home: const MyHomePage(title: 'Specimen'),
+      home: const ProjectSelection(),
     );
   }
 }
