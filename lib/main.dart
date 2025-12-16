@@ -1,12 +1,30 @@
 import 'package:flutter/material.dart';
+import 'package:ui_prototype/models/project.dart';
 import 'screens/project_selection.dart';
+import 'services/app_database.dart';
+import 'services/device_uuid_helper.dart';
+import 'services/projects_repository.dart';
 
-void main() {
-  runApp(const MyApp());
+void main() async {
+
+  WidgetsFlutterBinding.ensureInitialized();
+
+  final db = AppDatabase();
+  final deviceId = await getOrCreateDeviceID();
+
+  final projectsRepo = ProjectsRepository(db, deviceId);
+  final List<ProjectModel> projectsList = await projectsRepo.getAllProjects();
+
+  runApp(MyApp(projectsList: projectsList));
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  final List<ProjectModel> projectsList;
+
+  const MyApp({
+    super.key,
+    required this.projectsList
+  });
 
   // This widget is the root of your application.
   @override
@@ -31,7 +49,9 @@ class MyApp extends StatelessWidget {
         // tested with just a hot reload.
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
-      home: const ProjectSelection(),
+      home: ProjectSelection(
+        projectsList: projectsList,
+      ),
     );
   }
 }

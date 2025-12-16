@@ -1,10 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:ui_prototype/models/project.dart';
 import 'settings_screen.dart';
 import 'project_selection.dart';
 import 'export_screen.dart';
+import '../services/projects_repository.dart';
 
 class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
+  final List<ProjectModel> projectsList;
+
+  const MyHomePage({
+    super.key,
+    required this.title,
+    required this.projectsList,
+  });
 
   // This widget is the home page of your application. It is stateful, meaning
   // that it has a State object (defined below) that contains fields that affect
@@ -33,7 +41,7 @@ class _MyHomePageState extends State<MyHomePage> {
         Navigator.pop(context);
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => const ProjectSelection()),
+          MaterialPageRoute(builder: (context) => ProjectSelection(projectsList: widget.projectsList)),
         );
       case 'export_data':
         Navigator.pop(context);

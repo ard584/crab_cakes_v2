@@ -1,5 +1,6 @@
 import 'app_database.dart';
 import 'package:drift/drift.dart';
+import '../models/project.dart';
 
 import 'uuid_helpers.dart';
 
@@ -12,6 +13,7 @@ class ProjectsRepository {
 
   ProjectsRepository(this.db, this.deviceId);
 
+  // Create project
   Future<void> createProject(
     String title,
     String? description,
@@ -41,5 +43,27 @@ class ProjectsRepository {
             dbPath: Value(dbPath),
           ),
         );
+  }
+
+  Future<List<ProjectModel>> getAllProjects() async {
+
+    final res = await db.select(db.projects).get();
+
+    final projects = res.map((item) => {
+
+      ProjectModel(
+        id: item.id,
+        title: item.title,
+        description: item.description,
+        dbPath: item.dbPath,
+        createdAt: DateTime.parse(item.createdAt),
+        updatedAt: DateTime.parse(item.updatedAt),
+      )
+
+    });
+
+    final List<ProjectModel> projectsList = projects.expand((setOfProjects) => setOfProjects).toList();
+
+    return projectsList;
   }
 }
