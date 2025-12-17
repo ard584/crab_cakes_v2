@@ -4,12 +4,14 @@ class ProjectWidget extends StatelessWidget {
   final String projectTitle;
   final String? projectDescription;
   final DateTime projectUpdatedAt;
+  final VoidCallback? onPressed;
 
   const ProjectWidget({
     super.key,
     required this.projectTitle,
     this.projectDescription,
-    required this.projectUpdatedAt
+    required this.projectUpdatedAt,
+    this.onPressed
   });
 
   @override
@@ -39,9 +41,7 @@ class ProjectWidget extends StatelessWidget {
           ),
           Spacer(),
           IconButton(
-            onPressed: () {
-              print('Tapped settings');
-            },
+            onPressed: onPressed,
             icon: const Icon(Icons.arrow_forward_ios),
           ),
         ],
