@@ -3,7 +3,6 @@ import 'package:ui_prototype/models/project.dart';
 import 'settings_screen.dart';
 import 'project_selection.dart';
 import 'export_screen.dart';
-import '../services/projects_repository.dart';
 
 class MyHomePage extends StatefulWidget {
   final List<ProjectModel> projectsList;

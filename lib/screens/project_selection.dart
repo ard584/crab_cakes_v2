@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:ui_prototype/models/project.dart';
+import 'package:ui_prototype/screens/project_creation.dart';
 import '../components/project_widget.dart';
 import 'package:ui_prototype/services/load_project.dart';
 import 'package:ui_prototype/exceptions/project_db_exception.dart';
 import 'package:ui_prototype/dialogs/project_error_dialog.dart';
+
+
 
 class _ProjectSelectionState extends State<ProjectSelection> {
   Future<void> openProject(String dbPath) async {
@@ -23,7 +26,7 @@ class _ProjectSelectionState extends State<ProjectSelection> {
               Text(
                 'Invalid path: \'$dbPath\'',
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
               ),
             ],
@@ -74,7 +77,15 @@ class _ProjectSelectionState extends State<ProjectSelection> {
         ),
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: null,
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) =>
+                  ProjectCreationScreen(),
+            ),
+          );
+        },
         tooltip: 'Create a new project',
         label: Text('Create Project'),
         icon: Icon(Icons.add),
