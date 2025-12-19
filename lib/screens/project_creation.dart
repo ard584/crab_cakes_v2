@@ -1,3 +1,4 @@
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 
 class ProjectCreationScreen extends StatefulWidget {
@@ -46,6 +47,7 @@ class _ProjectCreationScreenState extends State<ProjectCreationScreen> {
   final String? dbPath = '';
   bool isSubmitting = false;
   Schema selectedSchema = Schema.text;
+  FilePickerResult? schemaFile;
 
   @override
   Widget build(BuildContext context) {
@@ -108,7 +110,18 @@ class _ProjectCreationScreenState extends State<ProjectCreationScreen> {
                         ),
                       ),
                       Schema.file => FloatingActionButton.extended(
-                        onPressed: null,
+                        onPressed: () async {
+                          FilePickerResult? result = await FilePicker.platform.pickFiles(
+                            type: FileType.custom,
+                            allowedExtensions: ['txt', 'sql']
+                          );
+
+                          if (result != null) {
+                            setState(() {
+                              schemaFile = result;
+                            });
+                          }
+                        },
                         label: Text('Upload File'),
                       ),
                     },
