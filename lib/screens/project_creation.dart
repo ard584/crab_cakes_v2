@@ -75,17 +75,43 @@ class _ProjectCreationScreenState extends State<ProjectCreationScreen> {
                       decoration: getInputDecoration(labelText: 'Description'),
                     ),
                   ),
-                  SizedBox(
-                    width: double.infinity,
-                    child: SchemaInputSelection(
-                      selected: selectedSchema,
-                      onChanged: (Schema newValue) {
-                        setState(() {
-                          selectedSchema = newValue;
-                          print('SELECTED SCHEMA: $selectedSchema');
-                        });
-                      },
+                  Container(
+                    margin: const EdgeInsets.only(bottom: 16.0),
+                    padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                    child: SizedBox(
+                      width: double.infinity,
+                      child: SchemaInputSelection(
+                        selected: selectedSchema,
+                        onChanged: (Schema newValue) {
+                          setState(() {
+                            selectedSchema = newValue;
+                            print('SELECTED SCHEMA: $selectedSchema');
+                          });
+                        },
+                      ),
                     ),
+                  ),
+                  Container(
+                    child: switch (selectedSchema) {
+                      Schema.text => Container(
+                        margin: const EdgeInsets.only(bottom: 16.0),
+                        padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                        decoration: reusableBoxDecoration,
+                        child: TextFormField(
+                          minLines: 3,
+                          maxLines: null,
+                          keyboardType: TextInputType.multiline,
+                          decoration: getInputDecoration(
+                            labelText: 'SQLite Schema',
+                          ),
+                          style: TextStyle(fontFamily: 'JetBrains Mono'),
+                        ),
+                      ),
+                      Schema.file => FloatingActionButton.extended(
+                        onPressed: null,
+                        label: Text('Upload File'),
+                      ),
+                    },
                   ),
                 ],
               ),
