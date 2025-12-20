@@ -43,3 +43,10 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Generated files
+*.g.dart
+*.g.part
+
+# Xcode settings
+macos/Runner.xcworkspace/xcshareddata/WorkspaceSettings.xcsettings
