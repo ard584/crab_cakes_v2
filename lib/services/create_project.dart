@@ -28,35 +28,79 @@ TRIGGER runs database operations automatically, not needed
 SELECT for data leakage
 */
 
-const List<String> disallowedKeywords = [
-  "ATTACH",
-  "DETACH",
-  "PRAGMA",
-  "LOAD_EXTENSION",
-  "VACUUM",
-  "REINDEX",
-  "ANALYZE",
-  "INSERT",
-  "UPDATE",
-  "DELETE",
-  "REPLACE",
-  "UPSERT",
-  "DROP",
-  "BEGIN",
-  "COMMIT",
-  "ROLLBACK",
-  "SAVEPOINT",
-  "RELEASE",
-  "TRIGGER",
-  "SELECT",
-];
+class SqlSecurityValidator {
+  static const List<String> disallowedKeywords = [
+    "ATTACH",
+    "DETACH",
+    "PRAGMA",
+    "LOAD_EXTENSION",
+    "VACUUM",
+    "REINDEX",
+    "ANALYZE",
+    "INSERT",
+    "UPDATE",
+    "DELETE",
+    "REPLACE",
+    "UPSERT",
+    "DROP",
+    "BEGIN",
+    "COMMIT",
+    "ROLLBACK",
+    "SAVEPOINT",
+    "RELEASE",
+    "TRIGGER",
+    "SELECT",
+  ];
 
-const List<String> allowedKeywords = [
-  "CREATE TABLE",
-  "ALTER TABLE",
-  "CREATE INDEX",
-  "CREATE UNIQUE INDEX",
-];
+  static const List<String> allowedKeywords = [
+    "CREATE TABLE",
+    "ALTER TABLE",
+    "CREATE INDEX",
+    "CREATE UNIQUE INDEX",
+  ];
+
+  bool hasDisallowedKeywords(String sql) {
+    
+        // Check for blacklisted keywords
+    // 2. Keyword Blacklist (Ensures no forbidden terms inside the statement)
+    for (final forbidden in disallowedKeywords) {
+      // Use word boundaries \b to allow names like "my_trigger_column"
+      // but block the command "TRIGGER"
+      if (sql.contains(RegExp('\\b$forbidden\\b'))) {
+        return true;
+      }
+    }
+
+    return false;
+
+  }
+
+  bool hasOnlyAllowedKeywords(String userSchema) {
+  // Strip comments
+  final String cleanedSql = removeComments(userSchema);
+
+  // Split into statements by semicolon
+  final statements = splitSqlStatements(cleanedSql);
+
+  for (final statement in statements) {
+    // Collapse spaces, make uppercase
+    // \s is regex for any whitespace
+    // + matches any amount of this pattern
+    final String normalized = statement
+        .replaceAll(RegExp(r'\s+'), ' ')
+        .toUpperCase();
+
+    // Check for matches
+    final matches = allowedKeywords.any(
+      (keyword) => normalized.startsWith(keyword),
+    );
+
+    // If it doesn't match any allowed keywords, block
+    if (!matches) return false;
+  }
+
+  return true;
+}
 
 String removeComments(String sql) {
   // This regex matches either:
@@ -116,41 +160,30 @@ List<String> splitSqlStatements(String sql) {
   return statements.where((s) => s.isNotEmpty).toList();
 }
 
-bool hasOnlyAllowedKeywords(String userSchema) {
-  // Strip comments
-  final String cleanedSql = removeComments(userSchema);
+bool isSafe(rawSql) {
 
-  // Split into statements by semicolon
-  final statements = splitSqlStatements(cleanedSql);
+  // Clean & split
+  final clean = removeComments(rawSql);
+  final split = splitSqlStatements(clean);
 
-  for (final statement in statements) {
-    // Collapse spaces, make uppercase
-    // \s is regex for any whitespace
-    // + matches any amount of this pattern
-    final String normalized = statement
-        .replaceAll(RegExp(r'\s+'), ' ')
-        .toUpperCase();
+  // Iterate through statements
+  for (final statement in split) {
 
-    // Check for matches
-    final matches = allowedKeywords.any(
-      (keyword) => normalized.startsWith(keyword),
-    );
+    // Check if statement is not allowed
+    if(!hasOnlyAllowedKeywords(statement)) return false;
 
-    // If it doesn't match any allowed keywords, block
-    if (!matches) return false;
-
-    // Check for blacklisted keywords
-    // 2. Keyword Blacklist (Ensures no forbidden terms inside the statement)
-    for (final forbidden in disallowedKeywords) {
-      // Use word boundaries \b to allow names like "my_trigger_column"
-      // but block the command "TRIGGER"
-      if (normalized.contains(RegExp('\\b$forbidden\\b'))) {
-        return false;
-      }
-    }
+    // Check if has disallowed keywords
   }
 
-  return true;
+  return false;
+
+}
+
+}
+
+// Create database function
+Future<Database> initializeDatabase({String path = ':memory:'}) async {
+  return sqlite3.open(path);
 }
 
 bool validateDb(Database db) {
@@ -185,13 +218,19 @@ int getSchemaVersion(Database db) {
   return db.select('PRAGMA schema_version;').first[0] as int;
 }
 
-Future<ProjectDb> createProject(String userSchema) async {
+typedef DatabaseOpener = Database Function();
+
+Future<ProjectDb> createProject(
+  String userSchema, {
+  required DatabaseOpener opener,
+}) async {
   // Validate the schema first
-  if (!hasOnlyAllowedKeywords(userSchema))
+  if (!hasOnlyAllowedKeywords(userSchema)) {
     throw ProjectDbException(
       type: ProjectDbErrorType.invalidSchema,
       message: "Invalid SQL detect",
     );
+  }
 
   // Clean of comments
   final cleanedSql = removeComments(userSchema);
@@ -209,7 +248,7 @@ Future<ProjectDb> createProject(String userSchema) async {
   late final Database db;
 
   try {
-    db = sqlite3.open(dbPath);
+    db = opener();
   } catch (e, st) {
     throw ProjectDbException(
       type: ProjectDbErrorType.openFailed,
