@@ -59,7 +59,7 @@ class SqlSecurityValidator {
     "CREATE UNIQUE INDEX",
   ];
 
-  bool hasDisallowedKeywords(String sql) {
+  bool _hasDisallowedKeywords(String sql) {
     
         // Check for blacklisted keywords
     // 2. Keyword Blacklist (Ensures no forbidden terms inside the statement)
@@ -75,39 +75,44 @@ class SqlSecurityValidator {
 
   }
 
-  bool hasOnlyAllowedKeywords(String userSchema) {
-  // Strip comments
-  final String cleanedSql = removeComments(userSchema);
+  String _normalizeSql(sql) {
+    return sql
+    .replaceAll(RegExp(r'\s+'), ' ')
+    .toUpperCase();
+  }
 
-  // Split into statements by semicolon
-  final statements = splitSqlStatements(cleanedSql);
-
-  for (final statement in statements) {
-    // Collapse spaces, make uppercase
-    // \s is regex for any whitespace
-    // + matches any amount of this pattern
-    final String normalized = statement
-        .replaceAll(RegExp(r'\s+'), ' ')
-        .toUpperCase();
+  bool _hasOnlyAllowedKeywords(String sql) {
 
     // Check for matches
     final matches = allowedKeywords.any(
-      (keyword) => normalized.startsWith(keyword),
+      (keyword) => sql.startsWith(keyword),
     );
 
     // If it doesn't match any allowed keywords, block
     if (!matches) return false;
-  }
 
   return true;
 }
 
-String removeComments(String sql) {
-  // This regex matches either:
-  // 1. A single-quoted string: '[^']*' (and handles doubled quotes '')
-  // 2. A multi-line comment: /\*[\s\S]*?\*/
-  // 3. A single-line comment: --.*
-  final pattern = RegExp(r"('[^']*'|/\*[\s\S]*?\*/|--.*)");
+String _removeComments(String sql) {
+  final pattern = RegExp(
+    r"("
+
+    // Scan through anything surrounded by single quotes, 
+    // ignore two consecutive single quotes
+    r"'(?:''|[^'])*'"
+
+    // Match "/*" up to "*/" 
+    // (need \ escape character for regex parser to look for *)
+    // [\s\S] matches everything (consume everything up to */)
+    // *? Makes it consume everything up to the first occurrence of */
+    // (matches smallest block it can find)
+    r"/\*[\s\S]*?\*/"
+
+    // Match single line character up to newline
+    r"|--.*"
+    r")"
+  );
 
   return sql.splitMapJoin(
     pattern,
@@ -124,17 +129,15 @@ String removeComments(String sql) {
   );
 }
 
-List<String> splitSqlStatements(String sql) {
+List<String> _splitSqlStatements(String sql) {
   // Pattern matches:
   // 1. Single quoted strings: '(?:''|[^'])*'
   // 2. Double quoted identifiers: "(?:""|[^"])*"
   // 3. Semicolons: ;
   final pattern = RegExp(
-    r"('(?:''|[^'])*'|"
-    "(?:"
-    "|[^"
-    "])*"
-    "|;)",
+    r"('(?:''|[^'])*'"
+    r'|"(?:""|[^"])*"'
+    r"|;)"
   );
 
   List<String> statements = [];
@@ -160,22 +163,30 @@ List<String> splitSqlStatements(String sql) {
   return statements.where((s) => s.isNotEmpty).toList();
 }
 
-bool isSafe(rawSql) {
+List<String> getValidStatements(sql) {
 
   // Clean & split
-  final clean = removeComments(rawSql);
-  final split = splitSqlStatements(clean);
+  final clean = _removeComments(sql);
+  final split = _splitSqlStatements(clean);
+
+  return split;
+}
+
+bool isSafe(rawSql) {
+  final statements = getValidStatements(rawSql);
 
   // Iterate through statements
-  for (final statement in split) {
+  for (final statement in statements) {
 
-    // Check if statement is not allowed
-    if(!hasOnlyAllowedKeywords(statement)) return false;
+    // Normalize
+    final normalized = _normalizeSql(statement);
 
-    // Check if has disallowed keywords
+    // Check if statement is not allowed or has disallowed keywords
+    if(!_hasOnlyAllowedKeywords(normalized)) return false;
+    if (_hasDisallowedKeywords(normalized)) return false;
   }
 
-  return false;
+  return true;
 
 }
 
@@ -224,19 +235,15 @@ Future<ProjectDb> createProject(
   String userSchema, {
   required DatabaseOpener opener,
 }) async {
-  // Validate the schema first
-  if (!hasOnlyAllowedKeywords(userSchema)) {
-    throw ProjectDbException(
-      type: ProjectDbErrorType.invalidSchema,
-      message: "Invalid SQL detect",
-    );
+
+  // Check if is safe
+  final validator = SqlSecurityValidator();
+  if (!validator.isSafe(userSchema)) {
+    throw Exception("Unsafe SQL detected");
   }
 
-  // Clean of comments
-  final cleanedSql = removeComments(userSchema);
-
-  // Split into statements
-  final statements = splitSqlStatements(cleanedSql);
+  // Split sql
+  final statements = validator.getValidStatements(userSchema);
 
   final tempDir = Directory.systemTemp.createTempSync();
   final dbPath = path.join(tempDir.path, 'temp_${const Uuid().v4()}.sqlite');
