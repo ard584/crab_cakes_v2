@@ -58,9 +58,7 @@ void main() {
     test('should ignore unsafe keywords if in multi-line comment', () {
       final sql = 
       "CREATE TABLE messages (content TEXT DEFAULT 'TEST');"
-      "/*\n" 
-      "DROP TABLE messages;\n"
-      "*/";
+      "/* DROP TABLE messages; */";
       expect(validator.isSafe(sql), isTrue);
     });
   });

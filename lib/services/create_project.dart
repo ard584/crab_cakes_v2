@@ -142,18 +142,19 @@ String _removeComments(String sql) {
 
     // Scan through anything surrounded by double quotes,
     // ignore two consecutive single quotes
-    r'"(?:""|[^"])*"'
+    r'|"(?:""|[^"])*"'
 
     // Match "/*" up to "*/" 
     // (need \ escape character for regex parser to look for *)
     // [\s\S] matches everything (consume everything up to */)
     // *? Makes it consume everything up to the first occurrence of */
     // (matches smallest block it can find)
-    r"/\*[\s\S]*?\*/"
+    r"|/\*[\s\S]*?\*/"
 
     // Match single line character up to newline
     r"|--.*"
-    r")"
+    r")",
+    multiLine: true
   );
 
   return sql.splitMapJoin(
