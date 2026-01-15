@@ -60,26 +60,26 @@ class SqlSecurityValidator {
   ];
 
   bool _containsForbiddenKeywordsInCode(String statement) {
-
     // Define regex for finding anything that's in quotes
     final quotePattern = RegExp(
       r"("
-
       // Single quotes
-      r"|'(?:''|[^'])*'"
-
+      r"'(?:''|[^'])*'"
       // Double quotes
-      r'"(?:""|[^"])*"'
-      r")"
+      r'|"(?:""|[^"])*"'
+      r")",
     );
 
     int lastIndex = 0;
 
     for (final match in quotePattern.allMatches(statement)) {
-
       // Get codeBefore and codeAfter quotes
       final codeBefore = statement.substring(lastIndex, match.start);
-      if(_hasDisallowedKeywords(codeBefore)) return true;
+
+      //TODO:
+      print('CODEBEFORE: $codeBefore');
+
+      if (_hasDisallowedKeywords(codeBefore)) return true;
 
       // Update lastIndex
       lastIndex = match.end;
@@ -87,14 +87,15 @@ class SqlSecurityValidator {
 
     // Scan remaining code too
     final codeAfter = statement.substring(lastIndex);
-    if(_hasDisallowedKeywords(codeAfter)) return true;
+    //TODO:
+    print('CODEBEFORE: $codeAfter');
+    if (_hasDisallowedKeywords(codeAfter)) return true;
 
     return false;
   }
 
   bool _hasDisallowedKeywords(String sql) {
-    
-        // Check for blacklisted keywords
+    // Check for blacklisted keywords
     // 2. Keyword Blacklist (Ensures no forbidden terms inside the statement)
     for (final forbidden in disallowedKeywords) {
       // Use word boundaries \b to allow names like "my_trigger_column"
@@ -105,135 +106,160 @@ class SqlSecurityValidator {
     }
 
     return false;
-
   }
 
   String _normalizeSql(sql) {
-    return sql
-    .replaceAll(RegExp(r'\s+'), ' ')
-    .toUpperCase();
+    return sql.replaceAll(RegExp(r'\s+'), ' ').toUpperCase();
+  }
+
+  bool _hasModifier(String sql) {
+
+    // trim it
+    final trimmed = sql.trim();
+
+    // check if ends with )
+    return !trimmed.endsWith(')');
+  }
+
+  bool _hasUnterminatedStringDelimiter(String sql, String delimiter) {
+
+    // Variable for tracking if string is open
+    bool open = false;
+
+    // Iterate through the string
+    for(int index = 0; index < sql.length; index++) {
+
+      // Check if current char is not a quote
+      // If not a quote, skip iteration
+      if(sql[index] != delimiter) continue;
+
+      if (
+        open && // If currently inside a string
+        index + 1 < sql.length && // And there is a next character
+        sql[index + 1] == delimiter) // And the next character is a quote
+        {
+          // We are currently looking at an escaped quote, skip it
+          // Add one to the index and skip this iteration (should not toggle open)
+          index++;
+          continue;
+        }
+
+      open = !open;
+    }
+
+    // Return open
+    return open;
   }
 
   bool _hasOnlyAllowedKeywords(String sql) {
-
     // Check for matches
-    final matches = allowedKeywords.any(
-      (keyword) => sql.startsWith(keyword),
-    );
+    final matches = allowedKeywords.any((keyword) => sql.startsWith(keyword));
 
     // If it doesn't match any allowed keywords, block
     if (!matches) return false;
 
-  return true;
-}
+    return true;
+  }
 
-bool _isQuoted(String token) {
+  String _removeComments(String sql) {
+    final pattern = RegExp(
+      r"("
+      // Scan through anything surrounded by single quotes,
+      // ignore two consecutive single quotes
+      r"'(?:''|[^'])*'"
+      // Scan through anything surrounded by double quotes,
+      // ignore two consecutive single quotes
+      r'|"(?:""|[^"])*"'
+      // Match "/*" up to "*/"
+      // (need \ escape character for regex parser to look for *)
+      // [\s\S] matches everything (consume everything up to */)
+      // *? Makes it consume everything up to the first occurrence of */
+      // (matches smallest block it can find)
+      r"|/\*[\s\S]*?\*/"
+      // Match single line character up to newline
+      r"|--.*"
+      r")",
+      multiLine: true,
+    );
 
-  return false;
-}
+    return sql.splitMapJoin(
+      pattern,
+      onMatch: (Match match) {
+        final text = match.group(0)!;
+        // If it starts with a quote, it's a string literal — KEEP IT
+        if (text.startsWith("'")) {
+          return text;
+        }
+        // Otherwise, it's a comment — DISCARD IT
+        return '';
+      },
+      onNonMatch: (String text) => text,
+    );
+  }
 
-String _removeComments(String sql) {
-  final pattern = RegExp(
-    r"("
+  List<String> _splitSqlStatements(String sql) {
+    // Pattern matches:
+    // 1. Single quoted strings: '(?:''|[^'])*'
+    // 2. Double quoted identifiers: "(?:""|[^"])*"
+    // 3. Semicolons: ;
+    final pattern = RegExp(
+      r"('(?:''|[^'])*'"
+      r'|"(?:""|[^"])*"'
+      r"|;)",
+    );
 
-    // Scan through anything surrounded by single quotes, 
-    // ignore two consecutive single quotes
-    r"'(?:''|[^'])*'"
+    List<String> statements = [];
+    int lastStart = 0;
 
-    // Scan through anything surrounded by double quotes,
-    // ignore two consecutive single quotes
-    r'|"(?:""|[^"])*"'
+    for (final match in pattern.allMatches(sql)) {
+      final matchedText = match.group(0)!;
 
-    // Match "/*" up to "*/" 
-    // (need \ escape character for regex parser to look for *)
-    // [\s\S] matches everything (consume everything up to */)
-    // *? Makes it consume everything up to the first occurrence of */
-    // (matches smallest block it can find)
-    r"|/\*[\s\S]*?\*/"
-
-    // Match single line character up to newline
-    r"|--.*"
-    r")",
-    multiLine: true
-  );
-
-  return sql.splitMapJoin(
-    pattern,
-    onMatch: (Match match) {
-      final text = match.group(0)!;
-      // If it starts with a quote, it's a string literal — KEEP IT
-      if (text.startsWith("'")) {
-        return text;
+      if (matchedText == ';') {
+        // Found a delimiter
+        // Add everything from the last semicolon to this one.
+        statements.add(sql.substring(lastStart, match.start).trim());
+        lastStart = match.end;
       }
-      // Otherwise, it's a comment — DISCARD IT
-      return '';
-    },
-    onNonMatch: (String text) => text,
-  );
-}
-
-List<String> _splitSqlStatements(String sql) {
-  // Pattern matches:
-  // 1. Single quoted strings: '(?:''|[^'])*'
-  // 2. Double quoted identifiers: "(?:""|[^"])*"
-  // 3. Semicolons: ;
-  final pattern = RegExp(
-    r"('(?:''|[^'])*'"
-    r'|"(?:""|[^"])*"'
-    r"|;)"
-  );
-
-  List<String> statements = [];
-  int lastStart = 0;
-
-  for (final match in pattern.allMatches(sql)) {
-    final matchedText = match.group(0)!;
-
-    if (matchedText == ';') {
-      // Found a delimiter
-      // Add everything from the last semicolon to this one.
-      statements.add(sql.substring(lastStart, match.start).trim());
-      lastStart = match.end;
     }
+
+    // Add the final chunk (if any) after the last semicolon
+    final remainder = sql.substring(lastStart).trim();
+    if (remainder.isNotEmpty) {
+      statements.add(remainder);
+    }
+
+    return statements.where((s) => s.isNotEmpty).toList();
   }
 
-  // Add the final chunk (if any) after the last semicolon
-  final remainder = sql.substring(lastStart).trim();
-  if (remainder.isNotEmpty) {
-    statements.add(remainder);
+  List<String> getValidStatements(sql) {
+    // Clean & split
+    final clean = _removeComments(sql);
+    final split = _splitSqlStatements(clean);
+
+    return split;
   }
 
-  return statements.where((s) => s.isNotEmpty).toList();
-}
+  bool isSafe(rawSql) {
+    final statements = getValidStatements(rawSql);
 
-List<String> getValidStatements(sql) {
+    // Iterate through statements
+    for (final statement in statements) {
+      // Normalize
+      final normalized = _normalizeSql(statement);
 
-  // Clean & split
-  final clean = _removeComments(sql);
-  final split = _splitSqlStatements(clean);
+      //TODO:
+      print("NORMALIZED: $normalized");
 
-  return split;
-}
+      // Check if statement is not allowed or has disallowed keywords
+      if (!_hasOnlyAllowedKeywords(normalized)) return false;
+      if (_containsForbiddenKeywordsInCode(normalized)) return false;
+      if (_hasModifier(normalized)) return false;
+      if (_hasUnterminatedStringDelimiter(normalized, "'")) return false;
+      if (_hasUnterminatedStringDelimiter(normalized, '"')) return false;
+    }
 
-bool isSafe(rawSql) {
-  final statements = getValidStatements(rawSql);
-
-  // Iterate through statements
-  for (final statement in statements) {
-
-    // Normalize
-    final normalized = _normalizeSql(statement);
-
-    // Check if statement is not allowed or has disallowed keywords
-    if(!_hasOnlyAllowedKeywords(normalized)) return false;
-    if (_containsForbiddenKeywordsInCode(normalized)) return false;
-    
+    return true;
   }
-
-  return true;
-
-}
-
 }
 
 // Create database function
@@ -279,7 +305,6 @@ Future<ProjectDb> createProject(
   String userSchema, {
   required DatabaseOpener opener,
 }) async {
-
   // Check if is safe
   final validator = SqlSecurityValidator();
   if (!validator.isSafe(userSchema)) {
