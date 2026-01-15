@@ -41,6 +41,19 @@ class SqlLexer {
   bool _isSymbol(String c) => '(),;'.contains(c);
 
   // Tokenize functions
+  List<Token> tokenize() {
+    final tokens = <Token>[];
+
+    while (!isAtEnd) {
+      final token = nextToken();
+      if (token.type != TokenType.unknown && token.text.isNotEmpty) {
+        tokens.add(token);
+      }
+    }
+
+    return tokens;
+  }
+
   Token nextToken() {
     // Skip whitespace
     while (!isAtEnd && _isWhitespace(_peek())) {
