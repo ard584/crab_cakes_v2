@@ -2,6 +2,7 @@ import 'package:sqlite3/sqlite3.dart';
 import 'package:ui_prototype/models/project_db.dart';
 import 'package:ui_prototype/exceptions/project_db_exception.dart';
 import 'package:ui_prototype/services/helpers/database.dart';
+import 'package:ui_prototype/services/helpers/sql_lexer.dart';
 
 import 'dart:io';
 import 'package:path/path.dart' as path;
@@ -54,9 +55,9 @@ class SqlSecurityValidator {
 
   static const List<List<String>> allowedKeywords = [
     ["CREATE", "TABLE"],
-    ["ALTER", "TABLE",],
-    ["CREATE", "INDEX",],
-    ["CREATE", "UNIQUE", "INDEX",]
+    ["ALTER", "TABLE"],
+    ["CREATE", "INDEX"],
+    ["CREATE", "UNIQUE", "INDEX"],
   ];
 
   bool _containsForbiddenKeywordsInCode(String statement) {
@@ -77,7 +78,7 @@ class SqlSecurityValidator {
       final codeBefore = statement.substring(lastIndex, match.start);
 
       //TODO:
-      print('CODEBEFORE: $codeBefore');
+      // print('CODEBEFORE: $codeBefore');
 
       if (_hasDisallowedKeywords(codeBefore)) return true;
 
@@ -88,7 +89,7 @@ class SqlSecurityValidator {
     // Scan remaining code too
     final codeAfter = statement.substring(lastIndex);
     //TODO:
-    print('CODEBEFORE: $codeAfter');
+    // print('CODEBEFORE: $codeAfter');
     if (_hasDisallowedKeywords(codeAfter)) return true;
 
     return false;
@@ -113,7 +114,6 @@ class SqlSecurityValidator {
   }
 
   bool _hasModifier(String sql) {
-
     // trim it
     final trimmed = sql.trim();
 
@@ -121,44 +121,24 @@ class SqlSecurityValidator {
     return !trimmed.endsWith(')');
   }
 
-  bool _hasUnterminatedStringDelimiter(String sql, String delimiter) {
+  bool _startsWithAllowedPrefix(List<Token> tokens) {
+    for (final prefix in allowedKeywords) {
+      if (tokens.length < prefix.length) continue;
 
-    // Variable for tracking if string is open
-    bool open = false;
+      bool matches = true;
+      for (int i = 0; i < prefix.length; i++) {
+        final token = tokens[i];
 
-    // Iterate through the string
-    for(int index = 0; index < sql.length; index++) {
-
-      // Check if current char is not a quote
-      // If not a quote, skip iteration
-      if(sql[index] != delimiter) continue;
-
-      if (
-        open && // If currently inside a string
-        index + 1 < sql.length && // And there is a next character
-        sql[index + 1] == delimiter) // And the next character is a quote
-        {
-          // We are currently looking at an escaped quote, skip it
-          // Add one to the index and skip this iteration (should not toggle open)
-          index++;
-          continue;
+        if (token.type != TokenType.keyword || token.text != prefix[i]) {
+          matches = false;
+          break;
         }
+      }
 
-      open = !open;
+      if (matches) return true;
     }
 
-    // Return open
-    return open;
-  }
-
-  bool _hasOnlyAllowedKeywords(String sql) {
-    // Check for matches
-    final matches = allowedKeywords.any((keyword) => sql.startsWith(keyword));
-
-    // If it doesn't match any allowed keywords, block
-    if (!matches) return false;
-
-    return true;
+    return false;
   }
 
   String _removeComments(String sql) {
@@ -246,16 +226,24 @@ class SqlSecurityValidator {
     for (final statement in statements) {
       // Normalize
       final normalized = _normalizeSql(statement);
+      List<Token> tokens;
+
+      // Tokenize
+      try {
+        tokens = SqlLexer(normalized).tokenize();
+      } catch (e) {
+        if (e is FormatException) return false;
+        rethrow; // rethrow other unexpected errors
+      }
 
       //TODO:
       print("NORMALIZED: $normalized");
+      print("TOKENIZED: $tokens\n");
 
       // Check if statement is not allowed or has disallowed keywords
-      if (!_hasOnlyAllowedKeywords(normalized)) return false;
+      if (!_startsWithAllowedPrefix(tokens)) return false;
       if (_containsForbiddenKeywordsInCode(normalized)) return false;
       if (_hasModifier(normalized)) return false;
-      if (_hasUnterminatedStringDelimiter(normalized, "'")) return false;
-      if (_hasUnterminatedStringDelimiter(normalized, '"')) return false;
     }
 
     return true;
