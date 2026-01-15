@@ -59,6 +59,39 @@ class SqlSecurityValidator {
     "CREATE UNIQUE INDEX",
   ];
 
+  bool _containsForbiddenKeywordsInCode(String statement) {
+
+    // Define regex for finding anything that's in quotes
+    final quotePattern = RegExp(
+      r"("
+
+      // Single quotes
+      r"|'(?:''|[^'])*'"
+
+      // Double quotes
+      r'"(?:""|[^"])*"'
+      r")"
+    );
+
+    int lastIndex = 0;
+
+    for (final match in quotePattern.allMatches(statement)) {
+
+      // Get codeBefore and codeAfter quotes
+      final codeBefore = statement.substring(lastIndex, match.start);
+      if(_hasDisallowedKeywords(codeBefore)) return true;
+
+      // Update lastIndex
+      lastIndex = match.end;
+    }
+
+    // Scan remaining code too
+    final codeAfter = statement.substring(lastIndex);
+    if(_hasDisallowedKeywords(codeAfter)) return true;
+
+    return false;
+  }
+
   bool _hasDisallowedKeywords(String sql) {
     
         // Check for blacklisted keywords
@@ -94,6 +127,11 @@ class SqlSecurityValidator {
   return true;
 }
 
+bool _isQuoted(String token) {
+
+  return false;
+}
+
 String _removeComments(String sql) {
   final pattern = RegExp(
     r"("
@@ -101,6 +139,10 @@ String _removeComments(String sql) {
     // Scan through anything surrounded by single quotes, 
     // ignore two consecutive single quotes
     r"'(?:''|[^'])*'"
+
+    // Scan through anything surrounded by double quotes,
+    // ignore two consecutive single quotes
+    r'"(?:""|[^"])*"'
 
     // Match "/*" up to "*/" 
     // (need \ escape character for regex parser to look for *)
@@ -183,7 +225,8 @@ bool isSafe(rawSql) {
 
     // Check if statement is not allowed or has disallowed keywords
     if(!_hasOnlyAllowedKeywords(normalized)) return false;
-    if (_hasDisallowedKeywords(normalized)) return false;
+    if (_containsForbiddenKeywordsInCode(normalized)) return false;
+    
   }
 
   return true;
