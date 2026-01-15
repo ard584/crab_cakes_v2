@@ -114,5 +114,23 @@ void main() {
       final tokens = SqlLexer('   \n\t ').tokenize();
       expect(tokens, isEmpty);
     });
+
+    test('does not tokenize keywords inside longer identifiers', () {
+      final tokens = SqlLexer('CREATE TABLE dropdown_selection;').tokenize();
+
+      expectToken(tokens[0], TokenType.keyword, 'CREATE');
+      expectToken(tokens[1], TokenType.keyword, 'TABLE');
+
+      // "drop" is a substring but must NOT be treated as DROP
+      expectToken(tokens[2], TokenType.identifier, 'dropdown_selection');
+
+      // No DROP keyword token should exist
+      expect(
+        tokens.any(
+          (t) => t.type == TokenType.keyword && t.text.toUpperCase() == 'DROP',
+        ),
+        isFalse,
+      );
+    });
   });
 }
