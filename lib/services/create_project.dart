@@ -52,11 +52,11 @@ class SqlSecurityValidator {
     "SELECT",
   ];
 
-  static const List<String> allowedKeywords = [
-    "CREATE TABLE",
-    "ALTER TABLE",
-    "CREATE INDEX",
-    "CREATE UNIQUE INDEX",
+  static const List<List<String>> allowedKeywords = [
+    ["CREATE", "TABLE"],
+    ["ALTER", "TABLE",],
+    ["CREATE", "INDEX",],
+    ["CREATE", "UNIQUE", "INDEX",]
   ];
 
   bool _containsForbiddenKeywordsInCode(String statement) {
