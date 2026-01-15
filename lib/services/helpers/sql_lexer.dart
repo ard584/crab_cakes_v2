@@ -25,7 +25,7 @@ class SqlLexer {
   bool get isAtEnd => _pos >= sql.length;
 
   // Function for checking current character without advancing
-  String _peek() => sql[_pos];
+  String _peek() => isAtEnd ? '\x00' : sql[_pos];
 
   // Function for advancing (returns current character then advances)
   String _advance() => sql[_pos++];
@@ -37,7 +37,7 @@ class SqlLexer {
   // Functions for identifying tokens
   bool _isWhitespace(String c) => RegExp(r'\s').hasMatch(c);
   bool _isIdentifierStart(String c) => RegExp(r'[A-Za-z_]').hasMatch(c);
-  bool _isIdentifierPart(String c) => RegExp('r[A-Za-z0-9_]').hasMatch(c);
+  bool _isIdentifierPart(String c) => RegExp(r'[A-Za-z0-9_]').hasMatch(c);
   bool _isSymbol(String c) => '(),;'.contains(c);
 
   // Consumer functions
@@ -51,7 +51,7 @@ class SqlLexer {
     // Form to text and define keyword list
     final text = buffer.toString();
     final upper = text.toUpperCase();
-    final keywords = [
+    final Set<String> keywords = {
       'CREATE',
       'TABLE',
       'ALTER',
@@ -60,7 +60,7 @@ class SqlLexer {
       'DROP',
       'PRAGMA',
       'SELECT',
-    ];
+    };
 
     if (keywords.contains(upper)) {
       return Token(TokenType.keyword, buffer.toString());
@@ -83,7 +83,7 @@ class SqlLexer {
       // Check for another quote char
       if (c == quoteChar) {
         // Check if another quoteChar follows (escaped quotechar)
-        if (!isAtEnd && _peek() != quoteChar) {
+        if (!isAtEnd && _peek() == quoteChar) {
           // Write the quote char
           // Skip rest of this iteration
           // (Should not mark string as closed)
@@ -127,6 +127,7 @@ class SqlLexer {
     // Consume the /* characters
     buffer.write(_advance());
     buffer.write(_advance());
+    bool closed = false;
 
     // Iterate until find */ characters
     while (!isAtEnd) {
@@ -136,8 +137,15 @@ class SqlLexer {
       if (c == '*' && _peek() == '/') {
         // Consume the clash (ast already consumed)
         buffer.write(_advance());
+        closed = true;
         break;
       }
+    }
+
+    // If is at end and not closed,
+    // assume unterminated Multiline Comment
+    if (!closed) {
+      throw FormatException('Unterminated Multiline Comment');
     }
 
     return Token(TokenType.comment, buffer.toString());
