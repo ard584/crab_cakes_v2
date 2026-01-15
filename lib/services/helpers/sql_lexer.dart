@@ -40,6 +40,36 @@ class SqlLexer {
   bool _isIdentifierPart(String c) => RegExp(r'[A-Za-z0-9_]').hasMatch(c);
   bool _isSymbol(String c) => '(),;'.contains(c);
 
+  // Tokenize functions
+  Token nextToken() {
+    // Skip whitespace
+    while (!isAtEnd && _isWhitespace(_peek())) {
+      _advance();
+    }
+
+    // Check for end of file
+    if (isAtEnd) return Token(TokenType.unknown, '');
+
+    // Get a character
+    final c = _peek();
+
+    // Comments
+    if (c == '-' && _lookahead(1) == '-') return _consumeSingleLineComment();
+    if (c == '/' && _lookahead(1) == '*') return _consumeMultiLineComment();
+
+    // Strings
+    if (c == "'" || c == '"') return _consumeString(c);
+
+    // Identifiers
+    if (_isIdentifierStart(c)) return _consumeIdentifierOrKeyword();
+
+    // Symbol
+    if (_isSymbol(c)) return Token(TokenType.symbol, _advance());
+
+    // Unknown
+    return Token(TokenType.unknown, _advance());
+  }
+
   // Consumer functions
   Token _consumeIdentifierOrKeyword() {
     // Get identifier parts
@@ -135,7 +165,7 @@ class SqlLexer {
       buffer.write(c);
 
       if (c == '*' && _peek() == '/') {
-        // Consume the clash (ast already consumed)
+        // Consume the slash (ast already consumed)
         buffer.write(_advance());
         closed = true;
         break;
