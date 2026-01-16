@@ -7,14 +7,57 @@ void expectToken(Token token, TokenType type, String text) {
 }
 
   const Set<String> keywords = {
+    // DDL
     'CREATE',
-    'TABLE',
     'ALTER',
-    'INDEX',
-    'UNIQUE',
     'DROP',
-    'PRAGMA',
+    'TRUNCATE',
+
+    // Tables / schema
+    'TABLE',
+    'INDEX',
+    'VIEW',
+    'TRIGGER',
+
+    // Constraints / modifiers
+    'UNIQUE',
+    'PRIMARY',
+    'KEY',
+    'FOREIGN',
+    'REFERENCES',
+    'WITHOUT',
+    'ROWID',
+
+    // DML
     'SELECT',
+    'INSERT',
+    'UPDATE',
+    'DELETE',
+
+    // Clauses
+    'FROM',
+    'WHERE',
+    'JOIN',
+    'INNER',
+    'LEFT',
+    'RIGHT',
+    'ON',
+    'GROUP',
+    'BY',
+    'HAVING',
+    'ORDER',
+    'LIMIT',
+    'OFFSET',
+
+    // SQLite-specific / dangerous
+    'PRAGMA',
+    'VACUUM',
+    'ATTACH',
+    'DETACH',
+
+    // Control / meta
+    'WITH',
+    'AS',
   };
 
 void main() {

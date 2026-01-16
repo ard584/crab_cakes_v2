@@ -91,6 +91,10 @@ class SqlSecurityValidator {
     ['ON', 'UPDATE'],
   };
 
+  static final Set<String> allowedSequenceStarters = allowedKeywordSequences
+      .map((seq) => seq.first)
+      .toSet();
+
   static const Set<String> disallowedKeywords = {
     "ATTACH",
     "DETACH",
@@ -154,6 +158,12 @@ class SqlSecurityValidator {
 
   /// Returns the length of the matched sequence, or 0 if no match.
   int _getMatchedSequenceLength(List<Token> tokens, int startIndex) {
+    final currentText = tokens[startIndex].text;
+
+    // FAST FAIL: If the current token isn't the start of ANY allowed sequence, stop.
+    // (You would need a Set<String> of all starting words, e.g. {"ON", "PRIMARY"})
+    if (!allowedSequenceStarters.contains(currentText)) return 0;
+
     for (final sequence in allowedKeywordSequences) {
       // Optimization: Don't check if the sequence won't fit
       if (startIndex + sequence.length > tokens.length) continue;
