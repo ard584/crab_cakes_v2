@@ -30,7 +30,68 @@ SELECT for data leakage
 */
 
 class SqlSecurityValidator {
-  static const List<String> disallowedKeywords = [
+  static const Set<String> keywords = {
+    // DDL
+    'CREATE',
+    'ALTER',
+    'DROP',
+    'TRUNCATE',
+
+    // Tables / schema
+    'TABLE',
+    'INDEX',
+    'VIEW',
+    'TRIGGER',
+
+    // Constraints / modifiers
+    'UNIQUE',
+    'PRIMARY',
+    'KEY',
+    'FOREIGN',
+    'REFERENCES',
+    'WITHOUT',
+    'ROWID',
+
+    // DML
+    'SELECT',
+    'INSERT',
+    'UPDATE',
+    'DELETE',
+
+    // Clauses
+    'FROM',
+    'WHERE',
+    'JOIN',
+    'INNER',
+    'LEFT',
+    'RIGHT',
+    'ON',
+    'GROUP',
+    'BY',
+    'HAVING',
+    'ORDER',
+    'LIMIT',
+    'OFFSET',
+
+    // SQLite-specific / dangerous
+    'PRAGMA',
+    'VACUUM',
+    'ATTACH',
+    'DETACH',
+
+    // Control / meta
+    'WITH',
+    'AS',
+  };
+
+  // All tokens are already normalized to UPPERCASE
+  // Example in SqlSecurityValidator
+  static const Set<List<String>> allowedKeywordSequences = {
+    ['ON', 'DELETE'],
+    ['ON', 'UPDATE'],
+  };
+
+  static const Set<String> disallowedKeywords = {
     "ATTACH",
     "DETACH",
     "PRAGMA",
@@ -51,74 +112,93 @@ class SqlSecurityValidator {
     "RELEASE",
     "TRIGGER",
     "SELECT",
-  ];
+  };
 
-  static const List<List<String>> allowedKeywords = [
+  static const Set<List<String>> allowedKeywords = {
     ["CREATE", "TABLE"],
     ["ALTER", "TABLE"],
     ["CREATE", "INDEX"],
     ["CREATE", "UNIQUE", "INDEX"],
-  ];
+  };
 
-  bool _containsForbiddenKeywordsInCode(String statement) {
-    // Define regex for finding anything that's in quotes
-    final quotePattern = RegExp(
-      r"("
-      // Single quotes
-      r"'(?:''|[^'])*'"
-      // Double quotes
-      r'|"(?:""|[^"])*"'
-      r")",
-    );
+  bool _containsForbiddenKeywords(List<Token> tokens) {
+    int i = 0;
 
-    int lastIndex = 0;
+    while (i < tokens.length) {
+      final token = tokens[i];
 
-    for (final match in quotePattern.allMatches(statement)) {
-      // Get codeBefore and codeAfter quotes
-      final codeBefore = statement.substring(lastIndex, match.start);
+      // 1. PRIORITY: Check if we are standing at the start of a Safe Sequence.
+      // e.g., We are at "ON", and the sequence is ["ON", "DELETE", "CASCADE"]
+      final safeSequenceLength = _getMatchedSequenceLength(tokens, i);
 
-      //TODO:
-      // print('CODEBEFORE: $codeBefore');
+      if (safeSequenceLength > 0) {
+        // Found a whitelisted sequence!
+        // "Consume" these tokens by skipping our index forward.
+        // We skip the check entirely for these tokens.
+        i += safeSequenceLength;
+        continue;
+      }
 
-      if (_hasDisallowedKeywords(codeBefore)) return true;
+      // 2. CHECK: If not safe, is this individual token forbidden?
+      if (token.type == TokenType.keyword &&
+          disallowedKeywords.contains(token.text)) {
+        return true; // Found a naked forbidden keyword
+      }
 
-      // Update lastIndex
-      lastIndex = match.end;
+      // Move to next token
+      i++;
     }
-
-    // Scan remaining code too
-    final codeAfter = statement.substring(lastIndex);
-    //TODO:
-    // print('CODEBEFORE: $codeAfter');
-    if (_hasDisallowedKeywords(codeAfter)) return true;
 
     return false;
   }
 
-  bool _hasDisallowedKeywords(String sql) {
-    // Check for blacklisted keywords
-    // 2. Keyword Blacklist (Ensures no forbidden terms inside the statement)
-    for (final forbidden in disallowedKeywords) {
-      // Use word boundaries \b to allow names like "my_trigger_column"
-      // but block the command "TRIGGER"
-      if (sql.contains(RegExp('\\b$forbidden\\b'))) {
-        return true;
+  /// Returns the length of the matched sequence, or 0 if no match.
+  int _getMatchedSequenceLength(List<Token> tokens, int startIndex) {
+    for (final sequence in allowedKeywordSequences) {
+      // Optimization: Don't check if the sequence won't fit
+      if (startIndex + sequence.length > tokens.length) continue;
+
+      if (_isSequenceAt(tokens, startIndex, sequence)) {
+        return sequence.length;
       }
     }
+    return 0;
+  }
 
-    return false;
+  /// Checks if the tokens starting at [index] match the [sequence] exactly
+  bool _isSequenceAt(List<Token> tokens, int index, List<String> sequence) {
+    for (int offset = 0; offset < sequence.length; offset++) {
+      final token = tokens[index + offset];
+
+      // Strict check: Must be a keyword and must match text
+      if (token.type != TokenType.keyword || token.text != sequence[offset]) {
+        return false;
+      }
+    }
+    return true;
   }
 
   String _normalizeSql(sql) {
     return sql.replaceAll(RegExp(r'\s+'), ' ').toUpperCase();
   }
 
-  bool _hasModifier(String sql) {
-    // trim it
-    final trimmed = sql.trim();
+  bool _hasModifier(List<Token> tokens) {
+    if (tokens.isEmpty) return false;
 
-    // check if ends with )
-    return !trimmed.endsWith(')');
+    // Find last meaningful token
+    Token? lastToken;
+    for (final token in tokens.reversed) {
+      if (token.type != TokenType.comment) {
+        lastToken = token;
+        break;
+      }
+    }
+
+    if (lastToken == null) return false;
+
+    // If last token is not a symbol that is a closing parenthesis,
+    // Return true
+    return !(lastToken.type == TokenType.symbol && lastToken.text == ')');
   }
 
   bool _startsWithAllowedPrefix(List<Token> tokens) {
@@ -230,20 +310,20 @@ class SqlSecurityValidator {
 
       // Tokenize
       try {
-        tokens = SqlLexer(normalized).tokenize();
+        tokens = SqlLexer(normalized, keywords: keywords).tokenize();
       } catch (e) {
         if (e is FormatException) return false;
         rethrow; // rethrow other unexpected errors
       }
 
       //TODO:
-      print("NORMALIZED: $normalized");
+      // print("NORMALIZED: $normalized");
       print("TOKENIZED: $tokens\n");
 
       // Check if statement is not allowed or has disallowed keywords
+      if (_containsForbiddenKeywords(tokens)) return false;
       if (!_startsWithAllowedPrefix(tokens)) return false;
-      if (_containsForbiddenKeywordsInCode(normalized)) return false;
-      if (_hasModifier(normalized)) return false;
+      if (_hasModifier(tokens)) return false;
     }
 
     return true;

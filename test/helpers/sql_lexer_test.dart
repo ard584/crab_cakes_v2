@@ -6,10 +6,21 @@ void expectToken(Token token, TokenType type, String text) {
   expect(token.text, text);
 }
 
+  const Set<String> keywords = {
+    'CREATE',
+    'TABLE',
+    'ALTER',
+    'INDEX',
+    'UNIQUE',
+    'DROP',
+    'PRAGMA',
+    'SELECT',
+  };
+
 void main() {
   group('SqlLexer - tokenize', () {
     test('tokenizes simple CREATE TABLE statement', () {
-      final tokens = SqlLexer('CREATE TABLE users;').tokenize();
+      final tokens = SqlLexer('CREATE TABLE users;', keywords: keywords).tokenize();
 
       expect(tokens.length, 4);
 
@@ -20,20 +31,20 @@ void main() {
     });
 
     test('keywords are case-insensitive', () {
-      final tokens = SqlLexer('cReAtE tAbLe users;').tokenize();
+      final tokens = SqlLexer('cReAtE tAbLe users;', keywords: keywords).tokenize();
 
       expectToken(tokens[0], TokenType.keyword, 'cReAtE');
       expectToken(tokens[1], TokenType.keyword, 'tAbLe');
     });
 
     test('identifiers that contain keywords are not keywords', () {
-      final tokens = SqlLexer('CREATE TABLE select_data;').tokenize();
+      final tokens = SqlLexer('CREATE TABLE select_data;', keywords: keywords).tokenize();
 
       expectToken(tokens[2], TokenType.identifier, 'select_data');
     });
 
     test('tokenizes single-quoted string', () {
-      final tokens = SqlLexer("DEFAULT 'hello'").tokenize();
+      final tokens = SqlLexer("DEFAULT 'hello'", keywords: keywords).tokenize();
 
       final stringToken = tokens.firstWhere((t) => t.type == TokenType.string);
 
@@ -41,7 +52,7 @@ void main() {
     });
 
     test('tokenizes escaped single quote in string', () {
-      final tokens = SqlLexer("DEFAULT 'it''s fine'").tokenize();
+      final tokens = SqlLexer("DEFAULT 'it''s fine'", keywords: keywords).tokenize();
 
       final stringToken = tokens.firstWhere((t) => t.type == TokenType.string);
 
@@ -50,13 +61,13 @@ void main() {
 
     test('throws on unterminated string literal', () {
       expect(
-        () => SqlLexer("DEFAULT 'oops").tokenize(),
+        () => SqlLexer("DEFAULT 'oops", keywords: keywords).tokenize(),
         throwsA(isA<FormatException>()),
       );
     });
 
     test('tokenizes single-line comment', () {
-      final tokens = SqlLexer('-- comment\nCREATE TABLE x;').tokenize();
+      final tokens = SqlLexer('-- comment\nCREATE TABLE x;', keywords: keywords).tokenize();
 
       final comment = tokens.firstWhere((t) => t.type == TokenType.comment);
 
@@ -64,7 +75,7 @@ void main() {
     });
 
     test('tokenizes multi-line comment', () {
-      final tokens = SqlLexer('/* hello */ CREATE TABLE x;').tokenize();
+      final tokens = SqlLexer('/* hello */ CREATE TABLE x;', keywords: keywords).tokenize();
 
       final comment = tokens.firstWhere((t) => t.type == TokenType.comment);
 
@@ -73,14 +84,14 @@ void main() {
 
     test('throws on unterminated multi-line comment', () {
       expect(
-        () => SqlLexer('/* hello').tokenize(),
+        () => SqlLexer('/* hello', keywords: keywords).tokenize(),
         throwsA(isA<FormatException>()),
       );
     });
 
     test('comment markers inside strings do not start comments', () {
       final tokens = SqlLexer(
-        "CREATE TABLE x (c TEXT DEFAULT '/* not a comment */');",
+        "CREATE TABLE x (c TEXT DEFAULT '/* not a comment */');", keywords: keywords
       ).tokenize();
 
       expect(tokens.where((t) => t.type == TokenType.comment), isEmpty);
@@ -88,14 +99,14 @@ void main() {
 
     test('quotes inside comments do not start strings', () {
       final tokens = SqlLexer(
-        "/* 'not a string' */ CREATE TABLE x;",
+        "/* 'not a string' */ CREATE TABLE x;", keywords: keywords
       ).tokenize();
 
       expect(tokens.where((t) => t.type == TokenType.string), isEmpty);
     });
 
     test('tokenizes symbols correctly', () {
-      final tokens = SqlLexer('(a, b);').tokenize();
+      final tokens = SqlLexer('(a, b);', keywords: keywords).tokenize();
 
       expectToken(tokens[0], TokenType.symbol, '(');
       expectToken(tokens[1], TokenType.identifier, 'a');
@@ -106,17 +117,17 @@ void main() {
     });
 
     test('empty input produces no tokens', () {
-      final tokens = SqlLexer('').tokenize();
+      final tokens = SqlLexer('', keywords: keywords).tokenize();
       expect(tokens, isEmpty);
     });
 
     test('whitespace-only input produces no tokens', () {
-      final tokens = SqlLexer('   \n\t ').tokenize();
+      final tokens = SqlLexer('   \n\t ', keywords: keywords).tokenize();
       expect(tokens, isEmpty);
     });
 
     test('does not tokenize keywords inside longer identifiers', () {
-      final tokens = SqlLexer('CREATE TABLE dropdown_selection;').tokenize();
+      final tokens = SqlLexer('CREATE TABLE dropdown_selection;', keywords: keywords).tokenize();
 
       expectToken(tokens[0], TokenType.keyword, 'CREATE');
       expectToken(tokens[1], TokenType.keyword, 'TABLE');

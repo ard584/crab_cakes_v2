@@ -18,8 +18,9 @@ class Token {
 class SqlLexer {
   final String sql;
   int _pos = 0;
+  final Set<String> keywords;
 
-  SqlLexer(this.sql);
+  SqlLexer(this.sql, {required this.keywords});
 
   // Getter for checking if is at end of sql
   bool get isAtEnd => _pos >= sql.length;
@@ -38,7 +39,7 @@ class SqlLexer {
   bool _isWhitespace(String c) => RegExp(r'\s').hasMatch(c);
   bool _isIdentifierStart(String c) => RegExp(r'[A-Za-z_]').hasMatch(c);
   bool _isIdentifierPart(String c) => RegExp(r'[A-Za-z0-9_]').hasMatch(c);
-  bool _isSymbol(String c) => '(),;'.contains(c);
+  bool _isSymbol(String c) => '(),;<>=!'.contains(c);
 
   // Tokenize functions
   List<Token> tokenize() {
@@ -94,16 +95,6 @@ class SqlLexer {
     // Form to text and define keyword list
     final text = buffer.toString();
     final upper = text.toUpperCase();
-    final Set<String> keywords = {
-      'CREATE',
-      'TABLE',
-      'ALTER',
-      'INDEX',
-      'UNIQUE',
-      'DROP',
-      'PRAGMA',
-      'SELECT',
-    };
 
     if (keywords.contains(upper)) {
       return Token(TokenType.keyword, buffer.toString());

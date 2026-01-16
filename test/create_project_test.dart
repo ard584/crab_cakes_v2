@@ -180,5 +180,42 @@ void main() {
       final sql = "CREATE TABLE x (id INT) IF NOT EXISTS;";
       expect(validator.isSafe(sql), isFalse);
     });
+
+    test('should allow Foreign Key actions (ON DELETE/UPDATE)', () {
+      // This fails currently because DELETE and UPDATE are blacklisted
+      final sql = '''
+    CREATE TABLE orders (
+      id INT PRIMARY KEY,
+      user_id INT REFERENCES users(id) ON DELETE CASCADE ON UPDATE NO ACTION
+    );
+  ''';
+      expect(validator.isSafe(sql), isTrue);
+    });
+
+    test('should allow escaped double quotes in identifiers', () {
+      // The column name is literally: my "weird" column
+      final sql = 'CREATE TABLE test ("my ""weird"" column" TEXT);';
+      expect(validator.isSafe(sql), isTrue);
+    });
+
+    test('should allow escaped single quotes in literals', () {
+      // The default value is literally: O'Reily
+      final sql = "CREATE TABLE customers (name TEXT DEFAULT 'O''Reily');";
+      expect(validator.isSafe(sql), isTrue);
+    });
+
+    test('should block keywords hidden by symbol boundaries', () {
+      // "SELECT" touches ")" so simple space-based splitters fail,
+      // but \b regex should catch it.
+      final sql = 'CREATE TABLE x (id INT)SELECT * FROM x;';
+      expect(validator.isSafe(sql), isFalse);
+    });
+
+    test('should allow column names that look like comments', () {
+      // If your comment stripper is too aggressive, it might mangle this line
+      final sql =
+          'CREATE TABLE dangerous ("-- comment" TEXT, "/* comment */" INT);';
+      expect(validator.isSafe(sql), isTrue);
+    });
   });
 }
