@@ -167,17 +167,12 @@ void main() {
     });
 
     test('should block create statements followed by any modifiers', () {
-      final sql = "CREATE TABLE x (id INT) WITHOUT ROWID;";
-      expect(validator.isSafe(sql), isFalse);
-    });
-
-    test('should block create statements followed by any modifiers', () {
-      final sql = "CREATE TABLE x (id INT) WITHOUT ROWID;";
-      expect(validator.isSafe(sql), isFalse);
-    });
-
-    test('should block create statements followed by any modifiers', () {
       final sql = "CREATE TABLE x (id INT) IF NOT EXISTS;";
+      expect(validator.isSafe(sql), isFalse);
+    });
+
+    test('should block create statements followed by any modifiers 2', () {
+      final sql = "CREATE TABLE x (id INT) WITHOUT ROWID;";
       expect(validator.isSafe(sql), isFalse);
     });
 

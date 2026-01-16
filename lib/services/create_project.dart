@@ -30,7 +30,7 @@ SELECT for data leakage
 */
 
 class SqlSecurityValidator {
-  static const Set<String> keywords = {
+  static const Set<String> keywordSet = {
     // DDL
     'CREATE',
     'ALTER',
@@ -304,7 +304,9 @@ class SqlSecurityValidator {
   List<String> getValidStatements(sql) {
     // Clean & split
     final clean = _removeComments(sql);
-    final split = _splitSqlStatements(clean);
+    var split = _splitSqlStatements(clean);
+
+    split = split.map((statement) => _normalizeSql(statement)).toList();
 
     return split;
   }
@@ -314,21 +316,15 @@ class SqlSecurityValidator {
 
     // Iterate through statements
     for (final statement in statements) {
-      // Normalize
-      final normalized = _normalizeSql(statement);
       List<Token> tokens;
 
       // Tokenize
       try {
-        tokens = SqlLexer(normalized, keywords: keywords).tokenize();
+        tokens = SqlLexer(statement, keywords: keywordSet).tokenize();
       } catch (e) {
         if (e is FormatException) return false;
         rethrow; // rethrow other unexpected errors
       }
-
-      //TODO:
-      // print("NORMALIZED: $normalized");
-      print("TOKENIZED: $tokens\n");
 
       // Check if statement is not allowed or has disallowed keywords
       if (_containsForbiddenKeywords(tokens)) return false;
