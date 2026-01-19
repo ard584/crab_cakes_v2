@@ -14,11 +14,11 @@ class ProjectsRepository {
   ProjectsRepository(this.db, this.deviceId);
 
   // Create project
-  Future<void> createProject(
-    String title,
+  Future<void> createProject({
+    required String title,
     String? description,
-    String dbPath,
-  ) async {
+    required String dbPath,
+  }) async {
     final now = _nowIsoUtc();
 
     //

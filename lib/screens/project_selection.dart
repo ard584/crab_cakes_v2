@@ -1,14 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:ui_prototype/models/project.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:ui_prototype/providers/db_provider.dart';
 import 'package:ui_prototype/screens/project_creation.dart';
 import '../components/project_widget.dart';
 import 'package:ui_prototype/services/load_project.dart';
 import 'package:ui_prototype/exceptions/project_db_exception.dart';
 import 'package:ui_prototype/dialogs/project_error_dialog.dart';
 
-
-
-class _ProjectSelectionState extends State<ProjectSelection> {
+class _ProjectSelectionState extends ConsumerState<ProjectSelection> {
   Future<void> openProject(String dbPath) async {
     if (!isValidDbPath(dbPath)) {
       await showDialog(
@@ -60,30 +59,54 @@ class _ProjectSelectionState extends State<ProjectSelection> {
 
   @override
   Widget build(BuildContext context) {
+    final repo = ref.watch(projectsRepositoryProvider);
+
+    if (repo == null) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
     return Scaffold(
       appBar: AppBar(title: const Text('Select a Project')),
-      body: Padding(
-        padding: EdgeInsets.all(40.0),
-        child: ListView.builder(
-          itemCount: widget.projectsList.length,
-          itemBuilder: (context, index) {
-            return ProjectWidget(
-              projectTitle: widget.projectsList[index].title,
-              projectDescription: widget.projectsList[index].description,
-              projectUpdatedAt: widget.projectsList[index].updatedAt,
-              onPressed: () => openProject(widget.projectsList[index].dbPath),
-            );
-          },
-        ),
+      body: FutureBuilder(
+        future: repo.getAllProjects(),
+        builder: (context, snapshot) {
+          // Loading state
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          // Handle errors
+          if (snapshot.hasError) {
+            return Center(child: Text('Error: ${snapshot.error}'));
+          }
+
+          final projects = snapshot.data ?? [];
+
+          if (projects.isEmpty) {
+            return Center(child: Text('No projects found'));
+          }
+
+          return Padding(
+            padding: EdgeInsets.all(40.0),
+            child: ListView.builder(
+              itemCount: projects.length,
+              itemBuilder: (context, index) {
+                final project = projects[index];
+                return ProjectWidget(
+                  projectTitle: project.title,
+                  projectDescription: project.description,
+                  projectUpdatedAt: project.updatedAt,
+                  onPressed: () => openProject(project.dbPath),
+                );
+              },
+            ),
+          );
+        },
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
           Navigator.push(
             context,
-            MaterialPageRoute(
-              builder: (context) =>
-                  ProjectCreationScreen(),
-            ),
+            MaterialPageRoute(builder: (context) => ProjectCreationScreen()),
           );
         },
         tooltip: 'Create a new project',
@@ -94,13 +117,11 @@ class _ProjectSelectionState extends State<ProjectSelection> {
   }
 }
 
-class ProjectSelection extends StatefulWidget {
-  final List<ProjectModel> projectsList;
-
-  const ProjectSelection({super.key, required this.projectsList});
+class ProjectSelection extends ConsumerStatefulWidget {
+  const ProjectSelection({super.key});
 
   @override
-  State<ProjectSelection> createState() => _ProjectSelectionState();
+  ConsumerState<ProjectSelection> createState() => _ProjectSelectionState();
 }
 
 final reusableBoxDecoration = BoxDecoration(

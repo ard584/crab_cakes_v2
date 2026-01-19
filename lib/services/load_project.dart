@@ -1,21 +1,32 @@
+import 'package:flutter/material.dart';
 import 'package:sqlite3/sqlite3.dart';
 import 'package:ui_prototype/exceptions/project_db_exception.dart';
 import 'package:ui_prototype/models/project_db.dart';
 import 'package:ui_prototype/services/helpers/database.dart';
+import 'package:path/path.dart' as path;
 
 bool isValidDbPath(String dbPath) {
   // Check if empty
   if (dbPath.isEmpty) return false;
 
+  try {
+    final filename = path.basename(dbPath);
+
+    // Check for illegal characters
+
+    final illegalChars = RegExp(r'[<>:"/\\|?*]');
+    if (illegalChars.hasMatch(filename)) return false;
+
+    print("DBPATH: $dbPath");
+
+  } catch (e) {
+    return false;
+  }
+
   // Check if ends with db
-  if (!dbPath.endsWith('db')) return false;
+  // if (!dbPath.endsWith('db')) return false;
 
   // Validate it doesn't have spaces
-  if (dbPath.contains(' ')) return false;
-
-  // Check for illegal characters
-  final illegalChars = RegExp(r'[<>:"/\\|?*]');
-  if (illegalChars.hasMatch(dbPath)) return false;
 
   return true;
 }

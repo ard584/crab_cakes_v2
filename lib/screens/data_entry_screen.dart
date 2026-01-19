@@ -40,7 +40,7 @@ class _MyHomePageState extends State<MyHomePage> {
         Navigator.pop(context);
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => ProjectSelection(projectsList: widget.projectsList)),
+          MaterialPageRoute(builder: (context) => ProjectSelection()),
         );
       case 'export_data':
         Navigator.pop(context);

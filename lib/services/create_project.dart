@@ -1,3 +1,5 @@
+import 'package:flutter/material.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:sqlite3/sqlite3.dart';
 import 'package:ui_prototype/models/project_db.dart';
 import 'package:ui_prototype/exceptions/project_db_exception.dart';
@@ -6,6 +8,10 @@ import 'package:ui_prototype/services/helpers/sql_lexer.dart';
 
 import 'dart:io';
 import 'package:path/path.dart' as path;
+import 'package:ui_prototype/services/projects_repository.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:ui_prototype/providers/db_provider.dart';
+
 import 'package:uuid/uuid.dart';
 
 /*
@@ -373,9 +379,34 @@ int getSchemaVersion(Database db) {
   return db.select('PRAGMA schema_version;').first[0] as int;
 }
 
-typedef DatabaseOpener = Database Function();
+typedef DatabaseOpener = Database Function(String filename);
 
-Future<ProjectDb> createProject(
+Future<String> initializeProject(
+  String userSchema, {
+  required DatabaseOpener opener,
+}) async {
+  final tempDbPath = await createProjectInTemp(userSchema, opener: opener);
+  final appDir = await getApplicationSupportDirectory();
+
+  // TODO: Figure out better naming scheme
+  final permanentPath = path.join(
+    appDir.path,
+    'projects',
+    'project_${DateTime.now().microsecondsSinceEpoch}.sqlite',
+  );
+
+  await Directory(path.dirname(permanentPath)).create(recursive: true);
+
+  final tempFile = File(tempDbPath);
+  await tempFile.rename(permanentPath);
+
+  //TODO:
+  print('PERMANENT PATH: $permanentPath');
+
+  return permanentPath;
+}
+
+Future<String> createProjectInTemp(
   String userSchema, {
   required DatabaseOpener opener,
 }) async {
@@ -389,20 +420,23 @@ Future<ProjectDb> createProject(
   final statements = validator.getValidStatements(userSchema);
 
   final tempDir = Directory.systemTemp.createTempSync();
-  final dbPath = path.join(tempDir.path, 'temp_${const Uuid().v4()}.sqlite');
+  final dbTempPath = path.join(
+    tempDir.path,
+    'temp_${const Uuid().v4()}.sqlite',
+  );
 
-  if (File(dbPath).existsSync()) {
+  if (File(dbTempPath).existsSync()) {
     throw StateError('New database invariant violated');
   }
 
   late final Database db;
 
   try {
-    db = opener();
+    db = opener(dbTempPath);
   } catch (e, st) {
     throw ProjectDbException(
       type: ProjectDbErrorType.openFailed,
-      message: 'Failed to open database at $dbPath',
+      message: 'Failed to open database at $dbTempPath',
       cause: e,
       stackTrace: st,
     );
@@ -451,9 +485,60 @@ Future<ProjectDb> createProject(
     db.execute('ROLLBACK;');
     db.dispose();
     // Clean up temp file
-    if (File(dbPath).existsSync()) File(dbPath).deleteSync();
+    if (File(dbTempPath).existsSync()) File(dbTempPath).deleteSync();
     rethrow;
   }
 
-  return await createDbObject(db);
+  return dbTempPath;
+}
+
+class ProjectCreateRequest {
+  final String title;
+  final String? description;
+  final String sql;
+
+  ProjectCreateRequest({
+    required this.title,
+    this.description,
+    required this.sql,
+  });
+}
+
+Future<void> addProjectToAppDatabase(
+  Ref ref, {
+  required String title,
+  String? description,
+  required String dbPath,
+}) async {
+  // Get projects repository provider
+  final repo = ref.watch(projectsRepositoryProvider);
+
+  await repo?.createProject(title: title, description: description, dbPath: dbPath);
+  print("REPO CREATEPROJECT CALLED");
+  final res = await repo?.getAllProjects();
+  print("ALL PROJECTS: $res");
+
+}
+
+final projectServiceProvider = Provider((ref) => ProjectService(ref));
+
+class ProjectService {
+  final Ref ref;
+  ProjectService(this.ref);
+
+  Future<void> create(ProjectCreateRequest request) async {
+    String path;
+
+    // Attempt to initialize the project
+    try {
+      print("INITIALIZE PROJECT CALLED");
+      path = await initializeProject(request.sql, opener: sqlite3.open);
+
+      // Attempt to insert into database
+      print("CALLING ADD PROJECT TO APP DATABASE");
+      addProjectToAppDatabase(ref, title: request.title, dbPath: path);
+    } catch (e) {
+      print("ERROR: $e");
+    }
+  }
 }

@@ -1,10 +1,12 @@
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:ui_prototype/providers/db_provider.dart';
 import 'package:ui_prototype/services/create_project.dart';
 
-class ProjectCreationScreen extends StatefulWidget {
+class ProjectCreationScreen extends ConsumerStatefulWidget {
   @override
-  State<ProjectCreationScreen> createState() => _ProjectCreationScreenState();
+  ConsumerState<ProjectCreationScreen> createState() => _ProjectCreationScreenState();
 }
 
 class SchemaInputSelection extends StatefulWidget {
@@ -41,7 +43,7 @@ class _SchemaInputSelectionState extends State<SchemaInputSelection> {
   }
 }
 
-class _ProjectCreationScreenState extends State<ProjectCreationScreen> {
+class _ProjectCreationScreenState extends ConsumerState<ProjectCreationScreen> {
   final _formKey = GlobalKey<FormState>();
 
   final _projectNameController = TextEditingController();
@@ -52,14 +54,25 @@ class _ProjectCreationScreenState extends State<ProjectCreationScreen> {
   Schema selectedSchema = Schema.text;
   FilePickerResult? schemaFile;
 
-  void printValues() {
+  void insertIntoDb() {
+
+    final title = _projectNameController.text;
+    final description = _projectDescriptionController.text;
+    final sql = _dbCreateSchema.text;
+
+    final request = ProjectCreateRequest(
+      title: title, 
+      description: description,
+      sql: sql
+    );
+
+    print("REQUEST: $request");
+    
     print("NAME: ${_projectNameController.text}");
     print("DESCRIPTION: ${_projectDescriptionController.text}");
     print("SCHEMA: ${_dbCreateSchema.text}");
 
-    final sql = _dbCreateSchema.text;
-
-    print("SAFE? ${SqlSecurityValidator().isSafe(sql)}");
+    ref.read(projectServiceProvider).create(request);
   }
 
   @override
@@ -153,7 +166,7 @@ class _ProjectCreationScreenState extends State<ProjectCreationScreen> {
                     },
                   ),
                   FloatingActionButton.extended(
-                    onPressed: printValues,
+                    onPressed: insertIntoDb,
                     label: Text('Create Project'),
                   ),
                 ],
