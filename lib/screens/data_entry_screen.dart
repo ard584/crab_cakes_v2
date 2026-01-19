@@ -3,6 +3,7 @@ import 'package:ui_prototype/models/project.dart';
 import 'settings_screen.dart';
 import 'project_selection.dart';
 import 'export_screen.dart';
+import 'package:ui_prototype/utils/logger.dart';
 
 class MyHomePage extends StatefulWidget {
   final List<ProjectModel> projectsList;
@@ -55,7 +56,7 @@ class _MyHomePageState extends State<MyHomePage> {
           MaterialPageRoute(builder: (context) => const SettingsScreen()),
         );
       default:
-        print('Unknown action selected: $selectedValue');
+        log.w('Unknown action selected: $selectedValue');
     }
   }
 
@@ -156,21 +157,21 @@ final List<ReorderableItem> sidebarMenuItems = [
     widget: ListTile(
       title: const Text('Trip'),
       leading: const Icon(Icons.table_chart),
-      onTap: () => {print("Tapped")},
+      onTap: () => {log.d("Trip tapped")},
     ),
   ),
   ReorderableItem(
     widget: ListTile(
       title: const Text('Batch'),
       leading: const Icon(Icons.table_chart),
-      onTap: () => {print("Tapped")},
+      onTap: () => {log.d("Batch tapped")},
     ),
   ),
   ReorderableItem(
     widget: ListTile(
       title: const Text('Specimen'),
       leading: const Icon(Icons.table_chart),
-      onTap: () => {print("Tapped")},
+      onTap: () => {log.d("Specimen tapped")},
     ),
   ),
 ];

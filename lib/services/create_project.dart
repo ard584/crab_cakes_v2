@@ -1,18 +1,15 @@
-import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:sqlite3/sqlite3.dart';
-import 'package:ui_prototype/models/project_db.dart';
 import 'package:ui_prototype/exceptions/project_db_exception.dart';
-import 'package:ui_prototype/services/helpers/database.dart';
 import 'package:ui_prototype/services/helpers/sql_lexer.dart';
 
 import 'dart:io';
 import 'package:path/path.dart' as path;
-import 'package:ui_prototype/services/projects_repository.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ui_prototype/providers/db_provider.dart';
 
 import 'package:uuid/uuid.dart';
+import 'package:ui_prototype/utils/logger.dart';
 
 /*
 ATTACH is harmful as it attaches another database
@@ -369,14 +366,14 @@ bool validateDb(Database db) {
 
 Map<String, Object?> getSecurityState(Database db) {
   return {
-    'foreign_keys': db.select('PRAGMA foreign_keys').first[0],
-    'trusted_schema': db.select('PRAGMA trusted_schema').first[0],
-    'writable_schema': db.select('PRAGMA writable_schema').first[0],
+    'foreign_keys': db.select('PRAGMA foreign_keys').first.columnAt(0),
+    'trusted_schema': db.select('PRAGMA trusted_schema').first.columnAt(0),
+    'writable_schema': db.select('PRAGMA writable_schema').first.columnAt(0),
   };
 }
 
 int getSchemaVersion(Database db) {
-  return db.select('PRAGMA schema_version;').first[0] as int;
+  return db.select('PRAGMA schema_version;').first.columnAt(0) as int;
 }
 
 typedef DatabaseOpener = Database Function(String filename);
@@ -388,7 +385,6 @@ Future<String> initializeProject(
   final tempDbPath = await createProjectInTemp(userSchema, opener: opener);
   final appDir = await getApplicationSupportDirectory();
 
-  // TODO: Figure out better naming scheme
   final permanentPath = path.join(
     appDir.path,
     'projects',
@@ -400,8 +396,7 @@ Future<String> initializeProject(
   final tempFile = File(tempDbPath);
   await tempFile.rename(permanentPath);
 
-  //TODO:
-  print('PERMANENT PATH: $permanentPath');
+  log.d('PERMANENT PATH: $permanentPath');
 
   return permanentPath;
 }
@@ -514,9 +509,9 @@ Future<void> addProjectToAppDatabase(
   final repo = ref.watch(projectsRepositoryProvider);
 
   await repo?.createProject(title: title, description: description, dbPath: dbPath);
-  print("REPO CREATEPROJECT CALLED");
+  log.d("REPO CREATEPROJECT CALLED");
   final res = await repo?.getAllProjects();
-  print("ALL PROJECTS: $res");
+  log.d("ALL PROJECTS: $res");
 
 }
 
@@ -531,14 +526,14 @@ class ProjectService {
 
     // Attempt to initialize the project
     try {
-      print("INITIALIZE PROJECT CALLED");
+      log.d("INITIALIZE PROJECT CALLED");
       path = await initializeProject(request.sql, opener: sqlite3.open);
 
       // Attempt to insert into database
-      print("CALLING ADD PROJECT TO APP DATABASE");
+      log.d("CALLING ADD PROJECT TO APP DATABASE");
       addProjectToAppDatabase(ref, title: request.title, dbPath: path);
     } catch (e) {
-      print("ERROR: $e");
+      log.e("ERROR: $e");
     }
   }
 }

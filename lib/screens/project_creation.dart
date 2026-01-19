@@ -1,10 +1,12 @@
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:ui_prototype/providers/db_provider.dart';
 import 'package:ui_prototype/services/create_project.dart';
+import 'package:ui_prototype/utils/logger.dart';
 
 class ProjectCreationScreen extends ConsumerStatefulWidget {
+  const ProjectCreationScreen({super.key});
+
   @override
   ConsumerState<ProjectCreationScreen> createState() => _ProjectCreationScreenState();
 }
@@ -66,11 +68,11 @@ class _ProjectCreationScreenState extends ConsumerState<ProjectCreationScreen> {
       sql: sql
     );
 
-    print("REQUEST: $request");
+    log.d("REQUEST: $request");
     
-    print("NAME: ${_projectNameController.text}");
-    print("DESCRIPTION: ${_projectDescriptionController.text}");
-    print("SCHEMA: ${_dbCreateSchema.text}");
+    log.d("NAME: ${_projectNameController.text}");
+    log.d("DESCRIPTION: ${_projectDescriptionController.text}");
+    log.d("SCHEMA: ${_dbCreateSchema.text}");
 
     ref.read(projectServiceProvider).create(request);
   }
@@ -124,7 +126,7 @@ class _ProjectCreationScreenState extends ConsumerState<ProjectCreationScreen> {
                         onChanged: (Schema newValue) {
                           setState(() {
                             selectedSchema = newValue;
-                            print('SELECTED SCHEMA: $selectedSchema');
+                            log.d('SELECTED SCHEMA: $selectedSchema');
                           });
                         },
                       ),

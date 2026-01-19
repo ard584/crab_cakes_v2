@@ -1,6 +1,6 @@
 import 'dart:typed_data';
 
-import 'package:riverpod/riverpod.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ui_prototype/services/app_database.dart';
 import 'package:ui_prototype/services/device_uuid_helper.dart';
 import 'package:ui_prototype/services/projects_repository.dart';

@@ -1,9 +1,9 @@
-import 'package:flutter/material.dart';
 import 'package:sqlite3/sqlite3.dart';
 import 'package:ui_prototype/exceptions/project_db_exception.dart';
 import 'package:ui_prototype/models/project_db.dart';
 import 'package:ui_prototype/services/helpers/database.dart';
 import 'package:path/path.dart' as path;
+import 'package:ui_prototype/utils/logger.dart';
 
 bool isValidDbPath(String dbPath) {
   // Check if empty
@@ -17,16 +17,11 @@ bool isValidDbPath(String dbPath) {
     final illegalChars = RegExp(r'[<>:"/\\|?*]');
     if (illegalChars.hasMatch(filename)) return false;
 
-    print("DBPATH: $dbPath");
+    log.d("DBPATH: $dbPath");
 
   } catch (e) {
     return false;
   }
-
-  // Check if ends with db
-  // if (!dbPath.endsWith('db')) return false;
-
-  // Validate it doesn't have spaces
 
   return true;
 }
@@ -37,7 +32,7 @@ Future<ProjectDb> readProjectSchema(String dbPath) async {
 
   // Validate path
   if (!isValidDbPath(dbPath)) {
-    print("test");
+
   }
 
   // Make name for new database
@@ -53,6 +48,8 @@ Future<ProjectDb> readProjectSchema(String dbPath) async {
     );
   }
 
+  log.d("CALLING CREATE DB OBJECT");
   final projectDb = await createDbObject(db);
+  log.d("PROJECTDB: $projectDb");
   return projectDb;
 }
