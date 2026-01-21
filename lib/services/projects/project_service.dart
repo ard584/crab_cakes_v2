@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:ui_prototype/services/project_file_factory.dart';
+import 'package:ui_prototype/services/flex_engine/flex_file_factory.dart';
+import 'package:ui_prototype/services/projects/flex_project_provider.dart';
 import 'package:ui_prototype/utils/logger.dart';
 import 'package:sqlite3/sqlite3.dart';
 
@@ -33,9 +34,18 @@ class ProjectService {
 
       // Attempt to insert into database
       log.d("CALLING ADD PROJECT TO APP DATABASE");
-      addProjectToAppDatabase(ref, title: request.title, dbPath: path);
+      await addProjectToAppDatabase(ref, title: request.title, dbPath: path);
+
+      // Open project
+      await openProject(path);
     } catch (e) {
       log.e("ERROR: $e");
     }
+  }
+
+  Future<void> openProject(String dbPath) async {
+
+    await ref.read(currentFlexProjectProvider.notifier).loadProject(dbPath);
+
   }
 }

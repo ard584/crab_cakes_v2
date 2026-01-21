@@ -2,7 +2,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ui_prototype/utils/logger.dart';
-import 'package:ui_prototype/services/project_service.dart';
+import 'package:ui_prototype/services/projects/project_service.dart';
 
 class ProjectCreationScreen extends ConsumerStatefulWidget {
   const ProjectCreationScreen({super.key});

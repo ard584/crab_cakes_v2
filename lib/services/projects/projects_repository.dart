@@ -1,10 +1,10 @@
 // projects_repository.dart
 
-import 'app_database.dart';
+import 'database/projects_database.dart';
 import 'package:drift/drift.dart';
-import '../models/project.dart';
+import '../../models/project.dart';
 
-import 'uuid_helpers.dart';
+import '../uuid_helpers.dart';
 
 /// Returns current UTC time in ISO-8601 format
 String _nowIsoUtc() => DateTime.now().toUtc().toIso8601String();

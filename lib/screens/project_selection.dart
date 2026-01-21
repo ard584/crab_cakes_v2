@@ -1,64 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ui_prototype/providers/db_provider.dart';
+import 'package:ui_prototype/screens/data_entry_screen.dart';
 import 'package:ui_prototype/screens/project_creation.dart';
+import 'package:ui_prototype/services/projects/project_service.dart';
 import '../components/project_widget.dart';
-import 'package:ui_prototype/services/load_project.dart';
-import 'package:ui_prototype/exceptions/project_db_exception.dart';
-import 'package:ui_prototype/dialogs/project_error_dialog.dart';
 
 class _ProjectSelectionState extends ConsumerState<ProjectSelection> {
-  Future<void> openProject(String dbPath) async {
-    if (!isValidDbPath(dbPath)) {
-      await showDialog(
-        context: context,
-        builder: (_) => AlertDialog(
-          title: Text('Invalid Database Path'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Database path must end in .db and contain no spaces or illegal characters.',
-                style: Theme.of(context).textTheme.bodyMedium,
-              ),
-              Text(
-                'Invalid path: \'$dbPath\'',
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
-              ),
-            ],
-          ),
-        ),
-      );
-
-      return;
-    }
-
-    try {
-      // Try to read the project schema
-      final projectDb = await readProjectSchema(dbPath);
-      debugPrint(projectDb.toString());
-    } on ProjectDbException catch (e) {
-      if (!mounted) return;
-      await showProjectDbErrorDialog(context, e);
-    } catch (e, st) {
-      debugPrint('Unexpected error: $e\n$st');
-
-      if (!mounted) return;
-      await showDialog(
-        context: context,
-        builder: (_) => const AlertDialog(
-          title: Text('Unexpected Error'),
-          content: Text('Something went wrong while opening the project.'),
-        ),
-      );
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
+
     final repo = ref.watch(projectsRepositoryProvider);
 
     if (repo == null) {
@@ -95,7 +47,18 @@ class _ProjectSelectionState extends ConsumerState<ProjectSelection> {
                   projectTitle: project.title,
                   projectDescription: project.description,
                   projectUpdatedAt: project.updatedAt,
-                  onPressed: () => openProject(project.dbPath),
+                  onPressed: () async {
+                    await ref.read(projectServiceProvider).openProject(project.dbPath);
+
+                    // If mounted
+                    if (context.mounted) {
+
+                      // Open data entry screen
+                      Navigator.push(context, 
+                      MaterialPageRoute(builder: (context) => const DataEntryScreen())
+                      );
+                    }
+                  },
                 );
               },
             ),

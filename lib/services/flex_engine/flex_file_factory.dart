@@ -1,7 +1,7 @@
 import 'package:path_provider/path_provider.dart';
 import 'package:sqlite3/sqlite3.dart';
 import 'package:ui_prototype/exceptions/project_db_exception.dart';
-import 'package:ui_prototype/services/helpers/sql_security_validator.dart';
+import 'package:ui_prototype/services/flex_engine/creation/sql_security_validator.dart';
 
 import 'dart:io';
 import 'package:path/path.dart' as path;
