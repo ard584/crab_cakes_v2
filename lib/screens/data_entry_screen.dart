@@ -36,6 +36,7 @@ class DataEntryScreen extends ConsumerWidget {
       body: Padding(
         padding: const EdgeInsets.all(28.0),
         child: projectAsync.when(
+          error: (err, stack) => Center(child: Text("Error: $err")),
           data: (project) {
             if (project == null) {
               return Center(child: Text("No project selected"));
@@ -45,7 +46,7 @@ class DataEntryScreen extends ConsumerWidget {
             final projectValue = ref.read(currentFlexProjectProvider).value;
 
             // Get the name of the first table and open it
-            final firstTableName = projectValue?.tables.keys.first;
+            final firstTableName = projectValue?.tables.keys.firstOrNull;
 
             // Check if table exists
             if (firstTableName != null) {
@@ -60,7 +61,7 @@ class DataEntryScreen extends ConsumerWidget {
           },
 
           // Handle error and loading states
-          error: (err, stack) => Center(child: Text("Error: $err")),
+          
           loading: () => const Center(child: CircularProgressIndicator()),
         ),
       ),

@@ -12,18 +12,20 @@ class FlexDbMapper {
 
   bool _isValidDbPath(String dbPath) {
     // Check if empty
-    if (dbPath.isEmpty) return false;
+    if (dbPath.isEmpty) throw Exception("Empty database path");
 
     try {
       final filename = path.basename(dbPath);
 
       // Check for illegal characters
       final illegalChars = RegExp(r'[<>:"/\\|?*]');
-      if (illegalChars.hasMatch(filename)) return false;
+      if (illegalChars.hasMatch(filename)) {
+        throw Exception("Invalid characters in database filename: $filename");
+      }
 
       log.d("DBPATH: $dbPath");
     } catch (e) {
-      return false;
+      throw Exception("Error occurred retrieving database path: $e");
     }
 
     return true;
@@ -34,7 +36,7 @@ class FlexDbMapper {
     final Database db;
 
     // Validate path
-    if (!_isValidDbPath(dbPath)) {}
+    _isValidDbPath(dbPath);
 
     // Make name for new database
 

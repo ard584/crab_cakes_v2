@@ -10,16 +10,16 @@ class CurrentFlexProjectNotifier extends AsyncNotifier<ProjectDb?> {
     state = const AsyncLoading();
 
     state = await AsyncValue.guard(() async {
-      
       // FlexDbMapper opens and maps the database into a dbObject
-      return await FlexDbMapper(dbPath: path).mapFromDatabase();
+      final mapper = FlexDbMapper(dbPath: path);
+      return await mapper.mapFromDatabase();
     });
   }
 }
 
 // The provider (what we access to read current project)
 // TODO: Figure out more about how Riverpod works
-final currentFlexProjectProvider = 
+final currentFlexProjectProvider =
     AsyncNotifierProvider<CurrentFlexProjectNotifier, ProjectDb?>(
-  CurrentFlexProjectNotifier.new,
-);
+      CurrentFlexProjectNotifier.new,
+    );
