@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:ui_prototype/models/attribute.dart';
+import 'package:ui_prototype/screens/export_screen.dart';
+import 'package:ui_prototype/screens/project_selection.dart';
 import 'package:ui_prototype/services/flex_field/flex_field_factory.dart';
 import 'package:ui_prototype/services/projects/flex_project_provider.dart';
+
+import 'settings_screen.dart';
 
 class DataEntryScreen extends ConsumerWidget {
   const DataEntryScreen({super.key});
@@ -27,384 +32,214 @@ class DataEntryScreen extends ConsumerWidget {
           loading: () => const Text('Loading...'),
         ),
       ),
-      body: projectAsync.when(
-        data: (project) {
-          if (project == null) {
-            return Center(child: Text("No project selected"));
-          }
+      drawer: ProjectDrawer(),
+      body: Padding(
+        padding: const EdgeInsets.all(28.0),
+        child: projectAsync.when(
+          data: (project) {
+            if (project == null) {
+              return Center(child: Text("No project selected"));
+            }
 
-          // Reaqd the current project into a variable
-          final projectValue = ref.read(currentFlexProjectProvider).value;
+            // Reaqd the current project into a variable
+            final projectValue = ref.read(currentFlexProjectProvider).value;
 
-          // Get the name of the first table and open it
-          final firstTableName = projectValue?.tables.keys.first;
-          final table = projectValue?.tables[firstTableName];
+            // Get the name of the first table and open it
+            final firstTableName = projectValue?.tables.keys.first;
 
-          // Check if table exists
-          if (table != null) {
+            // Check if table exists
+            if (firstTableName != null) {
+              // Extract attributes
 
-            // Extract attributes
-            final attributes = table.attributes;
+              return TableFormSection(tableName: firstTableName);
+            }
+            // If table is null, tell user
+            else {
+              return Center(child: Text('Table is null'));
+            }
+          },
 
-            // Iterate through attributes
-            return ListView.builder(
-              itemCount: attributes.length,
-              itemBuilder: (context, index) {
-                final attr = attributes.toList()[index];
-
-                // Get the correct type of field for current attribute
-                return FlexFieldFactory.createField(
-                  config: FlexFieldConfig(
-                    label: attr.name,
-                    dataType: attr.dataType,
-                    isRequired: attr.isNotNullable,
-                  ),
-
-                  // Placeholder for now, doesn't do anything
-                  controller: TextEditingController(),
-                );
-              },
-            );
-          }
-
-          // If table is null, tell user
-          else {
-            return Center(child: Text('Table is null'),);
-          }
-        },
-
-        // Handle error and loading states
-        error: (err, stack) => Center(child: Text("Error: $err")),
-        loading: () => const Center(child: CircularProgressIndicator()),
+          // Handle error and loading states
+          error: (err, stack) => Center(child: Text("Error: $err")),
+          loading: () => const Center(child: CircularProgressIndicator()),
+        ),
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: null,
+        label: Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: Text("Save Record"),
+        ),
       ),
     );
   }
 }
 
-// class _MyHomePageState extends State<DataEntryScreen> {
-//   // Retained for now, but not actively used in this snippet
+class TableFormSection extends ConsumerWidget {
+  final String tableName;
+  const TableFormSection({super.key, required this.tableName});
 
-//   // This function is the handler passed to onWidgetSelected,
-//   // correctly placed as a direct method of the State class.
-//   void _handleMenuAction(String selectedValue) {
-//     // Use a switch statement to determine the action based on the returned value
-//     switch (selectedValue) {
-//       case 'switch_project':
-//         Navigator.pop(context);
-//         Navigator.push(
-//           context,
-//           MaterialPageRoute(builder: (context) => ProjectSelection()),
-//         );
-//       case 'export_data':
-//         Navigator.pop(context);
-//         Navigator.push(
-//           context,
-//           MaterialPageRoute(builder: (context) => const ExportScreen()),
-//         );
-//       case 'settings':
-//         Navigator.pop(context);
-//         Navigator.push(
-//           context,
-//           MaterialPageRoute(builder: (context) => const SettingsScreen()),
-//         );
-//       default:
-//         log.w('Unknown action selected: $selectedValue');
-//     }
-//   }
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final project = ref.watch(currentFlexProjectProvider).value;
+    final table = project?.tables[tableName];
 
-//   @override
-//   Widget build(BuildContext context) {
-//     // This method is rerun every time setState is called, for instance as done
-//     // by the _incrementCounter method above.
-//     //
-//     // The Flutter framework has been optimized to make rerunning build methods
-//     // fast, so that you can just rebuild anything that needs updating rather
-//     // than having to individually change instances of widgets.
-//     return Scaffold(
-//       appBar: AppBar(
-//         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-//         title: Text(widget.title),
-//       ),
-//       drawer: Drawer(
-//         child: Column(
-//           children: [
-//             SizedBox(
-//               height: 80.0,
-//               child: const DrawerHeader(child: Center(child: Text('Tables'))),
-//             ),
-//             Expanded(
-//               child: Padding(
-//                 padding: const EdgeInsets.all(8.0),
-//                 child: ReorderableSidebar(initialItems: sidebarMenuItems),
-//               ),
-//             ),
-//             AppMenuButton(
-//               options: myCustomMenu, // The list defined in Step 1
-//               onWidgetSelected:
-//                   _handleMenuAction, // The handler method defined in Step A
-//             ),
-//           ],
-//         ),
-//       ),
-//       body: ListView(
-//         children: [
-//           Row(
-//             crossAxisAlignment: CrossAxisAlignment.start,
-//             children: <Widget>[
-//               Expanded(
-//                 child: Padding(
-//                   padding: const EdgeInsets.all(8.0),
-//                   child: Column(
-//                     children: <Widget>[
-//                       ReusableInputField(
-//                         labelText: 'PIT ID',
-//                         error: 'Warning: This tag was recently scanned',
-//                       ),
-//                       ReusableInputField(
-//                         labelText: 'Species',
-//                         error: 'Expected Value: Goldfish',
-//                       ),
-//                       ReusableInputField(labelText: 'Total Length'),
-//                       ReusableInputField(labelText: 'Fork Length'),
-//                       ReusableInputField(labelText: 'Weight'),
-//                     ],
-//                   ),
-//                 ),
-//               ),
-//               Expanded(
-//                 child: Padding(
-//                   padding: const EdgeInsets.all(8.0),
-//                   child: Column(
-//                     children: <Widget>[
-//                       ReusableInputField(labelText: 'Catch Time'),
-//                       ReusableInputField(labelText: 'River Mile'),
-//                       ReusableInputField(labelText: 'Notes'),
-//                     ],
-//                   ),
-//                 ),
-//               ),
-//             ],
-//           ),
-//           Align(
-//             alignment: Alignment.centerRight,
-//             child: Container(
-//               margin: const EdgeInsets.all(20.0),
-//               child: FloatingActionButton.extended(
-//                 onPressed: null,
-//                 label: Padding(
-//                   padding: const EdgeInsets.all(20.0),
-//                   child: Text("Save Record"),
-//                 ),
-//               ),
-//             ),
-//           ),
-//         ],
-//       ), // This trailing comma makes auto-formatting nicer for build methods.
-//     );
-//   }
-// }
+    if (table == null) {
+      return Center(child: Text("Table is null"));
+    }
 
-// final List<ReorderableItem> sidebarMenuItems = [
-//   ReorderableItem(
-//     widget: ListTile(
-//       title: const Text('Trip'),
-//       leading: const Icon(Icons.table_chart),
-//       onTap: () => {log.d("Trip tapped")},
-//     ),
-//   ),
-//   ReorderableItem(
-//     widget: ListTile(
-//       title: const Text('Batch'),
-//       leading: const Icon(Icons.table_chart),
-//       onTap: () => {log.d("Batch tapped")},
-//     ),
-//   ),
-//   ReorderableItem(
-//     widget: ListTile(
-//       title: const Text('Specimen'),
-//       leading: const Icon(Icons.table_chart),
-//       onTap: () => {log.d("Specimen tapped")},
-//     ),
-//   ),
-// ];
+    final attrbutes = table.attributes;
 
-// // Define this class outside of your main build method
-// class ReusableInputField extends StatelessWidget {
-//   final String? error;
-//   final String labelText;
-//   final ValueChanged<String>? onChanged;
+    return ListView.builder(
+      itemCount: attrbutes.length,
+      itemBuilder: (context, index) {
+        final attribute = table.attributes.elementAt(index);
 
-//   const ReusableInputField({
-//     super.key,
-//     this.error,
-//     required this.labelText,
-//     this.onChanged,
-//   });
-//   @override
-//   Widget build(BuildContext context) {
-//     return Container(
-//       // Your consistent styling (margin, decoration, padding) goes here
-//       margin: const EdgeInsets.only(bottom: 16.0),
-//       padding: const EdgeInsets.symmetric(horizontal: 12.0),
-//       decoration: getBoxDecoration(error, context),
-//       child: TextFormField(
-//         onChanged: onChanged,
-//         decoration: InputDecoration(
-//           labelText: labelText,
-//           errorText: (error != null) ? '$error' : null,
-//           // This removes the default underline/border of the TextField itself
-//           border: InputBorder.none,
-//           contentPadding: const EdgeInsets.symmetric(vertical: 14.0),
-//         ),
-//       ),
-//     );
-//   }
-// }
+        return DynamicFlexField(tableName: tableName, attribute: attribute);
+      },
+    );
+  }
+}
 
-// BoxDecoration getBoxDecoration(String? mismatch, BuildContext context) {
-//   if (mismatch == null) {
-//     return getNormalBoxDecoration(context);
-//   }
+class DynamicFlexField extends ConsumerWidget {
+  final String tableName;
+  final Attribute attribute;
 
-//   return getErrorBoxDecoration(context);
-// }
+  const DynamicFlexField({
+    super.key,
+    required this.tableName,
+    required this.attribute,
+  });
 
-// BoxDecoration getNormalBoxDecoration(BuildContext context) {
-//   return BoxDecoration(
-//     color: Colors.grey.shade100, // Light background color
-//     borderRadius: BorderRadius.circular(10.0),
-//     border: Border.all(color: Colors.grey.shade300),
-//   );
-// }
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    // TODO: implement build
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12.0),
+      margin: const EdgeInsets.only(bottom: 16.0, top: 4.0),
+      decoration: BoxDecoration(
+        color: Colors.grey.shade100, // Light background color
+        borderRadius: BorderRadius.circular(10.0),
+        border: Border.all(color: Colors.grey.shade300),
+      ),
 
-// BoxDecoration getErrorBoxDecoration(BuildContext context) {
-//   return BoxDecoration(
-//     color: Colors.grey.shade100, // Light background color
-//     borderRadius: BorderRadius.circular(10.0),
-//     border: Border.all(color: Theme.of(context).colorScheme.error),
-//   );
-// }
+      child: FlexFieldFactory.createField(
+        config: FlexFieldConfig(
+          label: attribute.name,
+          dataType: attribute.dataType,
+          isRequired: attribute.isNotNullable,
+        ),
 
-// class ReorderableItem {
-//   final Widget widget;
-//   final Key key;
+        // Placeholder for now, doesn't do anything
+        controller: TextEditingController(),
 
-//   ReorderableItem({required this.widget}) : key = UniqueKey();
-// }
+        baseDecoration: InputDecoration(
+          contentPadding: const EdgeInsets.symmetric(vertical: 14.0),
+        ),
+      ),
+    );
+  }
+}
 
-// class ReorderableSidebar extends StatefulWidget {
-//   final List<ReorderableItem> initialItems;
+class DrawerSubmenu extends StatelessWidget {
+  const DrawerSubmenu({super.key});
 
-//   const ReorderableSidebar({super.key, required this.initialItems});
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        ListTile(
+          leading: const Icon(Icons.settings),
+          title: const Text("Settings"),
+          onTap: () {
+            Navigator.pop(context);
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const SettingsScreen()),
+            );
+          },
+        ),
+        ListTile(
+          leading: const Icon(Icons.file_open),
+          title: const Text("Switch Project"),
+          onTap: () {
+            Navigator.pop(context);
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const ProjectSelection()),
+            );
+          },
+        ),
+        ListTile(
+          leading: const Icon(Icons.file_download),
+          title: const Text("Export Data"),
+          onTap: () {
+            Navigator.pop(context);
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const ExportScreen()),
+            );
+          },
+        ),
+      ],
+    );
+  }
+}
 
-//   @override
-//   State<ReorderableSidebar> createState() => _ReorderableSidebarState();
-// }
+class ProjectDrawer extends ConsumerWidget {
+  const ProjectDrawer({super.key});
 
-// class _ReorderableSidebarState extends State<ReorderableSidebar> {
-//   late List<ReorderableItem> _items;
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final projectAsync = ref.watch(currentFlexProjectProvider);
 
-//   @override
-//   void initState() {
-//     super.initState();
-//     _items = List<ReorderableItem>.from(widget.initialItems);
-//   }
+    return projectAsync.when(
+      loading: () => Center(child: CircularProgressIndicator()),
+      error: (error, stackTrace) => Center(child: Text("Error: $error")),
+      data: (project) {
+        if (project == null) {
+          return Drawer(child: Center(child: Text("Project is NULL")));
+        }
 
-//   void _onReorder(int oldIndex, int newIndex) {
-//     setState(() {
-//       if (newIndex > oldIndex) {
-//         newIndex -= 1;
-//       }
+        final tableNames = project.tables.keys.toList();
 
-//       final ReorderableItem item = _items.removeAt(oldIndex);
-//       _items.insert(newIndex, item);
-//     });
-//   }
+        return Drawer(
+          child: Column(
+            children: [
+              SizedBox(
+                height: 80,
+                child: const DrawerHeader(
+                  child: Center(child: Text('Project Menu')),
+                ),
+              ),
 
-//   @override
-//   Widget build(BuildContext context) {
-//     return ReorderableListView.builder(
-//       onReorder: _onReorder,
-//       scrollDirection: Axis.vertical,
-//       itemCount: _items.length,
+              Expanded(
+                child: ListView.builder(
+                  itemCount: tableNames.length,
+                  itemBuilder: (context, index) {
+                    final tableName = tableNames[index];
+                    final tableData = project.tables[tableName];
 
-//       itemBuilder: (BuildContext context, int index) {
-//         final ReorderableItem item = _items[index];
+                    return ListTile(
+                      leading: const Icon(Icons.table_chart_outlined),
+                      title: Text(tableName),
+                      subtitle: Text(
+                        "${tableData?.attributes.length ?? 0} attributes",
+                      ),
+                    );
+                  },
+                ),
+              ),
 
-//         return Container(key: item.key, child: item.widget);
-//       },
-//     );
-//   }
-// }
+              const Divider(height: 1),
 
-// class MenuOption {
-//   final Widget childWidget;
-//   final String value;
-//   const MenuOption({required this.childWidget, required this.value});
-// }
+              DrawerSubmenu(),
 
-// // You would update your AppMenuButton class definition to use MenuOption:
-// // final List<MenuOption> options;
-
-// // Define the list of options you want to appear in the pop-up menu
-// final List<MenuOption> myCustomMenu = [
-//   MenuOption(
-//     value:
-//         'switch_project', // <--- This String is what gets returned when tapped
-//     childWidget: const Row(
-//       children: [
-//         Icon(Icons.file_open),
-//         SizedBox(width: 8),
-//         Text('Switch Project'),
-//       ],
-//     ),
-//   ),
-//   MenuOption(
-//     value: 'export_data', // <--- This String is what gets returned when tapped
-//     childWidget: const Row(
-//       children: [
-//         Icon(Icons.file_download),
-//         SizedBox(width: 8),
-//         Text('Export Data'),
-//       ],
-//     ),
-//   ),
-//   MenuOption(
-//     value: 'settings',
-//     childWidget: const Row(
-//       children: [
-//         Icon(Icons.settings),
-//         SizedBox(width: 8),
-//         Text('Open Settings Menu'),
-//       ],
-//     ),
-//   ),
-// ];
-
-// class AppMenuButton extends StatelessWidget {
-//   final List<MenuOption> options; // Change from 'widgets' to 'options'
-//   final ValueChanged<String> onWidgetSelected;
-
-//   const AppMenuButton({
-//     super.key,
-//     required this.options, // Accepts objects with Widget + Value
-//     required this.onWidgetSelected,
-//   });
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return PopupMenuButton<String>(
-//       // Specify the return type
-//       onSelected: onWidgetSelected,
-//       itemBuilder: (BuildContext context) {
-//         return options.map((option) {
-//           // CORRECT: Map to PopupMenuItem
-//           return PopupMenuItem<String>(
-//             value: option.value, // REQUIRED: The value to return on selection
-//             child: option.childWidget, // The custom widget you provided
-//           );
-//         }).toList(); // Return the list of PopupMenuItem objects
-//       },
-//     );
-//   }
-// }
+              const SizedBox(height: 10),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}

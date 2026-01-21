@@ -4,6 +4,7 @@ class FlexFieldFactory {
   static Widget createField({
     required FlexFieldConfig config,
     required TextEditingController controller,
+    InputDecoration? baseDecoration,
   }) {
     // Figure out correct keyboard type
     TextInputType keyboardType = TextInputType.text;
@@ -12,17 +13,13 @@ class FlexFieldFactory {
     }
 
     // TODO: Allow for injectable styling other than hint and label text
-    return Padding(
-      padding: const EdgeInsetsGeometry.all(8.0),
-      child: TextFormField(
-        controller: controller,
-        keyboardType: keyboardType,
-        decoration: InputDecoration(
-          labelText: config.label,
-          border: const OutlineInputBorder(),
-          hintText: config.defaultValue,
-        ),
-      ),
+    return TextFormField(
+      controller: controller,
+      keyboardType: keyboardType,
+      decoration: (baseDecoration ?? InputDecoration()).copyWith(
+        labelText: config.label,
+        hintText: config.defaultValue,
+      )
     );
   }
 }
