@@ -61,7 +61,6 @@ class DataEntryScreen extends ConsumerWidget {
           },
 
           // Handle error and loading states
-          
           loading: () => const Center(child: CircularProgressIndicator()),
         ),
       ),
@@ -194,28 +193,37 @@ class ProjectDrawer extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final projectAsync = ref.watch(currentFlexProjectProvider);
 
-    return projectAsync.when(
-      loading: () => Center(child: CircularProgressIndicator()),
-      error: (error, stackTrace) => Center(child: Text("Error: $error")),
-      data: (project) {
-        if (project == null) {
-          return Drawer(child: Center(child: Text("Project is NULL")));
-        }
+    // return projectAsync.when(
+    //   loading: () => Center(child: CircularProgressIndicator()),
+    //   error: (error, stackTrace) => Center(child: Text("Drawer Error: $error")),
+    //   data: (project) {
+    //     if (project == null) {
+    //       return Drawer(child: Center(child: Text("Project is NULL")));
+    //     }
 
-        final tableNames = project.tables.keys.toList();
+    //     final tableNames = project.tables.keys.toList();
 
-        return Drawer(
-          child: Column(
-            children: [
-              SizedBox(
-                height: 80,
-                child: const DrawerHeader(
-                  child: Center(child: Text('Project Menu')),
-                ),
-              ),
+    return Drawer(
+      child: Column(
+        children: [
+          SizedBox(
+            height: 80,
+            child: const DrawerHeader(
+              child: Center(child: Text('Project Menu')),
+            ),
+          ),
 
-              Expanded(
-                child: ListView.builder(
+          Expanded(
+            child: projectAsync.when(
+              error: (error, stackTrace) => Center(child: Text("Drawer Error: $error")),
+              loading: () => Center(child: CircularProgressIndicator()),
+              data: (project) {
+                if (project == null) {
+                  return Drawer(child: Center(child: Text("Project is NULL")));
+                }
+
+                final tableNames = project.tables.keys.toList();
+                return ListView.builder(
                   itemCount: tableNames.length,
                   itemBuilder: (context, index) {
                     final tableName = tableNames[index];
@@ -229,18 +237,18 @@ class ProjectDrawer extends ConsumerWidget {
                       ),
                     );
                   },
-                ),
-              ),
-
-              const Divider(height: 1),
-
-              DrawerSubmenu(),
-
-              const SizedBox(height: 10),
-            ],
+                );
+              },
+            ),
           ),
-        );
-      },
+
+          const Divider(height: 1),
+
+          DrawerSubmenu(),
+
+          const SizedBox(height: 10),
+        ],
+      ),
     );
   }
 }
