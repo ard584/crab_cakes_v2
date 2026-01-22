@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_context_menu/flutter_context_menu.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ui_prototype/providers/db_provider.dart';
 import 'package:ui_prototype/screens/data_entry_screen.dart';
@@ -7,10 +8,8 @@ import 'package:ui_prototype/services/projects/project_service.dart';
 import '../components/project_widget.dart';
 
 class _ProjectSelectionState extends ConsumerState<ProjectSelection> {
-
   @override
   Widget build(BuildContext context) {
-
     final repo = ref.watch(projectsRepositoryProvider);
 
     if (repo == null) {
@@ -44,18 +43,23 @@ class _ProjectSelectionState extends ConsumerState<ProjectSelection> {
               itemBuilder: (context, index) {
                 final project = projects[index];
                 return ProjectWidget(
+                  contextMenu: ContextMenu(entries: entries),
                   projectTitle: project.title,
                   projectDescription: project.description,
                   projectUpdatedAt: project.updatedAt,
                   onPressed: () async {
-                    await ref.read(projectServiceProvider).openProject(project.dbPath);
+                    await ref
+                        .read(projectServiceProvider)
+                        .openProject(project.dbPath);
 
                     // If mounted
                     if (context.mounted) {
-
                       // Open data entry screen
-                      Navigator.push(context, 
-                      MaterialPageRoute(builder: (context) => const DataEntryScreen())
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const DataEntryScreen(),
+                        ),
                       );
                     }
                   },
@@ -79,6 +83,18 @@ class _ProjectSelectionState extends ConsumerState<ProjectSelection> {
     );
   }
 }
+
+final entries = <ContextMenuEntry>[
+  const MenuHeader(text: "Project Settings"),
+  MenuItem(
+    label: Text("Delete"),
+    icon: Icon(Icons.delete),
+    value: 'delete',
+    onSelected: (value) {
+      print("DELETE CALLED ON VALUE $value");
+    },
+  ),
+];
 
 class ProjectSelection extends ConsumerStatefulWidget {
   const ProjectSelection({super.key});

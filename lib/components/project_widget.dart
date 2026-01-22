@@ -1,22 +1,25 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_context_menu/flutter_context_menu.dart';
 
 class ProjectWidget extends StatelessWidget {
   final String projectTitle;
   final String? projectDescription;
   final DateTime projectUpdatedAt;
   final VoidCallback? onPressed;
+  final ContextMenu? contextMenu;
 
   const ProjectWidget({
     super.key,
     required this.projectTitle,
     this.projectDescription,
     required this.projectUpdatedAt,
-    this.onPressed
+    this.contextMenu,
+    this.onPressed,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    Widget child = Container(
       decoration: reusableBoxDecoration,
       padding: reusablePadding,
       child: Row(
@@ -47,6 +50,10 @@ class ProjectWidget extends StatelessWidget {
         ],
       ),
     );
+
+    if (contextMenu == null) return child;
+
+    return ContextMenuRegion(contextMenu: contextMenu!, child: child);
   }
 }
 
