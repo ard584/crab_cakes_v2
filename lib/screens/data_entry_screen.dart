@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ui_prototype/models/attribute.dart';
+import 'package:ui_prototype/providers/flex_form_provider.dart';
 import 'package:ui_prototype/screens/export_screen.dart';
 import 'package:ui_prototype/screens/project_selection.dart';
 import 'package:ui_prototype/services/flex_field/flex_field_factory.dart';
 import 'package:ui_prototype/services/projects/flex_project_provider.dart';
+import 'package:ui_prototype/utils/logger.dart';
 
 import 'settings_screen.dart';
 
@@ -24,6 +26,9 @@ class DataEntryScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final projectAsync = ref.watch(currentFlexProjectProvider);
 
+    final project = projectAsync.value;
+    final activeTableName = project?.tables.keys.firstOrNull;
+
     return Scaffold(
       appBar: AppBar(
         title: projectAsync.when(
@@ -42,17 +47,10 @@ class DataEntryScreen extends ConsumerWidget {
               return Center(child: Text("No project selected"));
             }
 
-            // Reaqd the current project into a variable
-            final projectValue = ref.read(currentFlexProjectProvider).value;
-
-            // Get the name of the first table and open it
-            final firstTableName = projectValue?.tables.keys.firstOrNull;
-
             // Check if table exists
-            if (firstTableName != null) {
+            if (activeTableName != null) {
               // Extract attributes
-
-              return TableFormSection(tableName: firstTableName);
+              return TableFormSection(tableName: activeTableName);
             }
             // If table is null, tell user
             else {
@@ -65,7 +63,13 @@ class DataEntryScreen extends ConsumerWidget {
         ),
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: null,
+        onPressed: () {
+          //TODO: make the save button actually do something
+          final controllers = ref.watch(flexTableControllersProvider(activeTableName!));
+          for (final controller in controllers.values) {
+            log.d(controller.text);
+          }
+        },
         label: Padding(
           padding: const EdgeInsets.all(20.0),
           child: Text("Save Record"),
@@ -86,6 +90,18 @@ class TableFormSection extends ConsumerWidget {
 
     if (table == null) {
       return Center(child: Text("Table is null"));
+    }
+
+    final controllers = ref.watch(flexTableControllersProvider(tableName));
+
+    if (controllers.isEmpty || controllers.length < table.attributes.length) {
+      log.w(
+        "Mismatch in TableFormSection build: controllers don't match table",
+      );
+      log.w("Controllers isEmpty: ${controllers.isEmpty}");
+      log.w("Controllers length: ${controllers.length}");
+      log.w("Table $tableName attributes length: ${table.attributes.length}");
+      return Center(child: CircularProgressIndicator());
     }
 
     final attrbutes = table.attributes;
@@ -113,7 +129,8 @@ class DynamicFlexField extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // TODO: implement build
+    final controllers = ref.watch(flexTableControllersProvider(tableName));
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12.0),
       margin: const EdgeInsets.only(bottom: 16.0, top: 4.0),
@@ -131,7 +148,7 @@ class DynamicFlexField extends ConsumerWidget {
         ),
 
         // Placeholder for now, doesn't do anything
-        controller: TextEditingController(),
+        controller: controllers[attribute.name]!,
 
         baseDecoration: InputDecoration(
           contentPadding: const EdgeInsets.symmetric(vertical: 14.0),
@@ -215,7 +232,8 @@ class ProjectDrawer extends ConsumerWidget {
 
           Expanded(
             child: projectAsync.when(
-              error: (error, stackTrace) => Center(child: Text("Drawer Error: $error")),
+              error: (error, stackTrace) =>
+                  Center(child: Text("Drawer Error: $error")),
               loading: () => Center(child: CircularProgressIndicator()),
               data: (project) {
                 if (project == null) {
