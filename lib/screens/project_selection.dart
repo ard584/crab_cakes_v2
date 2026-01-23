@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_context_menu/flutter_context_menu.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:ui_prototype/models/project.dart';
 import 'package:ui_prototype/providers/db_provider.dart';
 import 'package:ui_prototype/screens/data_entry_screen.dart';
 import 'package:ui_prototype/screens/project_creation.dart';
@@ -43,7 +44,9 @@ class _ProjectSelectionState extends ConsumerState<ProjectSelection> {
               itemBuilder: (context, index) {
                 final project = projects[index];
                 return ProjectWidget(
-                  contextMenu: ContextMenu(entries: entries),
+                  contextMenu: ContextMenu(
+                    entries: _buildProjectContextMenu(project, ref),
+                  ),
                   projectTitle: project.title,
                   projectDescription: project.description,
                   projectUpdatedAt: project.updatedAt,
@@ -84,17 +87,32 @@ class _ProjectSelectionState extends ConsumerState<ProjectSelection> {
   }
 }
 
-final entries = <ContextMenuEntry>[
-  const MenuHeader(text: "Project Settings"),
-  MenuItem(
-    label: Text("Delete"),
-    icon: Icon(Icons.delete),
-    value: 'delete',
-    onSelected: (value) {
-      print("DELETE CALLED ON VALUE $value");
-    },
-  ),
-];
+List<ContextMenuEntry> _buildProjectContextMenu(
+  ProjectModel project,
+  WidgetRef ref,
+) {
+
+
+  return [
+    MenuHeader(text: "Project Settings"),
+    MenuItem(
+      label: Text("Delete"),
+      icon: Icon(Icons.delete),
+      value: 'delete',
+      onSelected: (value) {
+        print("DELETE CALLED ON PROJECT \"${project.title}\"");
+      },
+    ),
+    MenuItem(
+      label: Text("Edit"),
+      icon: Icon(Icons.mode_edit),
+      value: 'edit',
+      onSelected: (value) {
+        print("EDIT CALLED ON PROJECT \"${project.title}\"");
+      },
+    ),
+  ];
+}
 
 class ProjectSelection extends ConsumerStatefulWidget {
   const ProjectSelection({super.key});
