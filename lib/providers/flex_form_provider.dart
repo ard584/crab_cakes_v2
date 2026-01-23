@@ -68,10 +68,10 @@ final _flexTableControllersProvider = Provider.autoDispose
     });
 
 class AttributeFormField {
-  final Attribute attribute;
+  final Attribute fields;
   final TextEditingController controller;
 
-  AttributeFormField({required this.attribute, required this.controller});
+  AttributeFormField({required this.fields, required this.controller});
 }
 
 class TableForm {
@@ -81,60 +81,54 @@ class TableForm {
   TableForm({required this.name, required this.attributes});
 }
 
-final projectViewModelProvider = Provider.autoDispose<Map<String, TableForm>>((
-  ref,
-) {
-  // Get the project from the project provider
-  final flexProject = ref.watch(_currentFlexProjectProvider).value;
+final projectViewModelProvider =
+    Provider.autoDispose<AsyncValue<Map<String, TableForm>>>((ref) {
+      // Get the project from the project provider
+      final projectAsync = ref.watch(_currentFlexProjectProvider);
 
-  // If flexProject is null, return
-  if (flexProject == null) return {};
+      return projectAsync.when(
+        error: (error, stack) => AsyncError(error, stack),
+        loading: () => AsyncLoading(),
+        data: (project) {
+          // If flexProject is null, return
+          if (project == null) return AsyncData({});
 
-  final projectMap = <String, TableForm>{};
+          final projectMap = <String, TableForm>{};
 
-  // Iterate through tableNames
-  for (final tableName in flexProject.tables.keys) {
-    // Watch controller for specific table
-    // Not sure I need to keep this as a family anymore but we move
-    final controllers = ref.watch(_flexTableControllersProvider(tableName));
+          // Iterate through tableNames
+          for (final tableName in project.tables.keys) {
+            // Watch controller for specific table
+            // Not sure I need to keep this as a family anymore but we move
+            final controllers = ref.watch(
+              _flexTableControllersProvider(tableName),
+            );
 
-    // Get the table from the project
-    // Exclamation mark means will throw exception if there's no entry w this key
-    // TODO: Is this okay?
-    final tableData = flexProject.tables[tableName]!;
+            // Get the table from the project
+            // Exclamation mark means will throw exception if there's no entry w this key
+            // TODO: Is this okay?
+            final tableData = project.tables[tableName];
+            if (tableData == null) continue;
 
-    // Now, iterate through the fields and map everything together
-    final attributes = <String, AttributeFormField>{
-      for (final attribute in tableData.attributes)
-        attribute.name: AttributeFormField(
-          attribute: attribute,
-          controller: controllers[attribute.name]!,
-        ),
-    };
+            final attributesMap = <String, AttributeFormField>{};
 
-    projectMap[tableName] = TableForm(name: tableName, attributes: attributes);
-  }
+            for (final attribute in tableData.attributes) {
+              final controller = controllers[attribute.name];
 
-  return projectMap;
-});
+              if (controller != null) {
+                attributesMap[attribute.name] = AttributeFormField(
+                  fields: attribute,
+                  controller: controller,
+                );
+              }
+            };
 
-// <Map<String, Map<String, AttributeFormField>>>
+            projectMap[tableName] = TableForm(
+              name: tableName,
+              attributes: attributesMap,
+            );
+          }
 
-final attributeFormFieldProvider = Provider.autoDispose
-    .family<Map<String, AttributeFormField>, String>((ref, tableName) {
-      final flexProject = ref.watch(_currentFlexProjectProvider).value;
-      final table = flexProject?.tables[tableName];
-
-      if (table == null) return {};
-      final controllers = ref.watch(_flexTableControllersProvider(tableName));
-      final formMap = <String, AttributeFormField>{};
-
-      for (final attr in table.attributes) {
-        formMap[attr.name] = AttributeFormField(
-          attribute: attr,
-          controller: controllers[attr.name]!,
-        );
-      }
-
-      return formMap;
+          return AsyncData(projectMap);
+        },
+      );
     });

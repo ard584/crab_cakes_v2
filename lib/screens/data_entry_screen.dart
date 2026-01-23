@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:ui_prototype/models/attribute.dart';
 import 'package:ui_prototype/providers/flex_form_provider.dart';
 import 'package:ui_prototype/screens/export_screen.dart';
 import 'package:ui_prototype/screens/project_selection.dart';
@@ -23,10 +22,9 @@ class DataEntryScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final projectAsync = ref.watch(attributeFormFieldProvider("test"));
+    final projectAsync = ref.watch(projectViewModelProvider);
 
-    final project = projectAsync.value;
-    final activeTableName = project?.tables.keys.firstOrNull;
+    final activeTableName = projectAsync.value?.keys.firstOrNull;
 
     return Scaffold(
       appBar: AppBar(
@@ -42,7 +40,7 @@ class DataEntryScreen extends ConsumerWidget {
         child: projectAsync.when(
           error: (err, stack) => Center(child: Text("Error: $err")),
           data: (project) {
-            if (project == null) {
+            if (project.isEmpty) {
               return Center(child: Text("No project selected"));
             }
 
@@ -63,11 +61,18 @@ class DataEntryScreen extends ConsumerWidget {
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
-          //TODO: make the save button actually do something
-          final controllers = ref.watch(flexTableControllersProvider(activeTableName!));
-          for (final controller in controllers.values) {
-            log.d(controller.text);
-          }
+          final projectMap = ref.read(projectViewModelProvider).value;
+
+          if (projectMap == null) return;
+
+          for (final table in projectMap.entries) {
+
+            for (final attribute in table.value.attributes.entries) {
+              log.d("attribute KEY: ${attribute.key}");
+              log.d("attribute FIELDS: ${attribute.value.fields}");
+              log.d("attribute CONTROLLER TEXT: ${attribute.value.controller.text}");
+            }
+          };
         },
         label: Padding(
           padding: const EdgeInsets.all(20.0),
@@ -84,31 +89,32 @@ class TableFormSection extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final project = ref.watch(currentFlexProjectProvider).value;
-    final table = project?.tables[tableName];
+    final project = ref.watch(projectViewModelProvider).value;
+    final table = project?[tableName];
 
     if (table == null) {
       return Center(child: Text("Table is null"));
     }
 
-    final controllers = ref.watch(flexTableControllersProvider(tableName));
+    final attrbutes = table.attributes.values.toList();
 
-    if (controllers.isEmpty || controllers.length < table.attributes.length) {
-      log.w(
-        "Mismatch in TableFormSection build: controllers don't match table",
-      );
-      log.w("Controllers isEmpty: ${controllers.isEmpty}");
-      log.w("Controllers length: ${controllers.length}");
-      log.w("Table $tableName attributes length: ${table.attributes.length}");
-      return Center(child: CircularProgressIndicator());
-    }
+    // final controllers = ref.watch(flexTableControllersProvider(tableName));
 
-    final attrbutes = table.attributes;
+    // if (controllers.isEmpty || controllers.length < table.attributes.length) {
+    //   log.w(
+    //     "Mismatch in TableFormSection build: controllers don't match table",
+    //   );
+    //   log.w("Controllers isEmpty: ${controllers.isEmpty}");
+    //   log.w("Controllers length: ${controllers.length}");
+    //   log.w("Table $tableName attributes length: ${table.attributes.length}");
+    //   return Center(child: CircularProgressIndicator());
+    // }
 
     return ListView.builder(
       itemCount: attrbutes.length,
       itemBuilder: (context, index) {
-        final attribute = table.attributes.elementAt(index);
+
+        final attribute = attrbutes[index];
 
         return DynamicFlexField(tableName: tableName, attribute: attribute);
       },
@@ -118,7 +124,7 @@ class TableFormSection extends ConsumerWidget {
 
 class DynamicFlexField extends ConsumerWidget {
   final String tableName;
-  final Attribute attribute;
+  final AttributeFormField attribute;
 
   const DynamicFlexField({
     super.key,
@@ -128,7 +134,7 @@ class DynamicFlexField extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final controllers = ref.watch(flexTableControllersProvider(tableName));
+    // final controllers = ref.watch(flexTableControllersProvider(tableName));
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12.0),
@@ -141,13 +147,13 @@ class DynamicFlexField extends ConsumerWidget {
 
       child: FlexFieldFactory.createField(
         config: FlexFieldConfig(
-          label: attribute.name,
-          dataType: attribute.dataType,
-          isRequired: attribute.isNotNullable,
+          label: attribute.fields.name,
+          dataType: attribute.fields.dataType,
+          isRequired: attribute.fields.isNotNullable,
         ),
 
         // Placeholder for now, doesn't do anything
-        controller: controllers[attribute.name]!,
+        controller: attribute.controller,
 
         baseDecoration: InputDecoration(
           contentPadding: const EdgeInsets.symmetric(vertical: 14.0),
@@ -207,7 +213,7 @@ class ProjectDrawer extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final projectAsync = ref.watch(currentFlexProjectProvider);
+    final projectAsync = ref.watch(projectViewModelProvider);
 
     // return projectAsync.when(
     //   loading: () => Center(child: CircularProgressIndicator()),
@@ -235,16 +241,16 @@ class ProjectDrawer extends ConsumerWidget {
                   Center(child: Text("Drawer Error: $error")),
               loading: () => Center(child: CircularProgressIndicator()),
               data: (project) {
-                if (project == null) {
+                if (project.isEmpty) {
                   return Drawer(child: Center(child: Text("Project is NULL")));
                 }
 
-                final tableNames = project.tables.keys.toList();
+                final tableNames = project.keys.toList();
                 return ListView.builder(
                   itemCount: tableNames.length,
                   itemBuilder: (context, index) {
                     final tableName = tableNames[index];
-                    final tableData = project.tables[tableName];
+                    final tableData = project[tableName];
 
                     return ListTile(
                       leading: const Icon(Icons.table_chart_outlined),
