@@ -72,7 +72,7 @@ class DataEntryScreen extends ConsumerWidget {
               log.d("attribute FIELDS: ${attribute.value.fields}");
               log.d("attribute CONTROLLER TEXT: ${attribute.value.controller.text}");
             }
-          };
+          }
         },
         label: Padding(
           padding: const EdgeInsets.all(20.0),
