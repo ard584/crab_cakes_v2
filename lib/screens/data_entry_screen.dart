@@ -5,7 +5,6 @@ import 'package:ui_prototype/providers/flex_form_provider.dart';
 import 'package:ui_prototype/screens/export_screen.dart';
 import 'package:ui_prototype/screens/project_selection.dart';
 import 'package:ui_prototype/services/flex_field/flex_field_factory.dart';
-import 'package:ui_prototype/services/projects/flex_project_provider.dart';
 import 'package:ui_prototype/utils/logger.dart';
 
 import 'settings_screen.dart';
@@ -24,7 +23,7 @@ class DataEntryScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final projectAsync = ref.watch(currentFlexProjectProvider);
+    final projectAsync = ref.watch(attributeFormFieldProvider("test"));
 
     final project = projectAsync.value;
     final activeTableName = project?.tables.keys.firstOrNull;

@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ui_prototype/services/flex_engine/flex_file_factory.dart';
-import 'package:ui_prototype/services/projects/flex_project_provider.dart';
+import 'package:ui_prototype/providers/flex_form_provider.dart';
 import 'package:ui_prototype/utils/logger.dart';
 import 'package:sqlite3/sqlite3.dart';
 
@@ -45,7 +45,7 @@ class ProjectService {
 
   Future<void> openProject(String dbPath) async {
 
-    await ref.read(currentFlexProjectProvider.notifier).loadProject(dbPath);
+    await ref.read(flexProjectControllerProvider).loadProject(dbPath);
 
   }
 }
