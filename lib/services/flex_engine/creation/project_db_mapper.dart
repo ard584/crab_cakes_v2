@@ -26,10 +26,10 @@ Future<ProjectDb> createDbObject(db) async {
     };
 
     // Store instance internally
-    final project_db = ProjectDb(tables: tableMap);
+    final projectDb = ProjectDb(tables: tableMap);
 
     // Return the instance
-    return project_db;
+    return projectDb;
   } finally {
     // Close database connection
     db.dispose();
@@ -57,8 +57,9 @@ Future<List<Attribute>> _readAttributes(Database db, String tableName) async {
 Future<List<String>> _readTableNames(Database db) async {
   // Get name of tables
   final tables = db.select('''SELECT name FROM sqlite_master 
-  WHERE type="table" 
-  AND name NOT LIKE "sqlite%"''');
+  WHERE type='table' 
+  AND name NOT LIKE 'sqlite%'
+  ''');
 
   // Map to string
   return tables.map((row) => row['name'] as String).toList();

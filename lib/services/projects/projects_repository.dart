@@ -1,8 +1,10 @@
-import 'app_database.dart';
-import 'package:drift/drift.dart';
-import '../models/project.dart';
+// projects_repository.dart
 
-import 'uuid_helpers.dart';
+import 'database/projects_database.dart';
+import 'package:drift/drift.dart';
+import '../../models/project.dart';
+
+import '../uuid_helpers.dart';
 
 /// Returns current UTC time in ISO-8601 format
 String _nowIsoUtc() => DateTime.now().toUtc().toIso8601String();
@@ -14,11 +16,11 @@ class ProjectsRepository {
   ProjectsRepository(this.db, this.deviceId);
 
   // Create project
-  Future<void> createProject(
-    String title,
+  Future<void> createProject({
+    required String title,
     String? description,
-    String dbPath,
-  ) async {
+    required String dbPath,
+  }) async {
     final now = _nowIsoUtc();
 
     //

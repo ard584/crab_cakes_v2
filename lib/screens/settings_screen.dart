@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:ui_prototype/utils/logger.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -30,7 +31,7 @@ class SettingsScreen extends StatelessWidget {
                     IconButton(
                       tooltip: 'Eject USB Drive from backup pool.',
                       onPressed: () {
-                        print('Tapped settings');
+                        log.d('Tapped settings');
                       },
                       icon: const Icon(Icons.eject),
                     ),
@@ -49,7 +50,7 @@ class SettingsScreen extends StatelessWidget {
                     IconButton(
                       tooltip: 'Eject USB Drive from backup pool.',
                       onPressed: () {
-                        print('Tapped settings');
+                        log.d('Tapped settings');
                       },
                       icon: const Icon(Icons.eject),
                     ),
@@ -68,7 +69,7 @@ class SettingsScreen extends StatelessWidget {
                     IconButton(
                       tooltip: 'Eject USB Drive from backup pool.',
                       onPressed: () {
-                        print('Tapped settings');
+                        log.d('Tapped settings');
                       },
                       icon: const Icon(Icons.eject),
                     ),
@@ -79,7 +80,7 @@ class SettingsScreen extends StatelessWidget {
                 tooltip: 'Add USB Drive to the backup pool.',
                 icon: Icon(Icons.add),
                 onPressed: () {
-                  print('Button pressed');
+                  log.d('Button pressed');
                 },
                 label: const Text('Add USB Drive'),
               ),
@@ -96,7 +97,7 @@ class SettingsScreen extends StatelessWidget {
                     IconButton(
                       tooltip: 'Disconnect \'Biomark HPR Lite\'.',
                       onPressed: () {
-                        print('Tapped settings');
+                        log.d('Tapped settings');
                       },
                       icon: const Icon(Icons.bluetooth_disabled),
                     ),
@@ -116,7 +117,7 @@ class SettingsScreen extends StatelessWidget {
                     IconButton(
                       tooltip: 'Import a data file to be merged.',
                       onPressed: () {
-                        print('Tapped settings');
+                        log.d('Tapped settings');
                       },
                       icon: const Icon(Icons.file_upload),
                     ),

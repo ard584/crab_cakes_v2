@@ -1,9 +1,14 @@
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:ui_prototype/utils/logger.dart';
+import 'package:ui_prototype/services/projects/project_service.dart';
 
-class ProjectCreationScreen extends StatefulWidget {
+class ProjectCreationScreen extends ConsumerStatefulWidget {
+  const ProjectCreationScreen({super.key});
+
   @override
-  State<ProjectCreationScreen> createState() => _ProjectCreationScreenState();
+  ConsumerState<ProjectCreationScreen> createState() => _ProjectCreationScreenState();
 }
 
 class SchemaInputSelection extends StatefulWidget {
@@ -40,14 +45,46 @@ class _SchemaInputSelectionState extends State<SchemaInputSelection> {
   }
 }
 
-class _ProjectCreationScreenState extends State<ProjectCreationScreen> {
+class _ProjectCreationScreenState extends ConsumerState<ProjectCreationScreen> {
   final _formKey = GlobalKey<FormState>();
-  final String projectName = '';
-  final String? projectDescription = '';
-  final String? dbPath = '';
+
+  final _projectNameController = TextEditingController();
+  final _projectDescriptionController = TextEditingController();
+  final _dbCreateSchema = TextEditingController();
+
   bool isSubmitting = false;
   Schema selectedSchema = Schema.text;
   FilePickerResult? schemaFile;
+
+  void insertIntoDb() {
+
+    final title = _projectNameController.text;
+    final description = _projectDescriptionController.text;
+    final sql = _dbCreateSchema.text;
+
+    final request = ProjectCreateRequest(
+      title: title, 
+      description: description,
+      sql: sql
+    );
+
+    log.d("REQUEST: $request");
+    
+    log.d("NAME: ${_projectNameController.text}");
+    log.d("DESCRIPTION: ${_projectDescriptionController.text}");
+    log.d("SCHEMA: ${_dbCreateSchema.text}");
+
+    ref.read(projectServiceProvider).create(request);
+  }
+
+  @override
+  void dispose() {
+    _projectNameController.dispose();
+    _projectDescriptionController.dispose();
+    _dbCreateSchema.dispose();
+
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -66,6 +103,7 @@ class _ProjectCreationScreenState extends State<ProjectCreationScreen> {
                     padding: const EdgeInsets.symmetric(horizontal: 12.0),
                     decoration: reusableBoxDecoration,
                     child: TextFormField(
+                      controller: _projectNameController,
                       decoration: getInputDecoration(labelText: 'Project Name'),
                     ),
                   ),
@@ -74,6 +112,7 @@ class _ProjectCreationScreenState extends State<ProjectCreationScreen> {
                     padding: const EdgeInsets.symmetric(horizontal: 12.0),
                     decoration: reusableBoxDecoration,
                     child: TextFormField(
+                      controller: _projectDescriptionController,
                       decoration: getInputDecoration(labelText: 'Description'),
                     ),
                   ),
@@ -87,7 +126,7 @@ class _ProjectCreationScreenState extends State<ProjectCreationScreen> {
                         onChanged: (Schema newValue) {
                           setState(() {
                             selectedSchema = newValue;
-                            print('SELECTED SCHEMA: $selectedSchema');
+                            log.d('SELECTED SCHEMA: $selectedSchema');
                           });
                         },
                       ),
@@ -100,6 +139,7 @@ class _ProjectCreationScreenState extends State<ProjectCreationScreen> {
                         padding: const EdgeInsets.symmetric(horizontal: 12.0),
                         decoration: reusableBoxDecoration,
                         child: TextFormField(
+                          controller: _dbCreateSchema,
                           minLines: 3,
                           maxLines: null,
                           keyboardType: TextInputType.multiline,
@@ -111,10 +151,11 @@ class _ProjectCreationScreenState extends State<ProjectCreationScreen> {
                       ),
                       Schema.file => FloatingActionButton.extended(
                         onPressed: () async {
-                          FilePickerResult? result = await FilePicker.platform.pickFiles(
-                            type: FileType.custom,
-                            allowedExtensions: ['txt', 'sql']
-                          );
+                          FilePickerResult? result = await FilePicker.platform
+                              .pickFiles(
+                                type: FileType.custom,
+                                allowedExtensions: ['txt', 'sql'],
+                              );
 
                           if (result != null) {
                             setState(() {
@@ -125,6 +166,10 @@ class _ProjectCreationScreenState extends State<ProjectCreationScreen> {
                         label: Text('Upload File'),
                       ),
                     },
+                  ),
+                  FloatingActionButton.extended(
+                    onPressed: insertIntoDb,
+                    label: Text('Create Project'),
                   ),
                 ],
               ),

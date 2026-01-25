@@ -7,8 +7,7 @@ class ExportScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Export')),
-      body: Container(
-        child: SingleChildScrollView(
+      body: SingleChildScrollView(
           child: Padding(
             padding: EdgeInsetsGeometry.all(40),
             child: Column(
@@ -30,7 +29,6 @@ class ExportScreen extends StatelessWidget {
             ),
           ),
         ),
-      ),
     );
   }
 }
@@ -83,7 +81,6 @@ class SimpleTable extends StatelessWidget {
                       .toList(),
                 ),
               )
-              .toList(),
         ],
       ),
     );

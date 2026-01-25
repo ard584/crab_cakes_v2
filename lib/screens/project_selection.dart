@@ -1,89 +1,82 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_context_menu/flutter_context_menu.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ui_prototype/models/project.dart';
+import 'package:ui_prototype/providers/db_provider.dart';
+import 'package:ui_prototype/screens/data_entry_screen.dart';
 import 'package:ui_prototype/screens/project_creation.dart';
+import 'package:ui_prototype/services/projects/project_service.dart';
 import '../components/project_widget.dart';
-import 'package:ui_prototype/services/load_project.dart';
-import 'package:ui_prototype/exceptions/project_db_exception.dart';
-import 'package:ui_prototype/dialogs/project_error_dialog.dart';
 
-
-
-class _ProjectSelectionState extends State<ProjectSelection> {
-  Future<void> openProject(String dbPath) async {
-    if (!isValidDbPath(dbPath)) {
-      await showDialog(
-        context: context,
-        builder: (_) => AlertDialog(
-          title: Text('Invalid Database Path'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Database path must end in .db and contain no spaces or illegal characters.',
-                style: Theme.of(context).textTheme.bodyMedium,
-              ),
-              Text(
-                'Invalid path: \'$dbPath\'',
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
-              ),
-            ],
-          ),
-        ),
-      );
-
-      return;
-    }
-
-    try {
-      // Try to read the project schema
-      final projectDb = await readProjectSchema(dbPath);
-      debugPrint(projectDb.toString());
-    } on ProjectDbException catch (e) {
-      if (!mounted) return;
-      await showProjectDbErrorDialog(context, e);
-    } catch (e, st) {
-      debugPrint('Unexpected error: $e\n$st');
-
-      if (!mounted) return;
-      await showDialog(
-        context: context,
-        builder: (_) => const AlertDialog(
-          title: Text('Unexpected Error'),
-          content: Text('Something went wrong while opening the project.'),
-        ),
-      );
-    }
-  }
-
+class _ProjectSelectionState extends ConsumerState<ProjectSelection> {
   @override
   Widget build(BuildContext context) {
+    final repo = ref.watch(projectsRepositoryProvider);
+
+    if (repo == null) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
     return Scaffold(
       appBar: AppBar(title: const Text('Select a Project')),
-      body: Padding(
-        padding: EdgeInsets.all(40.0),
-        child: ListView.builder(
-          itemCount: widget.projectsList.length,
-          itemBuilder: (context, index) {
-            return ProjectWidget(
-              projectTitle: widget.projectsList[index].title,
-              projectDescription: widget.projectsList[index].description,
-              projectUpdatedAt: widget.projectsList[index].updatedAt,
-              onPressed: () => openProject(widget.projectsList[index].dbPath),
-            );
-          },
-        ),
+      body: FutureBuilder(
+        future: repo.getAllProjects(),
+        builder: (context, snapshot) {
+          // Loading state
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          // Handle errors
+          if (snapshot.hasError) {
+            return Center(child: Text('Error: ${snapshot.error}'));
+          }
+
+          final projects = snapshot.data ?? [];
+
+          if (projects.isEmpty) {
+            return Center(child: Text('No projects found'));
+          }
+
+          return Padding(
+            padding: EdgeInsets.all(40.0),
+            child: ListView.builder(
+              itemCount: projects.length,
+              itemBuilder: (context, index) {
+                final project = projects[index];
+                return ProjectWidget(
+                  contextMenu: ContextMenu(
+                    entries: _buildProjectContextMenu(project, ref),
+                  ),
+                  projectTitle: project.title,
+                  projectDescription: project.description,
+                  projectUpdatedAt: project.updatedAt,
+                  onPressed: () async {
+                    await ref
+                        .read(projectServiceProvider)
+                        .openProject(project.dbPath);
+
+                    // If mounted
+                    if (context.mounted) {
+                      // Open data entry screen
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const DataEntryScreen(),
+                        ),
+                      );
+                    }
+                  },
+                );
+              },
+            ),
+          );
+        },
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
           Navigator.push(
             context,
-            MaterialPageRoute(
-              builder: (context) =>
-                  ProjectCreationScreen(),
-            ),
+            MaterialPageRoute(builder: (context) => ProjectCreationScreen()),
           );
         },
         tooltip: 'Create a new project',
@@ -94,13 +87,38 @@ class _ProjectSelectionState extends State<ProjectSelection> {
   }
 }
 
-class ProjectSelection extends StatefulWidget {
-  final List<ProjectModel> projectsList;
+List<ContextMenuEntry> _buildProjectContextMenu(
+  ProjectModel project,
+  WidgetRef ref,
+) {
 
-  const ProjectSelection({super.key, required this.projectsList});
+
+  return [
+    MenuHeader(text: "Project Settings"),
+    MenuItem(
+      label: Text("Delete"),
+      icon: Icon(Icons.delete),
+      value: 'delete',
+      onSelected: (value) {
+        print("DELETE CALLED ON PROJECT \"${project.title}\"");
+      },
+    ),
+    MenuItem(
+      label: Text("Edit"),
+      icon: Icon(Icons.mode_edit),
+      value: 'edit',
+      onSelected: (value) {
+        print("EDIT CALLED ON PROJECT \"${project.title}\"");
+      },
+    ),
+  ];
+}
+
+class ProjectSelection extends ConsumerStatefulWidget {
+  const ProjectSelection({super.key});
 
   @override
-  State<ProjectSelection> createState() => _ProjectSelectionState();
+  ConsumerState<ProjectSelection> createState() => _ProjectSelectionState();
 }
 
 final reusableBoxDecoration = BoxDecoration(
