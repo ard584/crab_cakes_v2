@@ -1,15 +1,15 @@
 import 'package:path_provider/path_provider.dart';
 import 'package:sqlite3/sqlite3.dart';
-import 'package:ui_prototype/exceptions/project_db_exception.dart';
-import 'package:ui_prototype/services/flex_engine/creation/sql_security_validator.dart';
+import 'package:ui_prototype/presentation/exceptions/project_db_exception.dart';
+import 'package:ui_prototype/presentation/services/flex_engine/creation/sql_security_validator.dart';
 
 import 'dart:io';
 import 'package:path/path.dart' as path;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:ui_prototype/providers/db_provider.dart';
+import 'package:ui_prototype/presentation/providers/db_provider.dart';
 
 import 'package:uuid/uuid.dart';
-import 'package:ui_prototype/utils/logger.dart';
+import 'package:ui_prototype/presentation/utils/logger.dart';
 
 typedef DatabaseOpener = Database Function(String filename);
 

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:ui_prototype/exceptions/project_db_exception.dart';
+import 'package:ui_prototype/presentation/exceptions/project_db_exception.dart';
 
 Future<void> showProjectDbErrorDialog(
   BuildContext context,

@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:ui_prototype/providers/flex_form_provider.dart';
-import 'package:ui_prototype/screens/export_screen.dart';
-import 'package:ui_prototype/screens/project_selection.dart';
-import 'package:ui_prototype/services/flex_field/flex_field_factory.dart';
-import 'package:ui_prototype/utils/logger.dart';
+import 'package:ui_prototype/presentation/providers/flex_form_provider.dart';
+import 'package:ui_prototype/presentation/screens/export_screen.dart';
+import 'package:ui_prototype/presentation/screens/project_selection.dart';
+import 'package:ui_prototype/presentation/services/flex_field/flex_field_factory.dart';
+import 'package:ui_prototype/presentation/utils/logger.dart';
 
 import 'settings_screen.dart';
 

@@ -1,7 +1,7 @@
 import 'package:sqlite3/sqlite3.dart';
-import 'package:ui_prototype/models/table.dart';
-import 'package:ui_prototype/models/attribute.dart';
-import 'package:ui_prototype/models/project_db.dart';
+import 'package:ui_prototype/presentation/models/table.dart';
+import 'package:ui_prototype/presentation/models/attribute.dart';
+import 'package:ui_prototype/presentation/models/project_db.dart';
 
 Future<ProjectDb> createDbObject(db) async {
   try {

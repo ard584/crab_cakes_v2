@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_context_menu/flutter_context_menu.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:ui_prototype/models/project.dart';
-import 'package:ui_prototype/providers/db_provider.dart';
-import 'package:ui_prototype/screens/data_entry_screen.dart';
-import 'package:ui_prototype/screens/project_creation.dart';
-import 'package:ui_prototype/services/projects/project_service.dart';
+import 'package:ui_prototype/presentation/models/project.dart';
+import 'package:ui_prototype/presentation/providers/db_provider.dart';
+import 'package:ui_prototype/presentation/screens/data_entry_screen.dart';
+import 'package:ui_prototype/presentation/screens/project_creation.dart';
+import 'package:ui_prototype/presentation/services/projects/project_service.dart';
 import '../components/project_widget.dart';
 
 class _ProjectSelectionState extends ConsumerState<ProjectSelection> {
