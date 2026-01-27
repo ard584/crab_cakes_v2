@@ -1,9 +1,9 @@
 import 'dart:typed_data';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:ui_prototype/services/projects/database/projects_database.dart';
-import 'package:ui_prototype/services/device_uuid_helper.dart';
-import 'package:ui_prototype/services/projects/projects_repository.dart';
+import 'package:ui_prototype/presentation/services/projects/database/projects_database.dart';
+import 'package:ui_prototype/presentation/services/device_uuid_helper.dart';
+import 'package:ui_prototype/presentation/services/projects/projects_repository.dart';
 
 final deviceIdProvider = FutureProvider<Uint8List>((ref) async {
   return await getOrCreateDeviceID();

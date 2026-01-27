@@ -1,7 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:ui_prototype/services/flex_engine/flex_file_factory.dart';
-import 'package:ui_prototype/providers/flex_form_provider.dart';
-import 'package:ui_prototype/utils/logger.dart';
+import 'package:ui_prototype/presentation/services/flex_engine/flex_file_factory.dart';
+import 'package:ui_prototype/presentation/providers/flex_form_provider.dart';
+import 'package:ui_prototype/presentation/utils/logger.dart';
 import 'package:sqlite3/sqlite3.dart';
 
 final projectServiceProvider = Provider((ref) => ProjectService(ref));

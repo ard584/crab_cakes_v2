@@ -1,4 +1,4 @@
-import 'package:ui_prototype/models/table.dart';
+import 'package:ui_prototype/presentation/models/table.dart';
 
 class ProjectDb {
 

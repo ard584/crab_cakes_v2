@@ -1,8 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/material.dart';
-import 'package:ui_prototype/models/attribute.dart';
-import 'package:ui_prototype/models/project_db.dart';
-import 'package:ui_prototype/services/flex_engine/flex_db_mapper.dart';
+import 'package:ui_prototype/presentation/models/attribute.dart';
+import 'package:ui_prototype/presentation/models/project_db.dart';
+import 'package:ui_prototype/presentation/services/flex_engine/flex_db_mapper.dart';
 
 class CurrentFlexProjectNotifier extends AsyncNotifier<ProjectDb?> {
   @override
