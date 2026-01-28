@@ -45,7 +45,11 @@ class _ProjectSelectionState extends ConsumerState<ProjectSelection> {
                 final project = projects[index];
                 return ProjectWidget(
                   contextMenu: ContextMenu(
-                    entries: _buildProjectContextMenu(project, ref),
+                    entries: _buildProjectContextMenu(
+                      project: project,
+                      ref: ref,
+                      context: context,
+                    ),
                   ),
                   projectTitle: project.title,
                   projectDescription: project.description,
@@ -87,20 +91,46 @@ class _ProjectSelectionState extends ConsumerState<ProjectSelection> {
   }
 }
 
-List<ContextMenuEntry> _buildProjectContextMenu(
-  ProjectModel project,
-  WidgetRef ref,
-) {
+Future<bool> confirmDelete(BuildContext context) async {
+  final result = await showDialog<bool>(
+    context: context,
+    builder: (context) {
+      return AlertDialog(
+        title: Text("Confirm Delete"),
+        content: Text("Are you sure you want to delete this project?"),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text("Cancel"),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text("Delete"),
+          ),
+        ],
+      );
+    },
+  );
 
+  return result ?? false;
+}
 
+List<ContextMenuEntry> _buildProjectContextMenu({
+  required BuildContext context,
+  required ProjectModel project,
+  required WidgetRef ref,
+}) {
   return [
     MenuHeader(text: "Project Settings"),
     MenuItem(
       label: Text("Delete"),
       icon: Icon(Icons.delete),
       value: 'delete',
-      onSelected: (value) {
+      onSelected: (value) async {
         print("DELETE CALLED ON PROJECT \"${project.title}\"");
+        final result = await confirmDelete(context);
+
+        print("RESULT: $result");
       },
     ),
     MenuItem(
