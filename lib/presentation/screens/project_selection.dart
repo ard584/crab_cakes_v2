@@ -5,38 +5,19 @@ import 'package:ui_prototype/presentation/models/project.dart';
 import 'package:ui_prototype/presentation/providers/db_provider.dart';
 import 'package:ui_prototype/presentation/screens/data_entry_screen.dart';
 import 'package:ui_prototype/presentation/screens/project_creation.dart';
-import 'package:ui_prototype/presentation/services/projects/project_service.dart';
 import '../components/project_widget.dart';
 
 class _ProjectSelectionState extends ConsumerState<ProjectSelection> {
   @override
   Widget build(BuildContext context) {
-    final repo = ref.watch(projectsRepositoryProvider);
+    final projectsAsync = ref.watch(projectListProvider);
 
-    if (repo == null) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
-    }
     return Scaffold(
       appBar: AppBar(title: const Text('Select a Project')),
-      body: FutureBuilder(
-        future: repo.getAllProjects(),
-        builder: (context, snapshot) {
-          // Loading state
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
-
-          // Handle errors
-          if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
-          }
-
-          final projects = snapshot.data ?? [];
-
-          if (projects.isEmpty) {
-            return Center(child: Text('No projects found'));
-          }
-
+      body: projectsAsync.when(
+        loading: () => Center(child: CircularProgressIndicator()),
+        error: (err, stack) => Center(child: Text("Error: $err")),
+        data: (projects) {
           return Padding(
             padding: EdgeInsets.all(40.0),
             child: ListView.builder(
@@ -56,8 +37,8 @@ class _ProjectSelectionState extends ConsumerState<ProjectSelection> {
                   projectUpdatedAt: project.updatedAt,
                   onPressed: () async {
                     await ref
-                        .read(projectServiceProvider)
-                        .openProject(project.dbPath);
+                        .read(projectListProvider.notifier)
+                        .selectProject(dbPath: project.dbPath);
 
                     // If mounted
                     if (context.mounted) {
@@ -76,6 +57,7 @@ class _ProjectSelectionState extends ConsumerState<ProjectSelection> {
           );
         },
       ),
+
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
           Navigator.push(
@@ -115,7 +97,7 @@ Future<bool> confirmDelete(BuildContext context) async {
             padding: const EdgeInsets.all(4.0),
             child: Column(
               children: [
-                SizedBox(height: 8.0,),
+                SizedBox(height: 8.0),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
@@ -126,7 +108,7 @@ Future<bool> confirmDelete(BuildContext context) async {
                     TextButton(
                       onPressed: () {
                         print(textController.text);
-                
+
                         if (textController.text.compareTo('DELETE') == 0) {
                           Navigator.pop(context, true);
                         } else {
@@ -162,6 +144,12 @@ List<ContextMenuEntry> _buildProjectContextMenu({
       onSelected: (value) async {
         print("DELETE CALLED ON PROJECT \"${project.title}\"");
         final result = await confirmDelete(context);
+
+        if (result == true) {
+          final repo = ref.read(projectListProvider.notifier);
+
+          repo.deleteProject(projectId: project.id);
+        }
 
         print("RESULT: $result");
       },
