@@ -92,20 +92,53 @@ class _ProjectSelectionState extends ConsumerState<ProjectSelection> {
 }
 
 Future<bool> confirmDelete(BuildContext context) async {
+  final textController = TextEditingController();
+
   final result = await showDialog<bool>(
     context: context,
     builder: (context) {
       return AlertDialog(
         title: Text("Confirm Delete"),
-        content: Text("Are you sure you want to delete this project?"),
+        content: Text(
+          "Are you sure you want to delete this project?"
+          "\nType 'DELETE' to confirm",
+        ),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text("Cancel"),
+          TextField(
+            controller: textController,
+            decoration: InputDecoration(
+              hintText: 'DELETE',
+              hintStyle: TextStyle(color: Colors.grey.shade500),
+            ),
           ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text("Delete"),
+          Padding(
+            padding: const EdgeInsets.all(4.0),
+            child: Column(
+              children: [
+                SizedBox(height: 8.0,),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(context, false),
+                      child: const Text("Cancel"),
+                    ),
+                    TextButton(
+                      onPressed: () {
+                        print(textController.text);
+                
+                        if (textController.text.compareTo('DELETE') == 0) {
+                          Navigator.pop(context, true);
+                        } else {
+                          Navigator.pop(context, false);
+                        }
+                      },
+                      child: const Text("Delete"),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
         ],
       );
