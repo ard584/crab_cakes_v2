@@ -5,6 +5,7 @@ import 'package:ui_prototype/presentation/models/project.dart';
 import 'package:ui_prototype/presentation/providers/db_provider.dart';
 import 'package:ui_prototype/presentation/screens/data_entry_screen.dart';
 import 'package:ui_prototype/presentation/screens/project_creation.dart';
+import 'package:ui_prototype/presentation/screens/update_project_screen.dart';
 import '../components/project_widget.dart';
 
 class _ProjectSelectionState extends ConsumerState<ProjectSelection> {
@@ -146,9 +147,7 @@ List<ContextMenuEntry> _buildProjectContextMenu({
         final result = await confirmDelete(context);
 
         if (result == true) {
-          final repo = ref.read(projectListProvider.notifier);
-
-          repo.deleteProject(projectId: project.id);
+          ref.read(projectListProvider.notifier).deleteProject(projectId: project.id);
         }
 
         print("RESULT: $result");
@@ -160,6 +159,12 @@ List<ContextMenuEntry> _buildProjectContextMenu({
       value: 'edit',
       onSelected: (value) {
         print("EDIT CALLED ON PROJECT \"${project.title}\"");
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => UpdateProjectScreen(
+            project: project,
+          )),
+        );
       },
     ),
   ];

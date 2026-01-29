@@ -87,6 +87,18 @@ class ProjectsListNotifier extends AsyncNotifier<List<ProjectModel>> {
     await ref.read(flexProjectControllerProvider).loadProject(dbPath);
   }
 
+  // Update
+  Future<void> updateProject({required ProjectModel project}) async {
+    final repository = ref.read(_projectsRepositoryProvider);
+    if (repository == null) return;
+
+    // Call update function
+    repository.updateProject(project);
+
+    // Invalidate self to force update
+    ref.invalidateSelf();
+  }
+
   // Delete
   Future<void> deleteProject({required Uint8List projectId}) async {
     final repository = ref.read(_projectsRepositoryProvider);

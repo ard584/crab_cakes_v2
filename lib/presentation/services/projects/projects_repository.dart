@@ -47,6 +47,20 @@ class ProjectsRepository {
         );
   }
 
+  Future updateProject(ProjectModel project) async {
+    final now = _nowIsoUtc();
+
+    return (db.update(
+      db.projects,
+    )..where((p) => p.id.equals(project.id))).write(
+      ProjectsCompanion(
+        title: Value(project.title),
+        description: Value(project.description),
+        updatedAt: Value(now),
+      ),
+    );
+  }
+
   Future<List<ProjectModel>> getAllProjects() async {
     final res = await db.select(db.projects).get();
 
@@ -71,9 +85,6 @@ class ProjectsRepository {
   }
 
   Future<int> deleteProjectById(Uint8List projectId) {
-
-    return (db.delete(
-      db.projects,
-    )..where((t) => t.id.equals(projectId))).go();
+    return (db.delete(db.projects)..where((t) => t.id.equals(projectId))).go();
   }
 }
