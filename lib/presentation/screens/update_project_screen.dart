@@ -2,6 +2,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ui_prototype/presentation/models/project.dart';
+import 'package:ui_prototype/presentation/providers/db_provider.dart';
 import 'package:ui_prototype/presentation/utils/logger.dart';
 
 class UpdateProjectScreen extends ConsumerStatefulWidget {
@@ -28,7 +29,9 @@ class _ProjectCreationScreenState extends ConsumerState<UpdateProjectScreen> {
     super.initState();
 
     _projectNameController = TextEditingController(text: widget.project.title);
-    _projectDescriptionController = TextEditingController(text: widget.project.description);
+    _projectDescriptionController = TextEditingController(
+      text: widget.project.description,
+    );
   }
 
   @override
@@ -70,9 +73,31 @@ class _ProjectCreationScreenState extends ConsumerState<UpdateProjectScreen> {
                     ),
                   ),
                   FloatingActionButton.extended(
-                    onPressed: () {
+                    onPressed: () async {
                       log.d("PROJECT NAME: ${_projectNameController.text}");
-                      log.d("PROJECT DESCRIPTION: ${_projectDescriptionController.text}");
+                      log.d(
+                        "PROJECT DESCRIPTION: ${_projectDescriptionController.text}",
+                      );
+
+                      final result = await confirmUpdate(context);
+
+                      if (result == true) {
+                        var updatedProject = widget.project.copyWith(
+                          title: _projectNameController.text,
+                          description: _projectDescriptionController.text,
+                        );
+
+                        ref
+                            .watch(projectListProvider.notifier)
+                            .updateProject(project: updatedProject);
+
+                        log.d("PROJECT UPDATED");
+                      }
+                      log.d("RESULT: $result");
+
+                      if (!context.mounted) return;
+
+                      Navigator.pop(context);
                     },
                     label: Text('Update Project'),
                   ),
@@ -84,6 +109,44 @@ class _ProjectCreationScreenState extends ConsumerState<UpdateProjectScreen> {
       ),
     );
   }
+}
+
+Future<bool> confirmUpdate(BuildContext context) async {
+  final result = await showDialog<bool>(
+    context: context,
+    builder: (context) {
+      return AlertDialog(
+        title: Text("Confirm Changes"),
+        content: Text("Are you sure you want to edit this project?"),
+        actions: [
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Column(
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(context, false),
+                      child: const Text("Cancel"),
+                    ),
+                    TextButton(
+                      onPressed: () {
+                        Navigator.pop(context, true);
+                      },
+                      child: const Text("Update"),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      );
+    },
+  );
+
+  return result ?? false;
 }
 
 final reusableBoxDecoration = BoxDecoration(

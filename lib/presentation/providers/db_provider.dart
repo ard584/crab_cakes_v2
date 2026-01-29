@@ -92,8 +92,12 @@ class ProjectsListNotifier extends AsyncNotifier<List<ProjectModel>> {
     final repository = ref.read(_projectsRepositoryProvider);
     if (repository == null) return;
 
+    
+
     // Call update function
     repository.updateProject(project);
+
+    print("PROVIDER: UPDATE CALLED, UPDATE PROJECT CALLED");
 
     // Invalidate self to force update
     ref.invalidateSelf();
