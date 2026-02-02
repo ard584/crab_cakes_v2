@@ -24,7 +24,7 @@ class DataEntryScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final projectAsync = ref.watch(projectViewModelProvider);
 
-    final activeTableName = projectAsync.value?.keys.firstOrNull;
+    final activeTableName = projectAsync.value?.tables.keys.firstOrNull;
 
     return Scaffold(
       appBar: AppBar(
@@ -40,7 +40,7 @@ class DataEntryScreen extends ConsumerWidget {
         child: projectAsync.when(
           error: (err, stack) => Center(child: Text("Error: $err")),
           data: (project) {
-            if (project.isEmpty) {
+            if (project.tables.isEmpty) {
               return Center(child: Text("No project selected"));
             }
 
@@ -65,11 +65,11 @@ class DataEntryScreen extends ConsumerWidget {
 
           if (projectMap == null) return;
 
-          for (final table in projectMap.entries) {
+          for (final table in projectMap.tables.entries) {
 
             for (final attribute in table.value.attributes.entries) {
               log.d("attribute KEY: ${attribute.key}");
-              log.d("attribute FIELDS: ${attribute.value.fields}");
+              log.d("attribute FIELDS: ${attribute.value.input.fields}");
               log.d("attribute CONTROLLER TEXT: ${attribute.value.controller.text}");
             }
           }
@@ -90,7 +90,7 @@ class TableFormSection extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final project = ref.watch(projectViewModelProvider).value;
-    final table = project?[tableName];
+    final table = project?.tables[tableName];
 
     if (table == null) {
       return Center(child: Text("Table is null"));
@@ -147,9 +147,9 @@ class DynamicFlexField extends ConsumerWidget {
 
       child: FlexFieldFactory.createField(
         config: FlexFieldConfig(
-          label: attribute.fields.name,
-          dataType: attribute.fields.dataType,
-          isRequired: attribute.fields.isNotNullable,
+          label: attribute.input.fields.name,
+          dataType: attribute.input.fields.dataType,
+          isRequired: attribute.input.fields.isNotNullable,
         ),
 
         // Placeholder for now, doesn't do anything
@@ -241,16 +241,16 @@ class ProjectDrawer extends ConsumerWidget {
                   Center(child: Text("Drawer Error: $error")),
               loading: () => Center(child: CircularProgressIndicator()),
               data: (project) {
-                if (project.isEmpty) {
+                if (project.tables.isEmpty) {
                   return Drawer(child: Center(child: Text("Project is NULL")));
                 }
 
-                final tableNames = project.keys.toList();
+                final tableNames = project.tables.keys.toList();
                 return ListView.builder(
                   itemCount: tableNames.length,
                   itemBuilder: (context, index) {
                     final tableName = tableNames[index];
-                    final tableData = project[tableName];
+                    final tableData = project.tables[tableName];
 
                     return ListTile(
                       leading: const Icon(Icons.table_chart_outlined),

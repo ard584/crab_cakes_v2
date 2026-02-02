@@ -32,57 +32,115 @@ final flexProjectControllerProvider = Provider((ref) {
   return ref.watch(_currentFlexProjectProvider.notifier);
 });
 
-final _flexTableControllersProvider = Provider.autoDispose
-    .family<Map<String, TextEditingController>, String>((ref, tableName) {
-      final flexProject = ref.watch(_currentFlexProjectProvider).value;
+// final _flexTableControllersProvider = Provider.autoDispose
+//     .family<Map<String, TextEditingController>, String>((ref, tableName) {
+//       final flexProject = ref.watch(_currentFlexProjectProvider).value;
 
-      if (flexProject == null) {
-        throw Exception("flexProject is null [flexTableControllersProvider]");
-      }
+//       if (flexProject == null) {
+//         throw Exception("flexProject is null [flexTableControllersProvider]");
+//       }
 
-      final table = flexProject.tables[tableName];
+//       final table = flexProject.tables[tableName];
 
-      if (table == null) {
-        throw Exception(
-          "table $tableName is null [flexTableControllersProvider]",
-        );
-      }
+//       if (table == null) {
+//         throw Exception(
+//           "table $tableName is null [flexTableControllersProvider]",
+//         );
+//       }
 
-      final attributes = table.attributes;
-      final Map<String, TextEditingController> controllers = {};
+//       final attributes = table.attributes;
+//       final Map<String, TextEditingController> controllers = {};
 
-      for (final attribute in attributes) {
-        controllers[attribute.name] = TextEditingController(
-          text: attribute.defaultValue?.toString() ?? '',
-        );
-      }
-      ;
+//       for (final attribute in attributes) {
+//         controllers[attribute.name] = TextEditingController(
+//           text: attribute.defaultValue?.toString() ?? '',
+//         );
+//       }
+//       ;
 
-      ref.onDispose(() {
-        for (final controller in controllers.values) {
-          controller.dispose();
-        }
-      });
+//       ref.onDispose(() {
+//         for (final controller in controllers.values) {
+//           controller.dispose();
+//         }
+//       });
 
-      return controllers;
-    });
+//       return controllers;
+//     });
 
-class AttributeFormField {
+
+// DTO
+class AttributeInput {
   final Attribute fields;
-  final TextEditingController controller;
+  String? value;
 
-  AttributeFormField({required this.fields, required this.controller});
+  AttributeInput({required this.fields, this.value});
 }
 
-class TableForm {
+// UI State
+class AttributeFormField {
+  final AttributeInput input;
+  final TextEditingController controller;
+
+  AttributeFormField({required this.input})
+      : controller = TextEditingController() {
+    // Listen to changes in the text field
+    controller.addListener(() {
+      input.value = controller.text; // sync UI -> model
+    });
+  }
+}
+
+
+class ProjectInput {
+  final String name;
+  final ProjectDb project;
+  final Map<String, TableInput> _tables = {};
+
+  Map<String, TableInput> get tables => Map.unmodifiable(_tables);
+
+  ProjectInput({required this.name, required this.project}) {
+
+
+    // Iterate through keys
+    for (final key in project.tables.keys) {
+
+      // Get table
+      final table = project.tables[key];
+
+      if (table == null) {
+        continue;
+      }
+
+      // Create empty attributes map
+      final Map<String, AttributeFormField> attributeInputs = {};
+
+
+      // Iterate through attributes
+      for (final attribute in table.attributes) {
+
+        // Create textEditingController, save attribute
+        attributeInputs[attribute.name] = AttributeFormField(input: AttributeInput(fields: attribute));
+        
+
+      }
+
+      // Create tableInput
+      final tableInput = TableInput(name: table.name, attributes: attributeInputs);
+      _tables[tableInput.name] = tableInput;
+
+    }
+  }
+}
+
+class TableInput {
   final String name;
   final Map<String, AttributeFormField> attributes;
 
-  TableForm({required this.name, required this.attributes});
+  TableInput({required this.name, required this.attributes});
 }
 
 final projectViewModelProvider =
-    Provider.autoDispose<AsyncValue<Map<String, TableForm>>>((ref) {
+    Provider.autoDispose<AsyncValue<ProjectInput>>((ref) {
       // Get the project from the project provider
       final projectAsync = ref.watch(_currentFlexProjectProvider);
 
@@ -90,43 +148,11 @@ final projectViewModelProvider =
         error: (error, stack) => AsyncError(error, stack),
         loading: () => AsyncLoading(),
         data: (project) {
-          // If flexProject is null, return
-          if (project == null) return AsyncData({});
 
-          final projectMap = <String, TableForm>{};
+          // If flexProject is null, return empty project map
+          if (project == null) throw Exception("ProjectDB is empty: $project");
 
-          // Iterate through tableNames
-          for (final tableName in project.tables.keys) {
-            // Watch controller for specific table
-            // Not sure I need to keep this as a family anymore but we move
-            final controllers = ref.watch(
-              _flexTableControllersProvider(tableName),
-            );
-
-            // Get the table from the project
-            // Exclamation mark means will throw exception if there's no entry w this key
-            // TODO: Is this okay?
-            final tableData = project.tables[tableName];
-            if (tableData == null) continue;
-
-            final attributesMap = <String, AttributeFormField>{};
-
-            for (final attribute in tableData.attributes) {
-              final controller = controllers[attribute.name];
-
-              if (controller != null) {
-                attributesMap[attribute.name] = AttributeFormField(
-                  fields: attribute,
-                  controller: controller,
-                );
-              }
-            };
-
-            projectMap[tableName] = TableForm(
-              name: tableName,
-              attributes: attributesMap,
-            );
-          }
+          final projectMap = ProjectInput(name: "project", project: project);
 
           return AsyncData(projectMap);
         },
