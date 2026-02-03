@@ -19,6 +19,8 @@ class _ProjectSelectionState extends ConsumerState<ProjectSelection> {
         loading: () => Center(child: CircularProgressIndicator()),
         error: (err, stack) => Center(child: Text("Error: $err")),
         data: (projects) {
+
+
           return Padding(
             padding: EdgeInsets.all(40.0),
             child: ListView.builder(

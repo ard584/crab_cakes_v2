@@ -5,31 +5,66 @@ import 'package:ui_prototype/presentation/models/table.dart';
 import 'package:ui_prototype/presentation/providers/flex_form_provider.dart';
 import 'package:ui_prototype/presentation/providers/form_save_provider.dart';
 
-
-
 void main() {
-
   // Make a fake project
-var userAttributes = <Attribute>[];
-final att1 = Attribute(columnID: 1, name: 'ID', dataType: 'INT', isNotNullable: true, isPrimaryKey: true);
-final att2 = Attribute(columnID: 2, name: 'Species', dataType: 'TEXT', isNotNullable: false, isPrimaryKey: false);
-userAttributes.add(att1);
-userAttributes.add(att2);
-final specimenTable = TableModel(name: "Specimen", attributeList: userAttributes);
-Map<String, TableModel> tableMap = {};
-tableMap["Specimen"] = specimenTable;
+  var userAttributes = <Attribute>[
+    Attribute(
+    columnID: 1,
+    name: 'ID',
+    dataType: 'INT',
+    isNotNullable: true,
+    isPrimaryKey: true,
+  ),
+  Attribute(
+    columnID: 2,
+    name: 'Species',
+    dataType: 'TEXT',
+    isNotNullable: false,
+    isPrimaryKey: false,
+  )
+  ];
+  
+  Map<String, TableModel> tableMap = {};
 
-final project = ProjectDb(tables: tableMap);
-final projectInput = ProjectInput(name: "name2", project: project);
+  tableMap["Specimen"] = TableModel(
+    name: "Specimen",
+    attributeList: userAttributes,
+  );
 
-// Make a generator
-final generator = SQLInsertGenerator(project: projectInput, tableName: "Specimen");
+  final project = ProjectDb(tables: tableMap);
+  final projectInput = ProjectInput(name: "name2", project: project);
 
+  // Make a generator
+  final generator = SQLInsertGenerator(
+    project: projectInput,
+    tableName: "Specimen",
+  );
 
-  test('Form provider can generate a table name', () async {
+  group('SQL String Syntax Tests', () {
+    test('Form provider can generate a table name', () async {
+      final String statement = generator.generateInsertIntoTable();
+      expect(statement, "INSERT INTO Specimen ( 'ID', 'Species' ) VALUES ( ?, ? )");
+    });
 
-    final String statement = generator.generateInsertIntoTable();
-    expect(statement, "INSERT INTO Specimen ( ID, Species ) VALUES ( ?, ? )");
+    test('Statement should have matching counts of columns and placeholders', () {
+    final statement = generator.generateInsertIntoTable();
     
+    // Use RegEx to find everything between parentheses
+    final columnsMatch = RegExp(r"\((.*?)\)").firstMatch(statement);
+    final valuesMatch = RegExp(r"VALUES\s*\((.*?)\)").firstMatch(statement);
+    
+    final columnCount = columnsMatch?[1]?.split(',').length;
+    final placeholderCount = valuesMatch?[1]?.split(',').length;
+
+    expect(columnCount, placeholderCount, 
+      reason: "The number of columns must match the number of '?' placeholders");
+  });
+
+    test('Generated string should not end with a trailing comma', () {
+      final statement = generator.generateInsertIntoTable();
+      // A common bug is "INSERT INTO Table (col1, col2, ) ..."
+      expect(statement, isNot(contains(', )')));
+      expect(statement, isNot(contains(', )')));
+    });
   });
 }

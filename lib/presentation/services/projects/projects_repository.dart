@@ -68,6 +68,8 @@ class ProjectsRepository {
   }
 
   Future<List<ProjectModel>> getAllProjects() async {
+
+
     final res = await db.select(db.projects).get();
 
     final projects = res.map(
