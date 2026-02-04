@@ -3,7 +3,7 @@ import 'package:ui_prototype/presentation/models/attribute.dart';
 import 'package:ui_prototype/presentation/models/project_db.dart';
 import 'package:ui_prototype/presentation/models/table.dart';
 import 'package:ui_prototype/presentation/providers/flex_form_provider.dart';
-import 'package:ui_prototype/presentation/providers/form_save_provider.dart';
+import 'package:ui_prototype/presentation/providers/save_table_provider.dart';
 
 void main() {
   // Make a fake project
