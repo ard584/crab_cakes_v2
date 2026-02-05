@@ -20,59 +20,17 @@ class CurrentFlexProjectNotifier extends AsyncNotifier<ProjectDb?> {
 
 // The provider (only used to load the project!)
 // TODO: Figure out more about how Riverpod works
-final _currentFlexProjectProvider =
+final currentFlexProjectProvider =
     AsyncNotifierProvider<CurrentFlexProjectNotifier, ProjectDb?>(
       CurrentFlexProjectNotifier.new,
     );
-
-// Only expose the notifier so we can use the loadProject function
-// Data only accessible via attributeFormFieldProvider (viewModel)
-final flexProjectControllerProvider = Provider((ref) {
-  return ref.watch(_currentFlexProjectProvider.notifier);
-});
-
-// final _flexTableControllersProvider = Provider.autoDispose
-//     .family<Map<String, TextEditingController>, String>((ref, tableName) {
-//       final flexProject = ref.watch(_currentFlexProjectProvider).value;
-
-//       if (flexProject == null) {
-//         throw Exception("flexProject is null [flexTableControllersProvider]");
-//       }
-
-//       final table = flexProject.tables[tableName];
-
-//       if (table == null) {
-//         throw Exception(
-//           "table $tableName is null [flexTableControllersProvider]",
-//         );
-//       }
-
-//       final attributes = table.attributes;
-//       final Map<String, TextEditingController> controllers = {};
-
-//       for (final attribute in attributes) {
-//         controllers[attribute.name] = TextEditingController(
-//           text: attribute.defaultValue?.toString() ?? '',
-//         );
-//       }
-//       ;
-
-//       ref.onDispose(() {
-//         for (final controller in controllers.values) {
-//           controller.dispose();
-//         }
-//       });
-
-//       return controllers;
-//     });
-
 
 // DTO
 
 final projectViewModelProvider =
     Provider.autoDispose<AsyncValue<ProjectInput>>((ref) {
       // Get the project from the project provider
-      final projectAsync = ref.watch(_currentFlexProjectProvider);
+      final projectAsync = ref.watch(currentFlexProjectProvider);
 
       return projectAsync.when(
         error: (error, stack) => AsyncError(error, stack),
@@ -83,6 +41,10 @@ final projectViewModelProvider =
           if (project == null) throw Exception("ProjectDB is empty: $project");
 
           final projectMap = ProjectInput(name: "project", project: project);
+
+          ref.onDispose(() {
+            projectMap.disposeControllers();
+          },);
 
           return AsyncData(projectMap);
         },

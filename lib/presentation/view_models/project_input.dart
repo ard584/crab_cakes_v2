@@ -63,6 +63,14 @@ class ProjectInput {
 
     }
   }
+
+  void disposeControllers() {
+    for (final table in _tables.values) {
+      for (final attribute in table.attributes.values) {
+        attribute.controller.dispose();
+      }
+    }
+  }
 }
 
 class TableInput {

@@ -84,7 +84,8 @@ class ProjectsListNotifier extends AsyncNotifier<List<ProjectModel>> {
 
   // Read
   Future<void> selectProject({required String dbPath}) async {
-    await ref.read(flexProjectControllerProvider).loadProject(dbPath);
+    await ref.read(currentFlexProjectProvider.notifier).loadProject(dbPath);
+
   }
 
   // Update
