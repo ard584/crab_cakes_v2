@@ -6,7 +6,6 @@ import 'package:ui_prototype/presentation/screens/check_database_screen.dart';
 import 'package:ui_prototype/presentation/screens/export_screen.dart';
 import 'package:ui_prototype/presentation/screens/project_selection.dart';
 import 'package:ui_prototype/presentation/services/flex_field/flex_field_factory.dart';
-import 'package:ui_prototype/presentation/utils/logger.dart';
 import 'package:ui_prototype/presentation/view_models/project_input.dart';
 
 import 'settings_screen.dart';
@@ -28,6 +27,28 @@ class DataEntryScreen extends ConsumerWidget {
     final projectAsync = ref.watch(projectViewModelProvider);
 
     final activeTableName = projectAsync.value?.tables.keys.firstOrNull;
+
+    final saveState = ref.watch(formSaveProvider);
+
+    // Snack bar updates
+    ref.listen<AsyncValue<void>>(formSaveProvider, (previous, next) {
+      next.whenOrNull(
+        data: (_) {
+          if (context.mounted) {
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(SnackBar(content: Text("Recorded")));
+          }
+        },
+        error: (e, st) {
+          if (context.mounted) {
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(SnackBar(content: Text("Error occurred: $e")));
+          }
+        },
+      );
+    });
 
     return Scaffold(
       appBar: AppBar(
@@ -63,7 +84,7 @@ class DataEntryScreen extends ConsumerWidget {
         ),
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
+        onPressed: () async {
           final projectMap = ref.read(projectViewModelProvider).value;
 
           if (projectMap == null) return;
@@ -72,9 +93,7 @@ class DataEntryScreen extends ConsumerWidget {
           final table = projectMap.tables[activeTableName];
           if (table == null) return;
 
-          print("TEST");
-
-          ref.read(formSaveProvider.notifier).saveTable(table);
+          await ref.read(formSaveProvider.notifier).saveTable(table);
         },
         label: Padding(
           padding: const EdgeInsets.all(20.0),
@@ -103,7 +122,6 @@ class TableFormSection extends ConsumerWidget {
     return ListView.builder(
       itemCount: attrbutes.length,
       itemBuilder: (context, index) {
-
         final attribute = attrbutes[index];
 
         return DynamicFlexField(tableName: tableName, attribute: attribute);
@@ -198,10 +216,14 @@ class DrawerSubmenu extends StatelessWidget {
           title: const Text("Check Database"),
           onTap: () {
             Navigator.pop(context);
-            Navigator.push(context,
-            MaterialPageRoute(builder: (context) => const CheckDatabaseScreen()));
-          }
-        )
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const CheckDatabaseScreen(),
+              ),
+            );
+          },
+        ),
       ],
     );
   }

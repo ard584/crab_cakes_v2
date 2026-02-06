@@ -15,13 +15,9 @@ class FormSaveNotifier extends AsyncNotifier<void> {
   Future<void> saveTable(TableInput table) async {
     state = const AsyncLoading();
 
-    try {
+    state = await AsyncValue.guard(() async {
       final saveTable = ref.read(saveTableProvider);
       await saveTable(table);
-      state = const AsyncData(null);
-    }
-    catch (e, st) {
-      state = AsyncError(e, st);
-    }
+    });
   }
 }

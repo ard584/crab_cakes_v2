@@ -50,8 +50,6 @@ class ProjectsRepository {
   Future updateProject(ProjectModel project) async {
     final now = _nowIsoUtc();
 
-    print("REPO: UPDATE PROJECT CALLED");
-
     final test = await (db.update(
       db.projects,
     )..where((p) => p.id.equals(project.id))).write(
@@ -62,8 +60,6 @@ class ProjectsRepository {
       ),
     );
 
-    print("TEST: $test");
-    print("PROJECTMODEL PASSED IN: $project");
     return test;
   }
 

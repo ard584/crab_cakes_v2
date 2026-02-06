@@ -9,58 +9,35 @@ class SqliteProjectDatabase implements ProjectDatabase {
   SqliteProjectDatabase({required this.dbPath});
 
   @override
-  Future<void> saveTable(TableInput table) {
+  Future<void> saveTable(TableInput table) async {
     // TODO: implement save
 
     // Call insert generator
 
     final generator = SQLInsertGenerator(table: table);
 
-
     final sql = generator.generateInsertIntoTable();
     final values = generator.generateValues();
-    print("Statement: $sql");
-    print("Values: $values");
 
-    Database db;
+    Database db = sqlite3.open(dbPath);
+
+    PreparedStatement? stmt;
 
     try {
-      // Open database
-      db = sqlite3.open(dbPath);
+      // Begin transaction
+      db.execute('BEGIN;');
 
-      PreparedStatement? stmt;
+      // Prepare & execute statement
+      stmt = db.prepare(sql);
+      stmt.execute(values);
 
-      try {
-        // Begin transaction
-        db.execute('BEGIN;');
-
-        // Prepare & execute statement
-        stmt = db.prepare(sql);
-        stmt.execute(values);
-
-        print("ENTERED INTO DATABASE");
-
-        // Commit transaction
-        db.execute('COMMIT;');
-      } catch (e) {
-
-        // Rollback if anything fails
-        try {
-          db.execute('ROLLBACK;');
-        } catch (_) {
-          // Optionally log rollback failure
-        }
-        rethrow; // propagate original exception
-      } finally {
-        stmt?.dispose(); // always clean up
-      }
+      // Commit transaction
+      db.execute('COMMIT;');
     } catch (e) {
-      throw Exception(
-        "Failed to save table '${table.name}' to db '$dbPath': $e",
-      );
+      db.execute('ROLLBACK;');
+      rethrow;
+    } finally {
+      stmt?.dispose(); // always clean up
     }
-
-    // Run on db
-    throw UnimplementedError();
   }
 }

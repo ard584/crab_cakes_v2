@@ -29,14 +29,13 @@ class CheckDatabaseScreen extends ConsumerWidget {
         String test = '';
 
         for (final table in project.tables.values) {
-          print("TABLE: ${table.name}");
           final res = db.select('SELECT * FROM ${table.name}');
-          print("ROWS: ${res.rows}");
-
           test += res.rows.toString();
         }
 
-        return Scaffold(body: Center(child: Text("test: $test")));
+        return Scaffold(
+          appBar: AppBar(title: const Text('View Entries')),
+          body: Center(child: Text("test: $test")));
       },
     );
   }

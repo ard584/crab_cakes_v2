@@ -6,7 +6,7 @@ class SaveTable {
 
   SaveTable(this.db);
 
-  Future<void> call(TableInput table) {
-    return db.saveTable(table);
+  Future<void> call(TableInput table) async {
+    await db.saveTable(table);
   }
 }

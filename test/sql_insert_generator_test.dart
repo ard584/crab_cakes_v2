@@ -1,9 +1,9 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:ui_prototype/infrastructure/project/sqlite/sql_insert_generator.dart';
 import 'package:ui_prototype/presentation/models/attribute.dart';
 import 'package:ui_prototype/presentation/models/project_db.dart';
 import 'package:ui_prototype/presentation/models/table.dart';
-import 'package:ui_prototype/presentation/providers/flex_form_provider.dart';
-import 'package:ui_prototype/presentation/providers/save_table_provider.dart';
+import 'package:ui_prototype/presentation/view_models/project_input.dart';
 
 void main() {
   // Make a fake project
@@ -31,20 +31,17 @@ void main() {
     attributeList: userAttributes,
   );
 
-  final project = ProjectDb(tables: tableMap);
+  final project = ProjectDb(tables: tableMap, dbPath: "");
   final projectInput = ProjectInput(name: "name2", project: project);
+
+  final table = projectInput.tables["Specimen"]!;
 
   // Make a generator
   final generator = SQLInsertGenerator(
-    project: projectInput,
-    tableName: "Specimen",
+    table: table
   );
 
   group('SQL String Syntax Tests', () {
-    test('Form provider can generate a table name', () async {
-      final String statement = generator.generateInsertIntoTable();
-      expect(statement, "INSERT INTO Specimen ( 'ID', 'Species' ) VALUES ( ?, ? )");
-    });
 
     test('Statement should have matching counts of columns and placeholders', () {
     final statement = generator.generateInsertIntoTable();

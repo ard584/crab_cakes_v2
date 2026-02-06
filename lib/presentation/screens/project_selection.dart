@@ -110,7 +110,6 @@ Future<bool> confirmDelete(BuildContext context) async {
                     ),
                     TextButton(
                       onPressed: () {
-                        print(textController.text);
 
                         if (textController.text.compareTo('DELETE') == 0) {
                           Navigator.pop(context, true);
@@ -145,14 +144,11 @@ List<ContextMenuEntry> _buildProjectContextMenu({
       icon: Icon(Icons.delete),
       value: 'delete',
       onSelected: (value) async {
-        print("DELETE CALLED ON PROJECT \"${project.title}\"");
         final result = await confirmDelete(context);
 
         if (result == true) {
           ref.read(projectListProvider.notifier).deleteProject(projectId: project.id);
         }
-
-        print("RESULT: $result");
       },
     ),
     MenuItem(
@@ -160,7 +156,6 @@ List<ContextMenuEntry> _buildProjectContextMenu({
       icon: Icon(Icons.mode_edit),
       value: 'edit',
       onSelected: (value) {
-        print("EDIT CALLED ON PROJECT \"${project.title}\"");
         Navigator.push(
           context,
           MaterialPageRoute(builder: (context) => UpdateProjectScreen(
