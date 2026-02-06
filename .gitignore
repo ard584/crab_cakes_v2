@@ -53,6 +53,7 @@ macos/Runner.xcworkspace/xcshareddata/WorkspaceSettings.xcsettings
 macos/Runner.xcworkspace/xcuserdata/
 macos/Runner/
 macos/Pods/
+macos/Runner.xcodeproj/project.pbxproj
 
 # Environment variables
 .env.local
