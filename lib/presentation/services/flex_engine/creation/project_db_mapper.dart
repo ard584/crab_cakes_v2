@@ -3,7 +3,7 @@ import 'package:ui_prototype/presentation/models/table.dart';
 import 'package:ui_prototype/presentation/models/attribute.dart';
 import 'package:ui_prototype/presentation/models/project_db.dart';
 
-Future<ProjectDb> createDbObject(db) async {
+Future<ProjectDb> createDbObject(db, dbPath) async {
   try {
     // Try to read the names of the tables
     List<String> tableNames = await _readTableNames(db);
@@ -26,7 +26,7 @@ Future<ProjectDb> createDbObject(db) async {
     };
 
     // Store instance internally
-    final projectDb = ProjectDb(tables: tableMap);
+    final projectDb = ProjectDb(tables: tableMap, dbPath: dbPath);
 
     // Return the instance
     return projectDb;
