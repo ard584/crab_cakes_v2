@@ -50,3 +50,4 @@ app.*.map.json
 
 # Xcode settings
 macos/Runner.xcworkspace/xcshareddata/WorkspaceSettings.xcsettings
+macos/Runner.xcworkspace/xcuserdata/
