@@ -28,8 +28,6 @@ class DataEntryScreen extends ConsumerWidget {
 
     final activeTableName = projectAsync.value?.tables.keys.firstOrNull;
 
-    final saveState = ref.watch(formSaveProvider);
-
     // Snack bar updates
     ref.listen<AsyncValue<void>>(formSaveProvider, (previous, next) {
       next.whenOrNull(
@@ -155,9 +153,9 @@ class DynamicFlexField extends ConsumerWidget {
 
       child: FlexFieldFactory.createField(
         config: FlexFieldConfig(
-          label: attribute.input.fields.name,
-          dataType: attribute.input.fields.dataType,
-          isRequired: attribute.input.fields.isNotNullable,
+          label: attribute.fields.name,
+          dataType: attribute.fields.dataType,
+          isRequired: attribute.fields.isNotNullable,
         ),
 
         // Placeholder for now, doesn't do anything
