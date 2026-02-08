@@ -5,37 +5,21 @@ import 'package:ui_prototype/presentation/models/project.dart';
 import 'package:ui_prototype/presentation/providers/db_provider.dart';
 import 'package:ui_prototype/presentation/screens/data_entry_screen.dart';
 import 'package:ui_prototype/presentation/screens/project_creation.dart';
-import 'package:ui_prototype/presentation/services/projects/project_service.dart';
+import 'package:ui_prototype/presentation/screens/update_project_screen.dart';
 import '../components/project_widget.dart';
 
 class _ProjectSelectionState extends ConsumerState<ProjectSelection> {
   @override
   Widget build(BuildContext context) {
-    final repo = ref.watch(projectsRepositoryProvider);
+    final projectsAsync = ref.watch(projectListProvider);
 
-    if (repo == null) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
-    }
     return Scaffold(
       appBar: AppBar(title: const Text('Select a Project')),
-      body: FutureBuilder(
-        future: repo.getAllProjects(),
-        builder: (context, snapshot) {
-          // Loading state
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
+      body: projectsAsync.when(
+        loading: () => Center(child: CircularProgressIndicator()),
+        error: (err, stack) => Center(child: Text("Error: $err")),
+        data: (projects) {
 
-          // Handle errors
-          if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
-          }
-
-          final projects = snapshot.data ?? [];
-
-          if (projects.isEmpty) {
-            return Center(child: Text('No projects found'));
-          }
 
           return Padding(
             padding: EdgeInsets.all(40.0),
@@ -45,15 +29,19 @@ class _ProjectSelectionState extends ConsumerState<ProjectSelection> {
                 final project = projects[index];
                 return ProjectWidget(
                   contextMenu: ContextMenu(
-                    entries: _buildProjectContextMenu(project, ref),
+                    entries: _buildProjectContextMenu(
+                      project: project,
+                      ref: ref,
+                      context: context,
+                    ),
                   ),
                   projectTitle: project.title,
                   projectDescription: project.description,
                   projectUpdatedAt: project.updatedAt,
                   onPressed: () async {
                     await ref
-                        .read(projectServiceProvider)
-                        .openProject(project.dbPath);
+                        .read(projectListProvider.notifier)
+                        .selectProject(dbPath: project.dbPath);
 
                     // If mounted
                     if (context.mounted) {
@@ -72,6 +60,7 @@ class _ProjectSelectionState extends ConsumerState<ProjectSelection> {
           );
         },
       ),
+
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
           Navigator.push(
@@ -87,20 +76,79 @@ class _ProjectSelectionState extends ConsumerState<ProjectSelection> {
   }
 }
 
-List<ContextMenuEntry> _buildProjectContextMenu(
-  ProjectModel project,
-  WidgetRef ref,
-) {
+Future<bool> confirmDelete(BuildContext context) async {
+  final textController = TextEditingController();
 
+  final result = await showDialog<bool>(
+    context: context,
+    builder: (context) {
+      return AlertDialog(
+        title: Text("Confirm Delete"),
+        content: Text(
+          "Are you sure you want to delete this project?"
+          "\nType 'DELETE' to confirm",
+        ),
+        actions: [
+          TextField(
+            controller: textController,
+            decoration: InputDecoration(
+              hintText: 'DELETE',
+              hintStyle: TextStyle(color: Colors.grey.shade500),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(4.0),
+            child: Column(
+              children: [
+                SizedBox(height: 8.0),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(context, false),
+                      child: const Text("Cancel"),
+                    ),
+                    TextButton(
+                      onPressed: () {
 
+                        if (textController.text.compareTo('DELETE') == 0) {
+                          Navigator.pop(context, true);
+                        } else {
+                          Navigator.pop(context, false);
+                        }
+                      },
+                      child: const Text("Delete"),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      );
+    },
+  );
+
+  return result ?? false;
+}
+
+List<ContextMenuEntry> _buildProjectContextMenu({
+  required BuildContext context,
+  required ProjectModel project,
+  required WidgetRef ref,
+}) {
   return [
     MenuHeader(text: "Project Settings"),
     MenuItem(
       label: Text("Delete"),
       icon: Icon(Icons.delete),
       value: 'delete',
-      onSelected: (value) {
-        print("DELETE CALLED ON PROJECT \"${project.title}\"");
+      onSelected: (value) async {
+        final result = await confirmDelete(context);
+
+        if (result == true) {
+          ref.read(projectListProvider.notifier).deleteProject(projectId: project.id);
+        }
       },
     ),
     MenuItem(
@@ -108,7 +156,12 @@ List<ContextMenuEntry> _buildProjectContextMenu(
       icon: Icon(Icons.mode_edit),
       value: 'edit',
       onSelected: (value) {
-        print("EDIT CALLED ON PROJECT \"${project.title}\"");
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => UpdateProjectScreen(
+            project: project,
+          )),
+        );
       },
     ),
   ];

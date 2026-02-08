@@ -17,10 +17,21 @@ class ProjectModel {
     required this.updatedAt,
   });
 
+  ProjectModel copyWith({String? title, String? description}) {
+    return ProjectModel(
+      id: id,
+      title: title ?? this.title,
+      description: description ?? this.description,
+      dbPath: dbPath,
+      createdAt: createdAt,
+      updatedAt: updatedAt,
+    );
+  }
+
   @override
   String toString() {
-
-    final str = '''
+    final str =
+        '''
     ID: $id
     Title: $title
     Description: $description
