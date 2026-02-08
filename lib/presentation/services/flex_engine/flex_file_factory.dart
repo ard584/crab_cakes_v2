@@ -158,6 +158,9 @@ class ProjectFileFactory {
       // Clean up temp file
       if (File(dbTempPath).existsSync()) File(dbTempPath).deleteSync();
       rethrow;
+    } finally {
+      //closing the database connection to prevent windows complaints
+      try {db.dispose();} catch (_){}
     }
 
     return dbTempPath;
