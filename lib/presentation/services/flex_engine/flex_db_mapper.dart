@@ -67,7 +67,7 @@ class FlexDbMapper {
     }
 
     log.d("CALLING CREATE DB OBJECT");
-    final projectDb = await createDbObject(db);
+    final projectDb = await createDbObject(db, dbPath);
     log.d("PROJECTDB: $projectDb");
     return projectDb;
   }

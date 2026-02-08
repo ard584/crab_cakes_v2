@@ -1,6 +1,7 @@
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:ui_prototype/presentation/providers/db_provider.dart';
 import 'package:ui_prototype/presentation/utils/logger.dart';
 import 'package:ui_prototype/presentation/services/projects/project_service.dart';
 
@@ -8,7 +9,8 @@ class ProjectCreationScreen extends ConsumerStatefulWidget {
   const ProjectCreationScreen({super.key});
 
   @override
-  ConsumerState<ProjectCreationScreen> createState() => _ProjectCreationScreenState();
+  ConsumerState<ProjectCreationScreen> createState() =>
+      _ProjectCreationScreenState();
 }
 
 class SchemaInputSelection extends StatefulWidget {
@@ -57,24 +59,29 @@ class _ProjectCreationScreenState extends ConsumerState<ProjectCreationScreen> {
   FilePickerResult? schemaFile;
 
   void insertIntoDb() {
-
     final title = _projectNameController.text;
     final description = _projectDescriptionController.text;
     final sql = _dbCreateSchema.text;
 
     final request = ProjectCreateRequest(
-      title: title, 
+      title: title,
       description: description,
-      sql: sql
+      sql: sql,
     );
 
     log.d("REQUEST: $request");
-    
+
     log.d("NAME: ${_projectNameController.text}");
     log.d("DESCRIPTION: ${_projectDescriptionController.text}");
     log.d("SCHEMA: ${_dbCreateSchema.text}");
 
-    ref.read(projectServiceProvider).create(request);
+    ref
+        .read(projectListProvider.notifier)
+        .createProject(
+          title: request.title,
+          description: request.description,
+          sql: request.sql,
+        );
   }
 
   @override

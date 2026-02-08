@@ -47,25 +47,48 @@ class ProjectsRepository {
         );
   }
 
+  Future updateProject(ProjectModel project) async {
+    final now = _nowIsoUtc();
+
+    final test = await (db.update(
+      db.projects,
+    )..where((p) => p.id.equals(project.id))).write(
+      ProjectsCompanion(
+        title: Value(project.title),
+        description: Value(project.description),
+        updatedAt: Value(now),
+      ),
+    );
+
+    return test;
+  }
+
   Future<List<ProjectModel>> getAllProjects() async {
+
 
     final res = await db.select(db.projects).get();
 
-    final projects = res.map((item) => {
+    final projects = res.map(
+      (item) => {
+        ProjectModel(
+          id: item.id,
+          title: item.title,
+          description: item.description,
+          dbPath: item.dbPath,
+          createdAt: DateTime.parse(item.createdAt),
+          updatedAt: DateTime.parse(item.updatedAt),
+        ),
+      },
+    );
 
-      ProjectModel(
-        id: item.id,
-        title: item.title,
-        description: item.description,
-        dbPath: item.dbPath,
-        createdAt: DateTime.parse(item.createdAt),
-        updatedAt: DateTime.parse(item.updatedAt),
-      )
-
-    });
-
-    final List<ProjectModel> projectsList = projects.expand((setOfProjects) => setOfProjects).toList();
+    final List<ProjectModel> projectsList = projects
+        .expand((setOfProjects) => setOfProjects)
+        .toList();
 
     return projectsList;
+  }
+
+  Future<int> deleteProjectById(Uint8List projectId) {
+    return (db.delete(db.projects)..where((t) => t.id.equals(projectId))).go();
   }
 }
