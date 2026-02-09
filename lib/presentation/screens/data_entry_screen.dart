@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:ui_prototype/presentation/providers/flex_form_provider.dart';
-import 'package:ui_prototype/presentation/providers/form_save_notifier.dart';
+import 'package:ui_prototype/infrastructure/providers/flex_form_provider.dart';
+import 'package:ui_prototype/infrastructure/providers/form_save_notifier.dart';
 import 'package:ui_prototype/presentation/screens/check_database_screen.dart';
 import 'package:ui_prototype/presentation/screens/export_screen.dart';
 import 'package:ui_prototype/presentation/screens/project_selection.dart';

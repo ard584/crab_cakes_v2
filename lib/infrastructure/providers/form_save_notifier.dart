@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:ui_prototype/presentation/providers/save_table_provider.dart';
+import 'package:ui_prototype/infrastructure/providers/save_table_provider.dart';
 import 'package:ui_prototype/presentation/view_models/project_input.dart';
 
 final formSaveProvider = AsyncNotifierProvider<FormSaveNotifier, void>(() {
@@ -17,7 +17,7 @@ class FormSaveNotifier extends AsyncNotifier<void> {
 
     state = await AsyncValue.guard(() async {
       final saveTable = ref.read(saveTableProvider);
-      await saveTable(table);
+      saveTable(table);
     });
   }
 }

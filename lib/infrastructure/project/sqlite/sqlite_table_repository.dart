@@ -1,7 +1,9 @@
 import 'package:sqlite3/sqlite3.dart';
 import 'package:ui_prototype/application/interfaces/table_repository.dart';
 import 'package:ui_prototype/domain/db_table.dart';
+import 'package:ui_prototype/infrastructure/project/sqlite/sql_insert_generator.dart';
 import 'package:ui_prototype/presentation/view_models/db_table_view_model.dart';
+import 'package:ui_prototype/presentation/view_models/project_input.dart';
 
 class SqliteTableRepository implements TableRepository {
   final Database db;
@@ -9,7 +11,36 @@ class SqliteTableRepository implements TableRepository {
   SqliteTableRepository({required this.db});
 
   @override
-  Future<DbTable> getTableSchema(String tableName) async {
+  void saveTable(TableInput table) {
+    // Call insert generator
+
+    final generator = SQLInsertGenerator(table: table);
+
+    final sql = generator.generateInsertIntoTable();
+    final values = generator.generateValues();
+
+    PreparedStatement? stmt;
+
+    try {
+      // Begin transaction
+      db.execute('BEGIN;');
+
+      // Prepare & execute statement
+      stmt = db.prepare(sql);
+      stmt.execute(values);
+
+      // Commit transaction
+      db.execute('COMMIT;');
+    } catch (e) {
+      db.execute('ROLLBACK;');
+      rethrow;
+    } finally {
+      stmt?.dispose(); // always clean up
+    }
+  }
+
+  @override
+  DbTable getTableSchema(String tableName) {
     // Get the schema so we can determine column info
     final schema = db.select("PRAGMA table_info $tableName;");
 
@@ -28,7 +59,7 @@ class SqliteTableRepository implements TableRepository {
   }
 
   @override
-  Future<List<DbRow>> getAllRows(String tableName) async {
+  List<DbRow> getAllRows(String tableName) {
 
     final result = db.select("SELECT * FROM $tableName");
 
@@ -40,7 +71,7 @@ class SqliteTableRepository implements TableRepository {
   }
 
   @override
-  Future<List<DbRow>> getRows(String tableName, int limit, int offset) async {
+  List<DbRow> getRows(String tableName, int limit, int offset) {
 
     final result = db.select("SELECT * FROM $tableName LIMIT ? OFFSET ?", [limit, offset]);
 

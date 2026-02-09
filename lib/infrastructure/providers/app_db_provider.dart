@@ -1,8 +1,8 @@
 import 'dart:typed_data';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:ui_prototype/infrastructure/providers/active_database_connection_provider.dart';
 import 'package:ui_prototype/presentation/models/project.dart';
-import 'package:ui_prototype/presentation/providers/flex_form_provider.dart';
 import 'package:ui_prototype/presentation/services/projects/database/projects_database.dart';
 import 'package:ui_prototype/presentation/services/device_uuid_helper.dart';
 import 'package:ui_prototype/presentation/services/projects/projects_repository.dart';
@@ -13,7 +13,7 @@ final _deviceIdProvider = FutureProvider<Uint8List>((ref) async {
 });
 
 // App database provider (holds all the projects)
-final _databaseProvider = Provider<AppDatabase>((ref) {
+final _appDatabaseProvider = Provider<AppDatabase>((ref) {
   final db = AppDatabase(openConnection());
 
   // Close db when app is closed
@@ -24,7 +24,7 @@ final _databaseProvider = Provider<AppDatabase>((ref) {
 
 final _projectsRepositoryProvider = Provider<ProjectsRepository?>((ref) {
   final deviceIdAsync = ref.watch(_deviceIdProvider);
-  final db = ref.watch(_databaseProvider);
+  final db = ref.watch(_appDatabaseProvider);
 
   return deviceIdAsync.maybeWhen(
     data: (id) => ProjectsRepository(db, id),
@@ -84,7 +84,8 @@ class ProjectsListNotifier extends AsyncNotifier<List<ProjectModel>> {
 
   // Read
   Future<void> selectProject({required String dbPath}) async {
-    await ref.read(currentFlexProjectProvider.notifier).loadProject(dbPath);
+    // await ref.read(currentFlexProjectProvider.notifier).loadProject(dbPath);
+    ref.read(activeDatabaseConnectionProvider.notifier).setActiveProjectDatabase(dbPath);
 
   }
 
@@ -92,8 +93,6 @@ class ProjectsListNotifier extends AsyncNotifier<List<ProjectModel>> {
   Future<void> updateProject({required ProjectModel project}) async {
     final repository = ref.read(_projectsRepositoryProvider);
     if (repository == null) return;
-
-    
 
     // Call update function
     repository.updateProject(project);
