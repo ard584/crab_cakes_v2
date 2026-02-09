@@ -1,0 +1,4 @@
+enum Transport {
+  btSerial,
+  usbSerial
+}

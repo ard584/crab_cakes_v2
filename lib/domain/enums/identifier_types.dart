@@ -1,0 +1,4 @@
+enum IdentifierTypes {
+  pit,
+  dye
+}
