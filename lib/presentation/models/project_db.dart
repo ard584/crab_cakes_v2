@@ -2,12 +2,10 @@ import 'package:ui_prototype/presentation/models/table.dart';
 
 class ProjectDb {
 
-  final String dbPath;
   final Map<String, TableModel> tables;
 
   const ProjectDb({
     required this.tables,
-    required this.dbPath
   });
 
 @override

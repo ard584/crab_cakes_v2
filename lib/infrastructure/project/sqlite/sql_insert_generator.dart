@@ -23,7 +23,7 @@ class SQLInsertGenerator {
 
     String columns = activeColumns
         .map((column) {
-          return column.input.fields.name;
+          return column.fields.name;
         })
         .join(', ');
 

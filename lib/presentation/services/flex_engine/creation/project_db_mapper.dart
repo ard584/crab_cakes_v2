@@ -3,10 +3,10 @@ import 'package:ui_prototype/presentation/models/table.dart';
 import 'package:ui_prototype/presentation/models/attribute.dart';
 import 'package:ui_prototype/presentation/models/project_db.dart';
 
-Future<ProjectDb> createDbObject(db, dbPath) async {
+ProjectDb createDbObject(db) {
   try {
     // Try to read the names of the tables
-    List<String> tableNames = await _readTableNames(db);
+    List<String> tableNames = _readTableNames(db);
 
     // Define temporary list of tables
     List<TableModel> tableList = [];
@@ -14,7 +14,7 @@ Future<ProjectDb> createDbObject(db, dbPath) async {
     // Iterate through table names
     for (String tableName in tableNames) {
       // Get list of attributes
-      List<Attribute> attributes = await _readAttributes(db, tableName);
+      List<Attribute> attributes = _readAttributes(db, tableName);
 
       // Add to table
       tableList.add(TableModel(name: tableName, attributeList: attributes));
@@ -26,18 +26,17 @@ Future<ProjectDb> createDbObject(db, dbPath) async {
     };
 
     // Store instance internally
-    final projectDb = ProjectDb(tables: tableMap, dbPath: dbPath);
+    final projectDb = ProjectDb(tables: tableMap);
 
     // Return the instance
     return projectDb;
-  } finally {
-    // Close database connection
-    db.dispose();
+  } catch(e) {
+    throw Exception("[createDbObject] Error occurred while mapping database: $e");
   }
 }
 
 // Read attributes from given tablename
-Future<List<Attribute>> _readAttributes(Database db, String tableName) async {
+List<Attribute> _readAttributes(Database db, String tableName) {
   // Query database for attributes from table
   final attributes = db.select('''PRAGMA table_info($tableName)''');
 
@@ -54,7 +53,7 @@ Future<List<Attribute>> _readAttributes(Database db, String tableName) async {
   return attrList;
 }
 
-Future<List<String>> _readTableNames(Database db) async {
+List<String> _readTableNames(Database db) {
   // Get name of tables
   final tables = db.select('''SELECT name FROM sqlite_master 
   WHERE type='table' 

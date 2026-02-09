@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:ui_prototype/presentation/providers/flex_form_provider.dart';
-import 'package:ui_prototype/presentation/providers/form_save_notifier.dart';
+import 'package:ui_prototype/infrastructure/providers/flex_form_provider.dart';
+import 'package:ui_prototype/infrastructure/providers/form_save_notifier.dart';
 import 'package:ui_prototype/presentation/screens/check_database_screen.dart';
 import 'package:ui_prototype/presentation/screens/export_screen.dart';
 import 'package:ui_prototype/presentation/screens/project_selection.dart';
@@ -27,8 +27,6 @@ class DataEntryScreen extends ConsumerWidget {
     final projectAsync = ref.watch(projectViewModelProvider);
 
     final activeTableName = projectAsync.value?.tables.keys.firstOrNull;
-
-    final saveState = ref.watch(formSaveProvider);
 
     // Snack bar updates
     ref.listen<AsyncValue<void>>(formSaveProvider, (previous, next) {
@@ -155,9 +153,9 @@ class DynamicFlexField extends ConsumerWidget {
 
       child: FlexFieldFactory.createField(
         config: FlexFieldConfig(
-          label: attribute.input.fields.name,
-          dataType: attribute.input.fields.dataType,
-          isRequired: attribute.input.fields.isNotNullable,
+          label: attribute.fields.name,
+          dataType: attribute.fields.dataType,
+          isRequired: attribute.fields.isNotNullable,
         ),
 
         // Placeholder for now, doesn't do anything
