@@ -30,12 +30,19 @@ class CheckDatabaseScreen extends ConsumerWidget {
 
         for (final table in project.tables.values) {
           final res = db.select('SELECT * FROM ${table.name}');
-          test += res.rows.toString();
+
+          for (final row in res.rows) {
+            test += row.toString();
+            test += '\n';
+          }
         }
 
         return Scaffold(
           appBar: AppBar(title: const Text('View Entries')),
-          body: Center(child: Text("test: $test")));
+          body: Center(child: Padding(
+            padding: const EdgeInsets.all(20.0),
+            child: Text(test),
+          )));
       },
     );
   }

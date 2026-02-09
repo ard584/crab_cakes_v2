@@ -26,7 +26,7 @@ class StreamReader {
 
       //iterating over the complete lines
       for(var i=0; i<completeCount; i++) {
-        final scanLine = lines[i].trim();
+        // final scanLine = lines[i].trim();
 
         //TODO: Figure out how to send this scan to the UI/calling classes
 

@@ -9,7 +9,7 @@ class SqliteTableRepository implements TableRepository {
   SqliteTableRepository({required this.db});
 
   @override
-  Future<DbTable> loadTableSchema(String tableName) async {
+  Future<DbTable> getTableSchema(String tableName) async {
     // Get the schema so we can determine column info
     final schema = db.select("PRAGMA table_info $tableName;");
 
@@ -28,14 +28,26 @@ class SqliteTableRepository implements TableRepository {
   }
 
   @override
-  Future<DbTableViewModel> loadAllRows(String tableName) {
-    // TODO: implement loadAllRows
-    throw UnimplementedError();
+  Future<List<DbRow>> getAllRows(String tableName) async {
+
+    final result = db.select("SELECT * FROM $tableName");
+
+    final rows = result.rows.map((row) {
+      return DbRow(values: row);
+    }).toList();
+
+    return rows;
   }
 
   @override
-  Future<DbTableViewModel> loadRows(String tableName, int limit, int offset) {
-    // TODO: implement loadRows
-    throw UnimplementedError();
+  Future<List<DbRow>> getRows(String tableName, int limit, int offset) async {
+
+    final result = db.select("SELECT * FROM $tableName LIMIT ? OFFSET ?", [limit, offset]);
+
+    final rows = result.rows.map((row) {
+      return DbRow(values: row);
+    }).toList();
+
+    return rows;
   }
 }

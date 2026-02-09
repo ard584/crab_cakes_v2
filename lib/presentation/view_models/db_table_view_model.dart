@@ -38,10 +38,9 @@ class DbTableViewModel {
 }
 
 class DbRow {
-  final DbTable table;
   final List<Object?> values;
 
-  DbRow({required this.table, required this.values});
+  DbRow({required this.values});
 
   // Lets us access values without doing row.values, makes it cleaner
   Object? operator [](int columnIndex) => values[columnIndex];
