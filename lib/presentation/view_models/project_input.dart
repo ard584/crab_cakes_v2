@@ -2,25 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:ui_prototype/presentation/models/attribute.dart';
 import 'package:ui_prototype/presentation/models/project_db.dart';
 
-class AttributeInput {
-  final Attribute fields;
-  String? value;
-
-  AttributeInput({required this.fields, this.value});
-}
-
 // UI State
 class AttributeFormField {
-  final AttributeInput input;
+  final Attribute fields;
   final TextEditingController controller;
 
-  AttributeFormField({required this.input})
-      : controller = TextEditingController() {
-    // Listen to changes in the text field
-    controller.addListener(() {
-      input.value = controller.text; // sync UI -> model
-    });
-  }
+  AttributeFormField({required this.fields})
+      : controller = TextEditingController();
 }
 
 
@@ -52,7 +40,7 @@ class ProjectInput {
       for (final attribute in table.attributes) {
 
         // Create textEditingController, save attribute
-        attributeInputs[attribute.name] = AttributeFormField(input: AttributeInput(fields: attribute));
+        attributeInputs[attribute.name] = AttributeFormField(fields: attribute);
         
 
       }

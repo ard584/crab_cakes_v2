@@ -1,7 +1,7 @@
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:ui_prototype/presentation/providers/db_provider.dart';
+import 'package:ui_prototype/infrastructure/providers/app_db_provider.dart';
 import 'package:ui_prototype/presentation/utils/logger.dart';
 import 'package:ui_prototype/presentation/services/projects/project_service.dart';
 
