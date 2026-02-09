@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:ui_prototype/presentation/utils/logger.dart';
 
+//importing the specific sccanner connection component
+import 'package:ui_prototype/presentation/components/pit_reader_section.dart';
+
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
 
@@ -85,25 +88,7 @@ class SettingsScreen extends StatelessWidget {
                 label: const Text('Add USB Drive'),
               ),
               ReusableLeftAlignedText(text: 'Paired PIT Readers'),
-              Container(
-                decoration: reusableBoxDecoration,
-                padding: reusablePadding,
-                child: Row(
-                  children: <Widget>[
-                    Icon(Icons.bluetooth_connected),
-                    const SizedBox(width: 8),
-                    Text('Biomark HPR Lite'),
-                    Spacer(),
-                    IconButton(
-                      tooltip: 'Disconnect \'Biomark HPR Lite\'.',
-                      onPressed: () {
-                        log.d('Tapped settings');
-                      },
-                      icon: const Icon(Icons.bluetooth_disabled),
-                    ),
-                  ],
-                ),
-              ),
+              const PitReadersSection(),
               ReusableLeftAlignedText(text: 'Merge Data Files'),
               Container(
                 decoration: reusableBoxDecoration,
