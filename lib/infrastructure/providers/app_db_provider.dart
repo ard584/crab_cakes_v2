@@ -85,8 +85,9 @@ class ProjectsListNotifier extends AsyncNotifier<List<ProjectModel>> {
   // Read
   Future<void> selectProject({required String dbPath}) async {
     // await ref.read(currentFlexProjectProvider.notifier).loadProject(dbPath);
-    ref.read(activeDatabaseConnectionProvider.notifier).setActiveProjectDatabase(dbPath);
-
+    ref
+        .read(activeDatabaseConnectionProvider.notifier)
+        .setActiveProjectDatabase(dbPath);
   }
 
   // Update
@@ -108,13 +109,13 @@ class ProjectsListNotifier extends AsyncNotifier<List<ProjectModel>> {
 
     await repository.deleteProjectById(projectId);
 
-    state = AsyncData(
-      // Remove the project from the screen
-      // Statement looks through project list and returns every project except
-      // the one where the id is equal to the one we want to delete
-      state.value!.where((project) {
-        return project.id != projectId;
-      }).toList(),
+    state = state.maybeWhen(
+      data: (projects) {
+        return AsyncData(
+          projects.where((project) => project.id != projectId).toList(),
+        );
+      },
+      orElse: () => state,
     );
   }
 }

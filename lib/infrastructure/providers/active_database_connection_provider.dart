@@ -24,6 +24,7 @@ class ActiveDatabaseConnectionNotifier extends Notifier<Database?> {
     final db = conn.open(path);
 
     // Update state
+    state?.dispose();
     state = db;
   }
 }
