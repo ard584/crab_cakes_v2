@@ -1,5 +1,7 @@
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'dart:convert';
+import 'dart:io' as io;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ui_prototype/infrastructure/providers/app_db_provider.dart';
 import 'package:ui_prototype/presentation/utils/logger.dart';
@@ -52,28 +54,59 @@ class _ProjectCreationScreenState extends ConsumerState<ProjectCreationScreen> {
 
   final _projectNameController = TextEditingController();
   final _projectDescriptionController = TextEditingController();
+
+  // Need to get this to accept file input
   final _dbCreateSchema = TextEditingController();
 
   bool isSubmitting = false;
   Schema selectedSchema = Schema.text;
   FilePickerResult? schemaFile;
 
-  void insertIntoDb() {
+  void insertIntoDb() async {
     final title = _projectNameController.text;
     final description = _projectDescriptionController.text;
-    final sql = _dbCreateSchema.text;
+    String sql = '';
 
-    final request = ProjectCreateRequest(
-      title: title,
-      description: description,
-      sql: sql,
+    // Check file picker
+    if (selectedSchema == Schema.text) {
+      final request = ProjectCreateRequest(
+        title: title,
+        description: description,
+        sql: _dbCreateSchema.text,
+      );
+    } else {
+      if (schemaFile == null || schemaFile!.files.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Please select a schema file")),
+      );
+      return;
+      }
+    }
+
+    final file = schemaFile!.files.first;
+
+    if (file.bytes != null) {
+      sql = utf8.decode(file.bytes!);
+    }
+    else if (file.path != null) {
+      final ioFile = io.File(file.path!);
+      sql = await ioFile.readAsString();
+    }
+
+    log.d("SCHEMA: $sql");
+
+    if (sql.isEmpty) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text("Schema cannot be empty")),
     );
+    return;
+  }
 
-    log.d("REQUEST: $request");
+  final request = ProjectCreateRequest(title: title, sql: sql);
 
     log.d("NAME: ${_projectNameController.text}");
     log.d("DESCRIPTION: ${_projectDescriptionController.text}");
-    log.d("SCHEMA: ${_dbCreateSchema.text}");
+    log.d("SCHEMA: ${sql}");
 
     ref
         .read(projectListProvider.notifier)
@@ -162,6 +195,7 @@ class _ProjectCreationScreenState extends ConsumerState<ProjectCreationScreen> {
                               .pickFiles(
                                 type: FileType.custom,
                                 allowedExtensions: ['txt', 'sql'],
+                                withData: true
                               );
 
                           if (result != null) {
