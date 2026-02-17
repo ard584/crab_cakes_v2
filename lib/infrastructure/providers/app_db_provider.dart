@@ -1,6 +1,10 @@
 import 'dart:typed_data';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:ui_prototype/application/use_cases/project/create_project.dart';
+import 'package:ui_prototype/infrastructure/project/sqlite/sql_security_validator.dart';
+import 'package:ui_prototype/infrastructure/project/sqlite/sql_statement_parser.dart';
+import 'package:ui_prototype/infrastructure/project/sqlite/sqlite_project_database_builder.dart';
 import 'package:ui_prototype/infrastructure/providers/active_database_connection_provider.dart';
 import 'package:ui_prototype/domain/models/project.dart';
 import 'package:ui_prototype/presentation/services/projects/database/projects_database.dart';
@@ -32,6 +36,16 @@ final _projectsRepositoryProvider = Provider<ProjectsRepository?>((ref) {
   );
 });
 
+final _createProjectUseCaseProvider = Provider<CreateProjectUseCase>((ref) {
+
+  final parser = SqlSchemaParser();
+  final validator = SqlSecurityValidator();
+  final dbBuilder = SqliteProjectDatabaseBuilder();
+
+  return CreateProjectUseCase(validator: validator, dbBuilder: dbBuilder, parser: parser);
+  
+},);
+
 final projectListProvider =
     AsyncNotifierProvider<ProjectsListNotifier, List<ProjectModel>>(() {
       return ProjectsListNotifier();
@@ -57,7 +71,7 @@ class ProjectsListNotifier extends AsyncNotifier<List<ProjectModel>> {
     if (repo == null) return;
 
     // Create projectService
-    final service = ProjectService();
+    final service = ref.read(_createProjectUseCaseProvider);
 
     final request = ProjectCreateRequest(
       title: title,
@@ -66,7 +80,7 @@ class ProjectsListNotifier extends AsyncNotifier<List<ProjectModel>> {
     );
 
     try {
-      final path = await service.create(request);
+      final path = await service.execute(request.sql);
 
       // Call repo
       await repo.createProject(

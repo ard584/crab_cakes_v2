@@ -1,6 +1,5 @@
-import 'package:ui_prototype/presentation/services/flex_engine/flex_file_factory.dart';
+import 'package:ui_prototype/application/use_cases/project/create_project.dart';
 import 'package:ui_prototype/presentation/utils/logger.dart';
-import 'package:sqlite3/sqlite3.dart';
 
 class ProjectCreateRequest {
   final String title;
@@ -15,23 +14,19 @@ class ProjectCreateRequest {
 }
 
 class ProjectService {
-  final ProjectFileFactory _fileFactory;
+  final CreateProjectUseCase _createProject;
 
-  ProjectService() : _fileFactory = ProjectFileFactory();
+  ProjectService(this._createProject);
 
   Future<String> create(ProjectCreateRequest request) async {
-    String path;
+    ProjectFilePath path;
 
     // Attempt to initialize the project
+
     try {
-      log.d("INITIALIZE PROJECT CALLED");
-      path = await _fileFactory.initializeProject(
-        request.sql,
-        opener: sqlite3.open,
-      );
+      path = await _createProject.execute(request.sql);
 
       return path;
-
     } catch (e) {
       log.e("ERROR: $e");
       throw Exception('Failed to create project: $e');

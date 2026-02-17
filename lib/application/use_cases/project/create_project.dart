@@ -1,22 +1,39 @@
-import 'package:ui_prototype/domain/project/database_builder/project_database_builder.dart';
-import 'package:ui_prototype/domain/project/schema/sql_schema_validator.dart';
+import 'package:ui_prototype/domain/project/project_database_builder.dart';
+import 'package:ui_prototype/domain/project/schema/schema_parser.dart';
+import 'package:ui_prototype/domain/project/schema/schema_validator.dart';
 
-class CreateProjecUseCase {
+// Project File Path typedef for clarity
+typedef ProjectFilePath = String;
 
-  final SqlSchemaValidator validator;
+// Custom exception for clarity
+class UnsafeSchemaException implements Exception {
+  final String? message;
+
+  // Brackets mean positional optional parameter
+  UnsafeSchemaException([this.message]);
+
+  @override
+  String toString() {
+    return "UnsafeSchemaException: $message";
+  }
+}
+
+class CreateProjectUseCase {
+  final SchemaParser parser;
+  final SchemaValidator validator;
   final ProjectDatabaseBuilder dbBuilder;
 
-  CreateProjecUseCase({
-    required this.validator,
-    required this.dbBuilder
-  });
-
+  CreateProjectUseCase({required this.validator, required this.dbBuilder, required this.parser});
 
   Future<ProjectFilePath> execute(String userSchema) async {
-    if (!validator.isSafe(userSchema)) {
+
+    // Parse sql
+    final List<String> statements = parser.getStatements(userSchema);
+
+    if (!validator.isSafe(statements)) {
       throw UnsafeSchemaException();
     }
 
-    return dbBuilder.buildFromSchema(userSchema);
+    return dbBuilder.buildFromSchema(statements);
   }
 }
