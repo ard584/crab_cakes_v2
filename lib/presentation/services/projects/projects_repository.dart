@@ -2,7 +2,7 @@
 
 import 'database/projects_database.dart';
 import 'package:drift/drift.dart';
-import '../../models/project.dart';
+import '../../../domain/models/project.dart';
 
 import '../uuid_helpers.dart';
 

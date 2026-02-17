@@ -2,7 +2,7 @@ import 'dart:typed_data';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ui_prototype/infrastructure/providers/active_database_connection_provider.dart';
-import 'package:ui_prototype/presentation/models/project.dart';
+import 'package:ui_prototype/domain/models/project.dart';
 import 'package:ui_prototype/presentation/services/projects/database/projects_database.dart';
 import 'package:ui_prototype/presentation/services/device_uuid_helper.dart';
 import 'package:ui_prototype/presentation/services/projects/projects_repository.dart';

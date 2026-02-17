@@ -1,3 +1,4 @@
+import 'package:ui_prototype/domain/project/schema/sql_schema_validator.dart';
 import 'package:ui_prototype/presentation/services/flex_engine/creation/sql_lexer.dart';
 /*
 ATTACH is harmful as it attaches another database
@@ -20,7 +21,7 @@ TRIGGER runs database operations automatically, not needed
 SELECT for data leakage
 */
 
-class SqlSecurityValidator {
+class SqlSecurityValidator implements SqlSchemaValidator {
   static const Set<String> keywordSet = {
     // DDL
     'CREATE',

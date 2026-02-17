@@ -1,7 +1,7 @@
 import 'package:path_provider/path_provider.dart';
 import 'package:sqlite3/sqlite3.dart';
 import 'package:ui_prototype/presentation/exceptions/project_db_exception.dart';
-import 'package:ui_prototype/presentation/services/flex_engine/creation/sql_security_validator.dart';
+import 'package:ui_prototype/infrastructure/project/sqlite/sql_security_validator.dart';
 
 import 'dart:io';
 import 'package:path/path.dart' as path;
@@ -13,6 +13,8 @@ typedef DatabaseOpener = Database Function(String filename);
 
 class ProjectFileFactory {
   final DatabaseOpener opener;
+
+  // TODO: Going to remove this from here and apply it in Create Project use case
   final SqlSecurityValidator _validator = SqlSecurityValidator();
 
   ProjectFileFactory({DatabaseOpener? opener})
