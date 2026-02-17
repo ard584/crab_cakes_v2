@@ -64,22 +64,17 @@ class _ProjectCreationScreenState extends ConsumerState<ProjectCreationScreen> {
 
   void insertIntoDb() async {
     final title = _projectNameController.text;
-    final description = _projectDescriptionController.text;
     String sql = '';
 
     // Check file picker
     if (selectedSchema == Schema.text) {
-      final request = ProjectCreateRequest(
-        title: title,
-        description: description,
-        sql: _dbCreateSchema.text,
-      );
+      sql = _dbCreateSchema.text;
     } else {
       if (schemaFile == null || schemaFile!.files.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Please select a schema file")),
-      );
-      return;
+          const SnackBar(content: Text("Please select a schema file")),
+        );
+        return;
       }
     }
 
@@ -87,8 +82,7 @@ class _ProjectCreationScreenState extends ConsumerState<ProjectCreationScreen> {
 
     if (file.bytes != null) {
       sql = utf8.decode(file.bytes!);
-    }
-    else if (file.path != null) {
+    } else if (file.path != null) {
       final ioFile = io.File(file.path!);
       sql = await ioFile.readAsString();
     }
@@ -96,17 +90,19 @@ class _ProjectCreationScreenState extends ConsumerState<ProjectCreationScreen> {
     log.d("SCHEMA: $sql");
 
     if (sql.isEmpty) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text("Schema cannot be empty")),
-    );
-    return;
-  }
+      if (context.mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text("Schema cannot be empty")));
+      }
+      return;
+    }
 
-  final request = ProjectCreateRequest(title: title, sql: sql);
+    final request = ProjectCreateRequest(title: title, sql: sql);
 
     log.d("NAME: ${_projectNameController.text}");
     log.d("DESCRIPTION: ${_projectDescriptionController.text}");
-    log.d("SCHEMA: ${sql}");
+    log.d("SCHEMA: $sql");
 
     ref
         .read(projectListProvider.notifier)
@@ -195,7 +191,7 @@ class _ProjectCreationScreenState extends ConsumerState<ProjectCreationScreen> {
                               .pickFiles(
                                 type: FileType.custom,
                                 allowedExtensions: ['txt', 'sql'],
-                                withData: true
+                                withData: true,
                               );
 
                           if (result != null) {

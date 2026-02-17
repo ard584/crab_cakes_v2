@@ -16,7 +16,6 @@ class ProjectInput {
   final String name;
   final ProjectDb project;
   final Map<String, TableInput> _tables = {};
-  late String activeTable;
 
   Map<String, TableInput> get tables => Map.unmodifiable(_tables);
 
@@ -51,9 +50,6 @@ class ProjectInput {
       _tables[tableInput.name] = tableInput;
 
     }
-
-      // Set first table as active
-      activeTable = _tables.values.first.name;
   }
 
   void disposeControllers() {

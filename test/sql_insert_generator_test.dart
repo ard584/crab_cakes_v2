@@ -31,7 +31,7 @@ void main() {
     attributeList: userAttributes,
   );
 
-  final project = ProjectDb(tables: tableMap, dbPath: "");
+  final project = ProjectDb(tables: tableMap);
   final projectInput = ProjectInput(name: "name2", project: project);
 
   final table = projectInput.tables["Specimen"]!;
