@@ -7,6 +7,7 @@ import 'package:ui_prototype/presentation/screens/export_screen.dart';
 import 'package:ui_prototype/presentation/screens/project_selection.dart';
 import 'package:ui_prototype/presentation/services/flex_field/flex_field_factory.dart';
 import 'package:ui_prototype/presentation/view_models/project_input.dart';
+import 'package:ui_prototype/presentation/utils/logger.dart';
 
 import 'settings_screen.dart';
 
@@ -25,8 +26,7 @@ class DataEntryScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final projectAsync = ref.watch(projectViewModelProvider);
-
-    final activeTableName = projectAsync.value?.tables.keys.firstOrNull;
+    final activeTableName = ref.watch(activeTableProvider);
 
     // Snack bar updates
     ref.listen<AsyncValue<void>>(formSaveProvider, (previous, next) {
@@ -67,9 +67,11 @@ class DataEntryScreen extends ConsumerWidget {
             }
 
             // Check if table exists
-            if (activeTableName != null) {
+            if (project.activeTable != null) {
+
               // Extract attributes
-              return TableFormSection(tableName: activeTableName);
+              final currentTable = activeTableName ?? project.activeTable;
+              return TableFormSection(tableName: currentTable);
             }
             // If table is null, tell user
             else {
@@ -86,9 +88,9 @@ class DataEntryScreen extends ConsumerWidget {
           final projectMap = ref.read(projectViewModelProvider).value;
 
           if (projectMap == null) return;
-          if (activeTableName == null) return;
+          if (projectMap.activeTable == null) return;
 
-          final table = projectMap.tables[activeTableName];
+          final table = projectMap.tables[projectMap.activeTable];
           if (table == null) return;
 
           await ref.read(formSaveProvider.notifier).saveTable(table);
@@ -267,6 +269,9 @@ class ProjectDrawer extends ConsumerWidget {
                       subtitle: Text(
                         "${tableData?.attributes.length ?? 0} attributes",
                       ),
+                      onTap: () {
+                        ref.read(activeTableProvider.notifier).state = tableName;
+                      },
                     );
                   },
                 );
