@@ -12,10 +12,6 @@ import 'package:ui_prototype/presentation/utils/logger.dart';
 
 class SqliteProjectDatabaseBuilder implements ProjectDatabaseBuilder {
 
-  
-  Future<Database> initializeDatabase({String path = ':memory:'}) async {
-    return sqlite3.open(path);
-  }
 
   bool validateDb(Database db) {
     // Check for anything not a table or index

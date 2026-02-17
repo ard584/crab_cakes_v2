@@ -11,7 +11,13 @@ class SqliteDatabaseConnection implements DatabaseConnection<Database> {
   @override
   open(String path) {
     _isValidDbPath(path);
-    return sqlite3.open(path);
+
+    // Enable foreign keys
+    final db = sqlite3.open(path);
+
+    db.execute('PRAGMA foreign_keys = ON;');
+
+    return db;
   }
 
   bool _isValidDbPath(String dbPath) {

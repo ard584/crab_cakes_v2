@@ -78,13 +78,15 @@ class _ProjectCreationScreenState extends ConsumerState<ProjectCreationScreen> {
       }
     }
 
-    final file = schemaFile!.files.first;
+    if (selectedSchema == Schema.file) {
+      final file = schemaFile!.files.first;
 
-    if (file.bytes != null) {
-      sql = utf8.decode(file.bytes!);
-    } else if (file.path != null) {
-      final ioFile = io.File(file.path!);
-      sql = await ioFile.readAsString();
+      if (file.bytes != null) {
+        sql = utf8.decode(file.bytes!);
+      } else if (file.path != null) {
+        final ioFile = io.File(file.path!);
+        sql = await ioFile.readAsString();
+      }
     }
 
     log.d("SCHEMA: $sql");
