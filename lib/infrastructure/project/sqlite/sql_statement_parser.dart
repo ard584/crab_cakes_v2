@@ -1,4 +1,4 @@
-import 'package:ui_prototype/domain/project/schema/schema_parser.dart';
+import 'package:ui_prototype/application/interfaces/project/schema/schema_parser.dart';
 
 class SqlSchemaParser implements SchemaParser {
 

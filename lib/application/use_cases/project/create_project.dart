@@ -1,6 +1,6 @@
-import 'package:ui_prototype/domain/project/project_database_builder.dart';
-import 'package:ui_prototype/domain/project/schema/schema_parser.dart';
-import 'package:ui_prototype/domain/project/schema/schema_validator.dart';
+import 'package:ui_prototype/application/interfaces/project/project_database_builder.dart';
+import 'package:ui_prototype/application/interfaces/project/schema/schema_parser.dart';
+import 'package:ui_prototype/application/interfaces/project/schema/schema_validator.dart';
 
 // Project File Path typedef for clarity
 typedef ProjectFilePath = String;

@@ -1,4 +1,4 @@
-import 'package:ui_prototype/domain/project/project_database_builder.dart';
+import 'package:ui_prototype/application/interfaces/project/project_database_builder.dart';
 
 import 'package:path_provider/path_provider.dart';
 import 'package:sqlite3/sqlite3.dart';

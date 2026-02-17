@@ -1,4 +1,4 @@
-import 'package:ui_prototype/domain/project/schema/schema_validator.dart';
+import 'package:ui_prototype/application/interfaces/project/schema/schema_validator.dart';
 import 'package:ui_prototype/infrastructure/project/sqlite/sql_lexer.dart';
 /*
 ATTACH is harmful as it attaches another database
