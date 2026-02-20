@@ -1,5 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:ui_prototype/application/use_cases/project/save_table.dart';
+import 'package:ui_prototype/application/project/use_cases/save_table.dart';
 import 'package:ui_prototype/infrastructure/providers/project_database_provider.dart';
 
 final saveTableProvider = Provider<SaveTable>((ref) {

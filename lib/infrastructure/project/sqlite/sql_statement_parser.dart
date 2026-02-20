@@ -1,37 +1,57 @@
-import 'package:ui_prototype/application/interfaces/project/schema/schema_parser.dart';
+import 'package:ui_prototype/application/project/interfaces/schema/schema_parser.dart';
 
 class SqlSchemaParser implements SchemaParser {
+  final Set<(String, String)> _delimiters = {
+    ("'", "'"),
+    ('"', '"'),
+    ('`', '`'),
+    ('[', ']'),
+  };
+
+  List<String> _buildRegexIdentifierParts() {
+    final parts = _delimiters.map((pair) {
+      final start = RegExp.escape(pair.$1);
+      final end = RegExp.escape(pair.$2);
+
+      if (start == end) {
+        return "$start(?:$start$start|[^$start])*$end";
+      } else {
+        return '$start[^$end]*$end';
+      }
+    }).toList();
+
+    return parts;
+  }
 
   String _removeComments(String sql) {
-    final pattern = RegExp(
-      r"("
-      // Scan through anything surrounded by single quotes,
-      // ignore two consecutive single quotes
-      r"'(?:''|[^'])*'"
-      // Scan through anything surrounded by double quotes,
-      // ignore two consecutive single quotes
-      r'|"(?:""|[^"])*"'
-      // Match "/*" up to "*/"
-      // (need \ escape character for regex parser to look for *)
-      // [\s\S] matches everything (consume everything up to */)
-      // *? Makes it consume everything up to the first occurrence of */
-      // (matches smallest block it can find)
-      r"|/\*[\s\S]*?\*/"
-      // Match single line character up to newline
-      r"|--.*"
-      r")",
-      multiLine: true,
-    );
+    final parts = _buildRegexIdentifierParts();
+
+    // Single-line comment
+    parts.add(r"--.*");
+
+    // Multi-line comment
+    parts.add(r"/\*[\s\S]*?\*/");
+
+    final patternString = "(${parts.join("|")})";
+
+    final pattern = RegExp(patternString, multiLine: true);
+
+    final startCharacters = _delimiters.map((delim) {
+      return delim.$1;
+    }).toSet();
 
     return sql.splitMapJoin(
       pattern,
       onMatch: (Match match) {
         final text = match.group(0)!;
-        // If it starts with a quote, it's a string literal — KEEP IT
-        if (text.startsWith("'")) {
+        // If it starts with any start characters from the delim set, it's a string literal, keep
+        if (startCharacters.any((startChar) {
+          return text.startsWith(startChar);
+        })) {
           return text;
         }
-        // Otherwise, it's a comment — DISCARD IT
+
+        // Otherwise, it's a comment, discard
         return '';
       },
       onNonMatch: (String text) => text,
@@ -42,8 +62,8 @@ class SqlSchemaParser implements SchemaParser {
     return sql.replaceAll(RegExp(r'\s+'), ' ').toUpperCase();
   }
 
-    @override
-    List<String> getStatements(sql) {
+  @override
+  List<String> getStatements(sql) {
     // Clean & split
     final clean = _removeComments(sql);
     var split = _splitSqlStatements(clean);
@@ -54,20 +74,15 @@ class SqlSchemaParser implements SchemaParser {
   }
 
   List<String> _splitSqlStatements(String sql) {
-    // Pattern matches:
-    // 1. Single quoted strings: '(?:''|[^'])*'
-    // 2. Double quoted identifiers: "(?:""|[^"])*"
-    // 3. Semicolons: ;
-    final pattern = RegExp(
-      r"('(?:''|[^'])*'"
-      r'|"(?:""|[^"])*"'
-      r"|;)",
-    );
+    final parts = _buildRegexIdentifierParts();
+    parts.add(';');
+
+    final patternRegex = RegExp("(${parts.join("|")})");
 
     List<String> statements = [];
     int lastStart = 0;
 
-    for (final match in pattern.allMatches(sql)) {
+    for (final match in patternRegex.allMatches(sql)) {
       final matchedText = match.group(0)!;
 
       if (matchedText == ';') {
@@ -86,5 +101,4 @@ class SqlSchemaParser implements SchemaParser {
 
     return statements.where((s) => s.isNotEmpty).toList();
   }
-
 }

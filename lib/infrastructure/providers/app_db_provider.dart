@@ -1,7 +1,7 @@
 import 'dart:typed_data';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:ui_prototype/application/use_cases/project/create_project.dart';
+import 'package:ui_prototype/application/project/interfaces/create_project.dart';
 import 'package:ui_prototype/infrastructure/project/sqlite/sql_security_validator.dart';
 import 'package:ui_prototype/infrastructure/project/sqlite/sql_statement_parser.dart';
 import 'package:ui_prototype/infrastructure/project/sqlite/sqlite_project_database_builder.dart';

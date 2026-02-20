@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'package:path/path.dart' as path;
 import 'package:sqlite3/sqlite3.dart';
-import 'package:ui_prototype/application/interfaces/database_connection.dart';
+import 'package:ui_prototype/application/database_connection.dart';
 
 import 'package:ui_prototype/presentation/utils/logger.dart';
 
