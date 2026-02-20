@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:ui_prototype/presentation/models/attribute.dart';
-import 'package:ui_prototype/presentation/models/project_db.dart';
+import 'package:ui_prototype/domain/models/attribute.dart';
+import 'package:ui_prototype/domain/models/project_db.dart';
 
 // UI State
 class AttributeFormField {

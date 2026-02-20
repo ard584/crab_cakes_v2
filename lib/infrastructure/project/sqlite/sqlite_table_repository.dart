@@ -1,5 +1,5 @@
 import 'package:sqlite3/sqlite3.dart';
-import 'package:ui_prototype/application/interfaces/table_repository.dart';
+import 'package:ui_prototype/application/table_repository.dart';
 import 'package:ui_prototype/domain/db_table.dart';
 import 'package:ui_prototype/infrastructure/project/sqlite/sql_insert_generator.dart';
 import 'package:ui_prototype/presentation/view_models/db_table_view_model.dart';

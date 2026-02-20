@@ -25,8 +25,7 @@ class DataEntryScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final projectAsync = ref.watch(projectViewModelProvider);
-
-    final activeTableName = projectAsync.value?.tables.keys.firstOrNull;
+    final activeTableName = ref.watch(activeTableProvider);
 
     // Snack bar updates
     ref.listen<AsyncValue<void>>(formSaveProvider, (previous, next) {
@@ -66,15 +65,8 @@ class DataEntryScreen extends ConsumerWidget {
               return Center(child: Text("No project selected"));
             }
 
-            // Check if table exists
-            if (activeTableName != null) {
-              // Extract attributes
-              return TableFormSection(tableName: activeTableName);
-            }
-            // If table is null, tell user
-            else {
-              return Center(child: Text('Table is null'));
-            }
+            final currentTable = activeTableName ?? project.tables.keys.first;
+            return TableFormSection(tableName: currentTable);
           },
 
           // Handle error and loading states
@@ -86,10 +78,16 @@ class DataEntryScreen extends ConsumerWidget {
           final projectMap = ref.read(projectViewModelProvider).value;
 
           if (projectMap == null) return;
-          if (activeTableName == null) return;
 
           final table = projectMap.tables[activeTableName];
-          if (table == null) return;
+          print("ACTIVE TABLE NAME: $activeTableName");
+
+          // Table is returning null for some reason
+          if (table == null) {
+            print("TABLE IS NULL");
+            return;
+          }
+          print("TABLE SAVED");
 
           await ref.read(formSaveProvider.notifier).saveTable(table);
         },
@@ -267,6 +265,10 @@ class ProjectDrawer extends ConsumerWidget {
                       subtitle: Text(
                         "${tableData?.attributes.length ?? 0} attributes",
                       ),
+                      onTap: () {
+                        ref.read(activeTableProvider.notifier).state =
+                            tableName;
+                      },
                     );
                   },
                 );

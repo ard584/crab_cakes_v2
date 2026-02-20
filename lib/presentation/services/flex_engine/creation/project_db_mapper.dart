@@ -1,7 +1,7 @@
 import 'package:sqlite3/sqlite3.dart';
-import 'package:ui_prototype/presentation/models/table.dart';
-import 'package:ui_prototype/presentation/models/attribute.dart';
-import 'package:ui_prototype/presentation/models/project_db.dart';
+import 'package:ui_prototype/domain/models/table.dart';
+import 'package:ui_prototype/domain/models/attribute.dart';
+import 'package:ui_prototype/domain/models/project_db.dart';
 
 ProjectDb createDbObject(db) {
   try {
