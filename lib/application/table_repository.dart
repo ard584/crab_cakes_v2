@@ -1,8 +1,7 @@
 import 'package:ui_prototype/domain/db_table.dart';
-import 'package:ui_prototype/presentation/view_models/db_table_view_model.dart';
-import 'package:ui_prototype/presentation/view_models/project_input.dart';
+import 'package:ui_prototype/domain/models/db_row.dart';
 
-abstract interface class TableRepository {
+abstract interface class ActiveProjectRepository {
 
   // Loads the columns from the table
   DbTable getTableSchema(String tableName);
@@ -12,5 +11,5 @@ abstract interface class TableRepository {
   List<DbRow> getAllRows(String tableName);
 
   // Saves the current table
-  void saveTable(TableInput table);
+  void insertRow({required String tableName, required Map<String, dynamic> values});
 }

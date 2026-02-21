@@ -1,13 +1,12 @@
 import 'package:ui_prototype/domain/db_table.dart';
+import 'package:ui_prototype/domain/models/db_row.dart';
 
 class DbTableViewModel {
   final DbTable table;
   final List<DbRow> _rows = [];
   int selectedRowIndex = -1;
 
-  DbTableViewModel({
-    required this.table
-  });
+  DbTableViewModel({required this.table});
 
   // Unmutatable getter function
   List<DbRow> get rows => List.unmodifiable(_rows);
@@ -22,27 +21,25 @@ class DbTableViewModel {
     _rows.clear();
   }
 
-  // Getter functions
-  DbRow rowAt(int rowIndex) => _rows[rowIndex];
-  Object? cellAt(int rowIndex, int colIndex) => _rows[rowIndex][colIndex];
-  Object? valueAt(int rowIndex, String colName) {
-    final colIndex = table.columnIndexByName(colName);
+  List<String> get columnNames => table.columns.map((c) => c.name).toList();
 
-    if (colIndex == -1) {
-      throw Exception("Column '$colName' not found in DbTable");
-    }
-    return _rows[rowIndex][colIndex];
+  bool hasColumn(String name) {
+    final columns = table.columns;
+    return columns.any((col) => col.name == name);
   }
 
-  
-}
+  // Getter functions
+  DbRow rowAt(int rowIndex) => _rows[rowIndex];
+  Object? cellAt(int rowIndex, int colIndex) {
+    final columnName = table.columns[colIndex].name;
+    return _rows[rowIndex][columnName];
+  }
 
-class DbRow {
-  final List<Object?> values;
+  Object? valueAt(int rowIndex, String colName) {
+    if (!hasColumn(colName)) {
+      throw Exception("Column '$colName' not found in DbTable");
+    }
 
-  DbRow({required this.values});
-
-  // Lets us access values without doing row.values, makes it cleaner
-  Object? operator [](int columnIndex) => values[columnIndex];
-
+    return _rows[rowIndex][colName];
+  }
 }

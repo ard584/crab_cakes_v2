@@ -1,58 +1,39 @@
-import 'package:ui_prototype/presentation/view_models/project_input.dart';
-
 class SQLInsertGenerator {
-  // TODO: This should not rely on the viewModels, find a way to abstract this away
-  final TableInput table;
 
-  SQLInsertGenerator({required this.table});
+  bool _isValid(dynamic value) {
+    if (value == null) return false;
+    if (value is String && value.isEmpty) return false;
+    return true;
+  }
 
-  List<AttributeFormField> _getActiveColumns() {
-    final List<AttributeFormField> activeColumns = [];
+  Map<String, dynamic> _filterValues(Map<String, dynamic> values) {
+    final map = <String, dynamic>{};
 
-    for (final attribute in table.attributes.values) {
-      if (attribute.controller.text.isNotEmpty) {
-        activeColumns.add(attribute);
+    for (final value in values.entries) {
+      if (_isValid(value.value)) {
+        map[value.key] = value.value;
       }
     }
 
-    return activeColumns;
+    return map;
   }
 
-  String _generateColumns() {
-    final activeColumns = _getActiveColumns();
-
-    String columns = activeColumns
-        .map((column) {
-          return column.fields.name;
-        })
-        .join(', ');
-
-    return columns;
+  List<dynamic> generateValues(Map<String, dynamic> values) {
+    final filtered = _filterValues(values);
+    return filtered.values.toList();
   }
 
-  String _generatePlaceholders() {
-    final activeColumns = _getActiveColumns();
+  String generateInsertStatement({
+    required String tableName,
+    required Map<String, dynamic> values,
+  }) {
+    final filtered = _filterValues(values);
 
-    int placeholderCount = activeColumns.length;
-    return List.filled(placeholderCount, '?').join(', ');
-  }
+    print("FILTERED: $filtered");
 
-  List<String> generateValues() {
-    final activeColumns = _getActiveColumns();
+    final columns = filtered.keys.join(', ');
+    final placeholders = List.filled(filtered.length, '?').join(', ');
 
-    final values = activeColumns.map((attribute) {
-      return attribute.controller.text;
-    }).toList();
-
-    return values;
-  }
-
-  String generateInsertIntoTable() {
-    String columns = _generateColumns();
-    String placeholders = _generatePlaceholders();
-
-    String statement =
-        "INSERT INTO ${table.name} ( $columns ) VALUES ( $placeholders )";
-    return statement;
+    return "INSERT INTO $tableName ($columns) VALUES ($placeholders)";
   }
 }

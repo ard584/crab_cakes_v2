@@ -3,7 +3,7 @@ import 'package:ui_prototype/application/table_repository.dart';
 import 'package:ui_prototype/infrastructure/project/sqlite/sqlite_table_repository.dart';
 import 'package:ui_prototype/infrastructure/providers/active_database_connection_provider.dart';
 
-final projectDatabaseProvider = Provider<TableRepository>((ref) {
+final projectDatabaseProvider = Provider<ActiveProjectRepository>((ref) {
   
   // Get current project
   final database = ref.watch(activeDatabaseConnectionProvider);
@@ -12,6 +12,6 @@ final projectDatabaseProvider = Provider<TableRepository>((ref) {
     throw Exception("[projectDatabaseProvider] Database not open in activeDatabaseConnectionProvider");
   }
 
-  return SqliteTableRepository(db: database);
+  return SqliteActiveProjectRepository(db: database);
 
 });

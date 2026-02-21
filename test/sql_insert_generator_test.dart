@@ -37,14 +37,12 @@ void main() {
   final table = projectInput.tables["Specimen"]!;
 
   // Make a generator
-  final generator = SQLInsertGenerator(
-    table: table
-  );
+  final generator = SQLInsertGenerator();
 
   group('SQL String Syntax Tests', () {
 
     test('Statement should have matching counts of columns and placeholders', () {
-    final statement = generator.generateInsertIntoTable();
+    final statement = generator.generateInsertStatement();
     
     // Use RegEx to find everything between parentheses
     final columnsMatch = RegExp(r"\((.*?)\)").firstMatch(statement);

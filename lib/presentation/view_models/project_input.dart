@@ -65,5 +65,16 @@ class TableInput {
   final String name;
   final Map<String, AttributeFormField> attributes;
 
+  Map<String, dynamic> toValueMap() {
+
+    final map = <String, dynamic>{};
+
+    for (final entry in attributes.entries) {
+      map[entry.key] = entry.value.controller.text;
+    }
+    
+    return map;
+  }
+
   TableInput({required this.name, required this.attributes});
 }

@@ -1,23 +1,22 @@
 import 'package:sqlite3/sqlite3.dart';
 import 'package:ui_prototype/application/table_repository.dart';
 import 'package:ui_prototype/domain/db_table.dart';
+import 'package:ui_prototype/domain/models/db_row.dart';
 import 'package:ui_prototype/infrastructure/project/sqlite/sql_insert_generator.dart';
-import 'package:ui_prototype/presentation/view_models/db_table_view_model.dart';
-import 'package:ui_prototype/presentation/view_models/project_input.dart';
 
-class SqliteTableRepository implements TableRepository {
+class SqliteActiveProjectRepository implements ActiveProjectRepository {
   final Database db;
 
-  SqliteTableRepository({required this.db});
+  SqliteActiveProjectRepository({required this.db});
 
   @override
-  void saveTable(TableInput table) {
+  void insertRow({required String tableName, required Map<String, dynamic> values}) {
     // Call insert generator
 
-    final generator = SQLInsertGenerator(table: table);
+    final generator = SQLInsertGenerator();
 
-    final sql = generator.generateInsertIntoTable();
-    final values = generator.generateValues();
+    final sql = generator.generateInsertStatement(tableName: tableName, values: values);
+    final insertValues = generator.generateValues(values);
 
     PreparedStatement? stmt;
 
@@ -27,7 +26,7 @@ class SqliteTableRepository implements TableRepository {
 
       // Prepare & execute statement
       stmt = db.prepare(sql);
-      stmt.execute(values);
+      stmt.execute(insertValues);
 
       // Commit transaction
       db.execute('COMMIT;');
@@ -63,7 +62,7 @@ class SqliteTableRepository implements TableRepository {
 
     final result = db.select("SELECT * FROM $tableName");
 
-    final rows = result.rows.map((row) {
+    final rows = result.map((row) {
       return DbRow(values: row);
     }).toList();
 
@@ -75,7 +74,7 @@ class SqliteTableRepository implements TableRepository {
 
     final result = db.select("SELECT * FROM $tableName LIMIT ? OFFSET ?", [limit, offset]);
 
-    final rows = result.rows.map((row) {
+    final rows = result.map((row) {
       return DbRow(values: row);
     }).toList();
 

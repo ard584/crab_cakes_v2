@@ -39,9 +39,31 @@ class DataEntryScreen extends ConsumerWidget {
         },
         error: (e, st) {
           if (context.mounted) {
-            ScaffoldMessenger.of(
-              context,
-            ).showSnackBar(SnackBar(content: Text("Error occurred: $e")));
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text("Error occurred: $e"),
+                action: SnackBarAction(
+                  label: "Details",
+                  onPressed: () {
+                    showDialog(
+                      context: context,
+                      builder: (_) {
+                        return AlertDialog(
+                          title: Text("Error Details"),
+                          content: Text(e.toString()),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.pop(context),
+                              child: Text("Close"),
+                            ),
+                          ],
+                        );
+                      },
+                    );
+                  },
+                ),
+              ),
+            );
           }
         },
       );
@@ -65,8 +87,12 @@ class DataEntryScreen extends ConsumerWidget {
               return Center(child: Text("No project selected"));
             }
 
-            final currentTable = activeTableName ?? project.tables.keys.first;
-            return TableFormSection(tableName: currentTable);
+            if (activeTableName == null) {
+              return Center(child: const CircularProgressIndicator());
+            }
+
+
+            return TableFormSection(tableName: activeTableName);
           },
 
           // Handle error and loading states
@@ -266,8 +292,7 @@ class ProjectDrawer extends ConsumerWidget {
                         "${tableData?.attributes.length ?? 0} attributes",
                       ),
                       onTap: () {
-                        ref.read(activeTableProvider.notifier).state =
-                            tableName;
+                        ref.read(activeTableProvider.notifier).setActiveTable(tableName);
                       },
                     );
                   },
