@@ -18,6 +18,10 @@ class SqliteActiveProjectRepository implements ActiveProjectRepository {
     final sql = generator.generateInsertStatement(tableName: tableName, values: values);
     final insertValues = generator.generateValues(values);
 
+    if (sql == null) {
+      return;
+    }
+
     PreparedStatement? stmt;
 
     try {
@@ -41,7 +45,7 @@ class SqliteActiveProjectRepository implements ActiveProjectRepository {
   @override
   DbTable getTableSchema(String tableName) {
     // Get the schema so we can determine column info
-    final schema = db.select("PRAGMA table_info $tableName;");
+    final schema = db.select("PRAGMA table_info($tableName);");
 
     // Convert columns to list of DbColumns
     final columns = schema.map((row) {

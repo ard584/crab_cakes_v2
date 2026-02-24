@@ -23,13 +23,15 @@ class SQLInsertGenerator {
     return filtered.values.toList();
   }
 
-  String generateInsertStatement({
+  String? generateInsertStatement({
     required String tableName,
     required Map<String, dynamic> values,
   }) {
     final filtered = _filterValues(values);
 
-    print("FILTERED: $filtered");
+    if (filtered.entries.isEmpty) {
+      return null;
+    }
 
     final columns = filtered.keys.join(', ');
     final placeholders = List.filled(filtered.length, '?').join(', ');

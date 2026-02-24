@@ -8,7 +8,7 @@ class DbTable {
   final String name;
   final List<DbColumn> columns;
 
-  late Map<String, int> _columnIndex;
+  final Map<String, int> _columnIndex = {};
 
   DbTable({required this.name, required this.columns}) {
     // Creates map to get column's index from the column name
@@ -17,6 +17,20 @@ class DbTable {
       // Index is the value
       _columnIndex[columns[i].name] = i;
     }
+  }
+
+  @override
+  String toString() {
+
+    String string = "DbTable ($name)\n(\n";
+
+    for (final col in columns ) {
+      string += "  $col";
+    }
+
+    string += ")";
+
+    return string;
   }
 
   // Column getters
@@ -44,7 +58,7 @@ class DbTable {
 
 class DbColumn {
   // Needs to store data type
-  final DataType type;
+  final String type;
 
   final String name;
 
@@ -58,4 +72,16 @@ class DbColumn {
     required this.nullable,
     required this.primaryKey,
   });
+
+  @override
+  String toString() {
+    String string = "COLUMN ($name [$type]";
+
+    if (primaryKey) string += " PK";
+    if(nullable == false) string += " NOT NULL";
+
+    string += ")\n";
+
+    return string;
+  }
 }
