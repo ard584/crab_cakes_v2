@@ -1,26 +1,22 @@
 import 'package:sqlite3/sqlite3.dart';
+import 'package:ui_prototype/application/project/interfaces/active_project/insert_generator.dart';
 import 'package:ui_prototype/application/table_repository.dart';
 import 'package:ui_prototype/domain/db_table.dart';
 import 'package:ui_prototype/domain/models/db_row.dart';
-import 'package:ui_prototype/infrastructure/project/sqlite/sql_insert_generator.dart';
 
 class SqliteActiveProjectRepository implements ActiveProjectRepository {
   final Database db;
+  final InsertGenerator generator;
 
-  SqliteActiveProjectRepository({required this.db});
+  SqliteActiveProjectRepository({required this.db, required this.generator});
 
   @override
   void insertRow({required String tableName, required Map<String, dynamic> values}) {
     // Call insert generator
 
-    final generator = SQLInsertGenerator();
-
-    final sql = generator.generateInsertStatement(tableName: tableName, values: values);
-    final insertValues = generator.generateValues(values);
-
-    if (sql == null) {
-      return;
-    }
+    final record = generator.generate(tableName, values);
+    final sql = record.sql;
+    final insertValues = record.data;
 
     PreparedStatement? stmt;
 

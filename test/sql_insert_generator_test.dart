@@ -40,17 +40,15 @@ void main() {
 
     final table = projectInput.tables["Specimen"]!;
 
+    // Populate data into tableInput
+    table.attributes["ID"]!.controller.text = "1";
+    table.attributes["Species"]!.controller.text = "Bass";
+
     test(
       'Statement should have matching counts of columns and placeholders',
       () {
-        final statement = generator.generateInsertStatement(
-          tableName: table.name,
-          values: table.toValueMap(),
-        );
-
-        if (statement == null) {
-          return;
-        }
+        final record = generator.generate(table.name, table.toValueMap());
+        final statement = record.sql;
 
         // Use RegEx to find everything between parentheses
         final columnsMatch = RegExp(r"\((.*?)\)").firstMatch(statement);
@@ -69,22 +67,23 @@ void main() {
     );
 
     test('Generated string should not end with a trailing comma', () {
-      final statement = generator.generateInsertStatement(
-        tableName: table.name,
-        values: table.toValueMap(),
-      );
-      // A common bug is "INSERT INTO Table (col1, col2, ) ..."
+      print(table.toValueMap());
+
+      final record = generator.generate(table.name, table.toValueMap());
+      final statement = record.sql;
+
       expect(statement, isNot(contains(', )')));
       expect(statement, isNot(contains(', )')));
     });
   });
 
   group('SQL Insert Generator Tests - Mock ValueMaps', () {
-    test('Returns nothing upon empty ValueMap', () {
+    test('Throws exception upon empty ValueMap', () {
       final val = <String, dynamic>{};
-      final statement = generator.generateInsertStatement(tableName: "test", values: val);
 
-      expect(statement, isNull);
+      expect(() {
+        generator.generate("test", val);
+      }, throwsException);
     });
   });
 }
