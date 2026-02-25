@@ -278,9 +278,9 @@ class DynamicFlexField extends ConsumerWidget {
       padding: const EdgeInsets.symmetric(horizontal: 12.0),
       margin: const EdgeInsets.only(bottom: 16.0, top: 4.0),
       decoration: BoxDecoration(
-        color: Colors.grey.shade100, // Light background color
+        color: Theme.of(context).colorScheme.surfaceContainerHighest, // Light background color
         borderRadius: BorderRadius.circular(10.0),
-        border: Border.all(color: Colors.grey.shade300),
+        border: Border.all(color: Theme.of(context).colorScheme.onSecondary),
       ),
 
       child: FlexFieldFactory.createField(
