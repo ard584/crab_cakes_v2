@@ -14,9 +14,7 @@ class SaveTable {
     db.insertRow(tableName: tableName, values: values);
 
     if (limit != null) {
-      
       final result = db.getRows(tableName, limit, offset ?? 0);
-
       return result;
     }
 
