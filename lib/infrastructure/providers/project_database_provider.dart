@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ui_prototype/application/table_repository.dart';
-import 'package:ui_prototype/infrastructure/project/sqlite/sqlite_table_repository.dart';
+import 'package:ui_prototype/infrastructure/project/sqlite/sqlite_active_project_repository.dart';
 import 'package:ui_prototype/infrastructure/providers/active_database_connection_provider.dart';
 
 final projectDatabaseProvider = Provider<ActiveProjectRepository>((ref) {

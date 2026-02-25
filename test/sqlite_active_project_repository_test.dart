@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqlite3/sqlite3.dart';
-import 'package:ui_prototype/infrastructure/project/sqlite/sqlite_table_repository.dart';
+import 'package:ui_prototype/infrastructure/project/sqlite/sqlite_active_project_repository.dart';
 
 void main() {
   late Database db;
@@ -104,5 +104,69 @@ void main() {
         throwsException,
       );
     });
+
+    test('Should return all records if limit exceeds number of records', () {
+      db.execute('''INSERT INTO trip (workers, type) VALUES 
+      ('maria', 'electrofishing'),
+      ('dave', 'hoop netting'),
+      ('ben', 'hoop netting'),
+      ('maria', 'hoop netting'),
+      ('pilar', 'electrofishing');
+      ''');
+
+      final rows = repo.getRows("trip", 10, 0);
+      expect(rows.length, 5);
+      expect(rows[1].values["id"], 2);
+    });
+
+    test('dbTable columnAt successfully retrieves a column in range', () {
+      final table = repo.getTableSchema("trip");
+      final col = table.columnAt(1);
+
+      expect(col.name, "workers");
+    });
+
+    test('dbTable columnAt throws error when column out of range (above)', () {
+      final table = repo.getTableSchema("trip");
+      expect(() => table.columnAt(5), throwsRangeError);
+    });
+
+    test('dbTable columnAt throws error when column out of range (below)', () {
+      final table = repo.getTableSchema("trip");
+      expect(() => table.columnAt(-1), throwsRangeError);
+    });
+
+    test('Can successfully get column by name from table', () {
+      final table = repo.getTableSchema("trip");
+      final col = table.columnByName("workers");
+
+      expect(col.name, "workers");
+    });
+
+    test('Throws error when getting column nonexistent by name from table', () {
+      final table = repo.getTableSchema("trip");
+
+      expect(() {
+        table.columnByName("doesntexist");
+      }, throwsException);
+    });
+
+    test('Table returns correct index for column by name', () {
+      final table = repo.getTableSchema("trip");
+      final index = table.columnIndexByName("workers");
+
+      expect(index, 1);
+    });
+
+    test(
+      'Table throws exception for getting index for nonexistent column by name',
+      () {
+        final table = repo.getTableSchema("trip");
+
+        expect(() {
+          table.columnIndexByName("doesntexist");
+        }, throwsRangeError);
+      },
+    );
   });
 }

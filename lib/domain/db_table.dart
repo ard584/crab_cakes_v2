@@ -48,7 +48,9 @@ class DbTable {
   int columnIndexByName(String colName) {
     final colIndex = _columnIndex[colName];
 
-    if (colIndex == null) return -1;
+    if (colIndex == null) {
+      throw RangeError('Column index not found for column "$colName"');
+    }
 
     return colIndex;
   }
