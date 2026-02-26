@@ -7,6 +7,7 @@ import 'package:ui_prototype/presentation/screens/export_screen.dart';
 import 'package:ui_prototype/presentation/screens/project_selection.dart';
 import 'package:ui_prototype/presentation/services/flex_field/flex_field_factory.dart';
 import 'package:ui_prototype/presentation/view_models/project_input.dart';
+import 'package:ui_prototype/presentation/components/catch_table_widget.dart';
 
 import 'settings_screen.dart';
 
@@ -50,11 +51,16 @@ class DataEntryScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
+        toolbarHeight: 160,
         title: projectAsync.when(
-          data: (project) => Text('Data Entry'),
+          data: (project) => Text(''),
           error: (_, __) => const Text("Error"),
           loading: () => const Text('Loading...'),
         ),
+        titleSpacing: 16,
+        actions: [
+          const CatchHistoryTable(),
+        ],
       ),
       drawer: ProjectDrawer(),
       body: Padding(
