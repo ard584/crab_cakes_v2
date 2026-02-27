@@ -1,8 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ui_prototype/infrastructure/project/sqlite/sql_insert_generator.dart';
-import 'package:ui_prototype/presentation/models/attribute.dart';
-import 'package:ui_prototype/presentation/models/project_db.dart';
-import 'package:ui_prototype/presentation/models/table.dart';
+import 'package:ui_prototype/domain/models/attribute.dart';
+import 'package:ui_prototype/domain/models/project_db.dart';
+import 'package:ui_prototype/domain/models/table.dart';
 import 'package:ui_prototype/presentation/view_models/project_input.dart';
 
 void main() {
@@ -31,7 +31,7 @@ void main() {
     attributeList: userAttributes,
   );
 
-  final project = ProjectDb(tables: tableMap, dbPath: "");
+  final project = ProjectDb(tables: tableMap);
   final projectInput = ProjectInput(name: "name2", project: project);
 
   final table = projectInput.tables["Specimen"]!;

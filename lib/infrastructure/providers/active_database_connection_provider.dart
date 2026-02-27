@@ -29,6 +29,10 @@ class ActiveDatabaseConnectionNotifier extends Notifier<Database?> {
     final conn = ref.read(databaseConnectionProvider);
     final db = conn.open(path);
 
+    // Enable foreign keys
+    db.execute('PRAGMA foreign_keys = ON;');
+
+    // Update state
     state?.dispose();
     state = db;
 

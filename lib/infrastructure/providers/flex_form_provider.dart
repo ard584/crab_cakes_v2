@@ -1,11 +1,21 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/legacy.dart';
 import 'package:ui_prototype/infrastructure/providers/active_database_connection_provider.dart';
 import 'package:ui_prototype/presentation/services/flex_engine/flex_db_mapper.dart';
 import 'package:ui_prototype/presentation/view_models/project_input.dart';
 
 // DTO
-final projectViewModelProvider = Provider.autoDispose<AsyncValue<ProjectInput>>(
-  (ref) {
+final projectViewModelProvider = AsyncNotifierProvider<ProjectViewModelNotifier, ProjectInput>(
+  ProjectViewModelNotifier.new
+);
+
+class ProjectViewModelNotifier extends AsyncNotifier<ProjectInput> {
+
+  @override
+  FutureOr<ProjectInput> build() async {
+
     // Get active database connection
     final db = ref.watch(activeDatabaseConnectionProvider);
 
@@ -23,6 +33,11 @@ final projectViewModelProvider = Provider.autoDispose<AsyncValue<ProjectInput>>(
       projectInput.disposeControllers();
     });
 
-    return AsyncData(projectInput);
-  },
-);
+    return projectInput;
+  }
+}
+
+final activeTableProvider = StateProvider<String?>((ref) {
+  return null;
+},);
+

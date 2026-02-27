@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'package:path/path.dart' as path;
 import 'package:sqlite3/sqlite3.dart';
-import 'package:ui_prototype/application/interfaces/database_connection.dart';
+import 'package:ui_prototype/application/database_connection.dart';
 
 import 'package:ui_prototype/presentation/utils/logger.dart';
 
@@ -11,7 +11,13 @@ class SqliteDatabaseConnection implements DatabaseConnection<Database> {
   @override
   open(String path) {
     _isValidDbPath(path);
-    return sqlite3.open(path);
+
+    // Enable foreign keys
+    final db = sqlite3.open(path);
+
+    db.execute('PRAGMA foreign_keys = ON;');
+
+    return db;
   }
 
   bool _isValidDbPath(String dbPath) {

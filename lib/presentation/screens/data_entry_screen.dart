@@ -29,8 +29,7 @@ class DataEntryScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final projectAsync = ref.watch(projectViewModelProvider);
-
-    final activeTableName = projectAsync.value?.tables.keys.firstOrNull;
+    final activeTableName = ref.watch(activeTableProvider);
 
     // Snack bar updates
     ref.listen<AsyncValue<void>>(formSaveProvider, (previous, next) {
@@ -70,15 +69,8 @@ class DataEntryScreen extends ConsumerWidget {
               return Center(child: Text("No project selected"));
             }
 
-            // Check if table exists
-            if (activeTableName != null) {
-              // Extract attributes
-              return TableFormSection(tableName: activeTableName);
-            }
-            // If table is null, tell user
-            else {
-              return Center(child: Text('Table is null'));
-            }
+            final currentTable = activeTableName ?? project.tables.keys.first;
+            return TableFormSection(tableName: currentTable);
           },
 
           // Handle error and loading states
@@ -87,22 +79,22 @@ class DataEntryScreen extends ConsumerWidget {
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () async {
-  final projectMap = ref.read(projectViewModelProvider).value;
-  if (projectMap == null) return;
-  if (activeTableName == null) return;
+          final projectMap = ref.read(projectViewModelProvider).value;
+          if (projectMap == null) return;
+          if (activeTableName == null) return;
 
-  final table = projectMap.tables[activeTableName];
-  if (table == null) return;
+          final table = projectMap.tables[activeTableName];
+          if (table == null) return;
 
-  // 1) Save record (this is where INSERT happens, inside saveTable)
-  await ref.read(formSaveProvider.notifier).saveTable(table);
+          // 1) Save record (this is where INSERT happens, inside saveTable)
+          await ref.read(formSaveProvider.notifier).saveTable(table);
 
-  // 2) Immediately run backup to selected drives
-  final dbPath = ref.read(activeDatabasePathProvider);
-  if (dbPath != null) {
-    await ref.read(writeBackupProvider).execute(sourceDbPath: dbPath);
-  }
-},
+          // 2) Immediately run backup to selected drives
+          final dbPath = ref.read(activeDatabasePathProvider);
+          if (dbPath != null) {
+            await ref.read(writeBackupProvider).execute(sourceDbPath: dbPath);
+          }
+        },
         label: Padding(
           padding: const EdgeInsets.all(20.0),
           child: Text("Save Record"),
@@ -277,6 +269,10 @@ class ProjectDrawer extends ConsumerWidget {
                       subtitle: Text(
                         "${tableData?.attributes.length ?? 0} attributes",
                       ),
+                      onTap: () {
+                        ref.read(activeTableProvider.notifier).state =
+                            tableName;
+                      },
                     );
                   },
                 );
