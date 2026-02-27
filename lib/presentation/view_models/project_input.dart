@@ -82,7 +82,6 @@ class TableInput {
 
     // Iterate through attributes
     for (final attribute in attributes.entries) {
-
       // Get text of each controller, add counts to respective variables
       if (attribute.value.controller.text.trim().isEmpty) {
         emptyFieldCount += 1;

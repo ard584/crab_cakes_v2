@@ -27,10 +27,19 @@ class DataEntryScreen extends ConsumerStatefulWidget {
 }
 
 class _DataEntryState extends ConsumerState<DataEntryScreen> {
+  TableInput? _activeTable;
+
   @override
   Widget build(BuildContext context) {
     final projectAsync = ref.watch(projectViewModelProvider);
     final activeTableName = ref.watch(activeTableProvider);
+
+    // Set activeProject state
+    projectAsync.whenData((project) {
+      if (activeTableName != null) {
+        _activeTable = project.tables[activeTableName];
+      }
+    });
 
     // Snack bar updates
     ref.listen<AsyncValue<void>>(formSaveProvider, (previous, next) {
@@ -278,7 +287,9 @@ class DynamicFlexField extends ConsumerWidget {
       padding: const EdgeInsets.symmetric(horizontal: 12.0),
       margin: const EdgeInsets.only(bottom: 16.0, top: 4.0),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceContainerHighest, // Light background color
+        color: Theme.of(
+          context,
+        ).colorScheme.surfaceContainerHighest, // Light background color
         borderRadius: BorderRadius.circular(10.0),
         border: Border.all(color: Theme.of(context).colorScheme.onSecondary),
       ),
