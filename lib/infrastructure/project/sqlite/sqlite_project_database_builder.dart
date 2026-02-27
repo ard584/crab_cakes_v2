@@ -1,7 +1,8 @@
+import 'package:ui_prototype/application/project/interfaces/project_database_builder.dart';
+
 import 'package:path_provider/path_provider.dart';
 import 'package:sqlite3/sqlite3.dart';
 import 'package:ui_prototype/presentation/exceptions/project_db_exception.dart';
-import 'package:ui_prototype/presentation/services/flex_engine/creation/sql_security_validator.dart';
 
 import 'dart:io';
 import 'package:path/path.dart' as path;
@@ -9,19 +10,8 @@ import 'package:path/path.dart' as path;
 import 'package:uuid/uuid.dart';
 import 'package:ui_prototype/presentation/utils/logger.dart';
 
-typedef DatabaseOpener = Database Function(String filename);
+class SqliteProjectDatabaseBuilder implements ProjectDatabaseBuilder {
 
-class ProjectFileFactory {
-  final DatabaseOpener opener;
-  final SqlSecurityValidator _validator = SqlSecurityValidator();
-
-  ProjectFileFactory({DatabaseOpener? opener})
-    : opener = opener ?? sqlite3.open;
-
-  // Create database function
-  Future<Database> initializeDatabase({String path = ':memory:'}) async {
-    return sqlite3.open(path);
-  }
 
   bool validateDb(Database db) {
     // Check for anything not a table or index
@@ -55,11 +45,10 @@ class ProjectFileFactory {
     return db.select('PRAGMA schema_version;').first.columnAt(0) as int;
   }
 
-  Future<String> initializeProject(
-    String userSchema, {
-    required DatabaseOpener opener,
-  }) async {
-    final tempDbPath = await createProjectInTemp(userSchema, opener: opener);
+  @override
+  Future<String> buildFromSchema(List<String> statements) async {
+
+    final tempDbPath = await createProjectInTemp(statements);
     final appDir = await getApplicationSupportDirectory();
 
     final permanentPath = path.join(
@@ -79,16 +68,9 @@ class ProjectFileFactory {
   }
 
   Future<String> createProjectInTemp(
-    String userSchema, {
-    required DatabaseOpener opener,
-  }) async {
-    // Check if is safe
-    if (!_validator.isSafe(userSchema)) {
-      throw Exception("Unsafe SQL detected");
-    }
+    List<String> statements
+  ) async {
 
-    // Split sql
-    final statements = _validator.getValidStatements(userSchema);
 
     final tempDir = Directory.systemTemp.createTempSync();
     final dbTempPath = path.join(
@@ -103,7 +85,7 @@ class ProjectFileFactory {
     late final Database db;
 
     try {
-      db = opener(dbTempPath);
+      db = sqlite3.open(dbTempPath);
     } catch (e, st) {
       throw ProjectDbException(
         type: ProjectDbErrorType.openFailed,
