@@ -8,6 +8,10 @@ import 'package:ui_prototype/presentation/screens/project_selection.dart';
 import 'package:ui_prototype/presentation/services/flex_field/flex_field_factory.dart';
 import 'package:ui_prototype/presentation/view_models/project_input.dart';
 
+import 'package:ui_prototype/infrastructure/providers/external_backup_provider.dart';
+import 'package:ui_prototype/infrastructure/providers/active_database_connection_provider.dart';
+
+
 import 'settings_screen.dart';
 
 class DataEntryScreen extends ConsumerWidget {
@@ -83,16 +87,22 @@ class DataEntryScreen extends ConsumerWidget {
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () async {
-          final projectMap = ref.read(projectViewModelProvider).value;
+  final projectMap = ref.read(projectViewModelProvider).value;
+  if (projectMap == null) return;
+  if (activeTableName == null) return;
 
-          if (projectMap == null) return;
-          if (activeTableName == null) return;
+  final table = projectMap.tables[activeTableName];
+  if (table == null) return;
 
-          final table = projectMap.tables[activeTableName];
-          if (table == null) return;
+  // 1) Save record (this is where INSERT happens, inside saveTable)
+  await ref.read(formSaveProvider.notifier).saveTable(table);
 
-          await ref.read(formSaveProvider.notifier).saveTable(table);
-        },
+  // 2) Immediately run backup to selected drives
+  final dbPath = ref.read(activeDatabasePathProvider);
+  if (dbPath != null) {
+    await ref.read(writeBackupProvider).execute(sourceDbPath: dbPath);
+  }
+},
         label: Padding(
           padding: const EdgeInsets.all(20.0),
           child: Text("Save Record"),

@@ -6,12 +6,11 @@ import 'dart:typed_data';
   class LibserialportAdapter implements ScannerConnector {
 
     SerialPort? _port;
-    Stream<Uint8List>? _byteStream;
-    
-    bool connected = false;
+    Stream<Uint8List> _byteStream = const Stream.empty();
+    bool connected = false; 
 
     //stream handoff point (just a getter)
-    Stream<Uint8List>? get byteStream => _byteStream;
+    Stream<Uint8List> get byteStream => _byteStream;                       
 
 
     @override
@@ -71,7 +70,7 @@ import 'dart:typed_data';
     Future<bool> disconnect() async {
 
       try {
-        _byteStream = null;
+        _byteStream = const Stream.empty();
 
         final port = _port;
         _port = null;

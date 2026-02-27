@@ -1,9 +1,11 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:path_provider/path_provider.dart';
 
 //importing access to the main database provider
 //import 'package:ui_prototype/presentation/providers/project_database_provider.dart';
-import 'package:ui_prototype/presentation/providers/flex_form_provider.dart';
+//import 'package:ui_prototype/presentation/providers/flex_form_provider.dart';
+import 'package:ui_prototype/infrastructure/providers/active_database_connection_provider.dart';
+// wherever currentFlexProjectProvider now lives after refactor:
+//import 'package:ui_prototype/infrastructure/providers/flex_form_provider.dart';
 
 
 //importing use cases
@@ -11,6 +13,7 @@ import 'package:ui_prototype/application/backup/usecases/discover_drives.dart';
 import 'package:ui_prototype/application/backup/usecases/get_backup_targets.dart';
 import 'package:ui_prototype/application/backup/usecases/select_drives.dart';
 import 'package:ui_prototype/application/backup/usecases/write_backup.dart';
+import 'package:ui_prototype/application/backup/usecases/auto_select_backups.dart';
 
 //importing interfaces
 import 'package:ui_prototype/application/backup/interfaces/backup_writer.dart';
@@ -27,10 +30,7 @@ import 'package:ui_prototype/infrastructure/backup/win32_drive_discovery.dart';
 
 
 //Wiring INFRASTRUCTURE providers
-// final backupSettingsDbProvider = Provider<BackupSettingsDb>((ref) {
-//   //constructing the concrete backup settings database
-//   return BackupSettingsDb();
-// });
+
 final backupSettingsDbProvider = Provider<BackupSettingsDb>((ref) {
   final db = BackupSettingsDb();
   ref.onDispose(() => db.close());
@@ -49,25 +49,12 @@ final driveSelectionRepoProvider = Provider<DriveSelectionRepository>((ref) {
   return DriftDriveSelectionRepository(db);
 });
 
-//Dont know what to do with tempDirPath :/ FIX!
 final backupWriterProvider = Provider<BackupWriter>((ref) {
-  // copy-by-path writer: no snapshotter/tempDir needed
-  return DbBackupWriter();
-});
-
-/// Provides the path to the active project's SQLite DB file.
-final currentProjectDbPathProvider = Provider<String>((ref) {
-  final projectAsync = ref.watch(currentFlexProjectProvider);
-
-  return projectAsync.when(
-    loading: () => throw StateError('Project is still loading'),
-    error: (e, st) => throw StateError('Failed to load project: $e'),
-    data: (project) {
-      if (project == null) throw StateError('No active project loaded');
-      return project.dbPath;
-    },
+  return DbBackupWriter(
+    getActiveDb: () => ref.read(activeDatabaseConnectionProvider),
   );
 });
+
 
 
 //Wiring USE CASE providers (which read the infra providers)
@@ -95,6 +82,13 @@ final writeBackupProvider = Provider<WriteBackup>((ref) {
   final discoverer = ref.read(driveDiscoveryProvider);
 
   return WriteBackup(writer, repo, discoverer);
+});
+
+final autoSelectBackupTargetsProvider = Provider<AutoSelectBackups>((ref) {
+  final discoverer = ref.read(driveDiscoveryProvider);
+  final repo = ref.read(driveSelectionRepoProvider);
+
+  return AutoSelectBackups(discoverer, repo);
 });
 // ---------------------- WIRING COMPLETE -----------------------------------
 

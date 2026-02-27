@@ -9,6 +9,4 @@ class GetBackupTargets {
     return repo.loadSelectedIds();
   }
 
-  //Future<void> call() => repo.loadSelectedIds();
-
 }

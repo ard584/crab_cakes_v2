@@ -33,6 +33,9 @@ class Win32DriveDiscovery implements DriveDiscovery{
   }
 //======================= HELPER METHODS =====================================
 
+  //Returns a list of detected drives on the device. It is important to note that
+  // at this point, the list can consist of all USB devices connected to the
+  // device, and not necessarily JUST removable storage media.  
   List<String> _getLogicalDrives() {
   const bufferLength = 256; // chars, not bytes
   final buffer = calloc<Uint16>(bufferLength);
@@ -60,6 +63,9 @@ class Win32DriveDiscovery implements DriveDiscovery{
   }
 }
 
+//  Mutates the 'drives' parameter to only include drives of the specified 
+//  'targetType'. This function can be used to filter the drive list for specific
+//  types of drives
 List<String> _filterByDriveType(List<String> drives, int targetType) {
   return drives.where((root) {
     final rootPtr = root.toNativeUtf16();
@@ -71,6 +77,9 @@ List<String> _filterByDriveType(List<String> drives, int targetType) {
   }).toList();
 }
 
+//  Returns the Globally Unique Identifier of the specified drive. If no such 
+//  identifier is found, it simply stores the drive path as the id. 
+// 'root' must be in the format ex: 'E:\\'
 String? _getVolumeGuid(String root) {
   // root must be like "E:\\"
   final rootPtr = root.toNativeUtf16();

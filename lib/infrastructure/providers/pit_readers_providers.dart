@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 
@@ -47,6 +49,32 @@ final connectScannerUsecaseProvider = Provider<ConnectScanner>((ref) {
 final disconnectScannerUsecaseProvider = Provider<DisconnectScanner>((ref) {
   final connector = ref.read(scannerConnectorProvider);
   return DisconnectScanner(connector);
+});
+
+//provider that translates Stream<Uint8List> ==> Stream<String> for scan events
+final scanStreamProvider = Provider<Stream<String>>((ref) {
+  final adapter = ref.watch(scannerConnectorProvider);
+  final byteStream = adapter.byteStream;
+
+  //converting 8-bit unsigned integers into their respective utf-8 decoded strings
+  return byteStream
+    .map((u8)=>u8 as List<int>)
+    .transform(utf8.decoder)
+    .transform(const LineSplitter());
+
+});
+
+
+final pitIdProvider = Provider<Stream<String>>((ref) {
+  final lines = ref.watch(scanStreamProvider);
+  
+  return lines
+    .map((s)=>s.trim())
+    .where((s)=>s.isNotEmpty);
+    // .map((raw) {
+    //TODO: CALL THE DOMAIN LEVEL PARSER FOR THE SCAN AND RETURN A STREAM OF SCAN EVENTS
+    // }
+    // );
 });
 
 //-------------------- Wiring Complete -----------------------------------------

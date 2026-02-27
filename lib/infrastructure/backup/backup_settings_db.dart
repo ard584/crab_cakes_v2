@@ -23,7 +23,7 @@ class BackupSettingsDb extends _$BackupSettingsDb {
   int get schemaVersion => 1;
 }
 
-// 3) Executor / file location
+// 3) Executor / file location 
 LazyDatabase _openConnection() {
   return LazyDatabase(() async {
     final dir = await getApplicationSupportDirectory();
