@@ -1,4 +1,4 @@
-import 'package:ui_prototype/application/project/interfaces/create_project.dart';
+import 'package:ui_prototype/application/project/use_cases/create_project.dart';
 import 'package:ui_prototype/presentation/utils/logger.dart';
 
 class ProjectCreateRequest {

@@ -10,7 +10,7 @@ import 'package:ui_prototype/presentation/view_models/project_input.dart';
 
 import 'settings_screen.dart';
 
-class DataEntryScreen extends ConsumerWidget {
+class DataEntryScreen extends ConsumerStatefulWidget {
   const DataEntryScreen({super.key});
 
   // This widget is the home page of your application. It is stateful, meaning
@@ -23,9 +23,23 @@ class DataEntryScreen extends ConsumerWidget {
   // always marked "final".
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<ConsumerStatefulWidget> createState() => _DataEntryState();
+}
+
+class _DataEntryState extends ConsumerState<DataEntryScreen> {
+  TableInput? _activeTable;
+
+  @override
+  Widget build(BuildContext context) {
     final projectAsync = ref.watch(projectViewModelProvider);
     final activeTableName = ref.watch(activeTableProvider);
+
+    // Set activeProject state
+    projectAsync.whenData((project) {
+      if (activeTableName != null) {
+        _activeTable = project.tables[activeTableName];
+      }
+    });
 
     // Snack bar updates
     ref.listen<AsyncValue<void>>(formSaveProvider, (previous, next) {
@@ -39,9 +53,31 @@ class DataEntryScreen extends ConsumerWidget {
         },
         error: (e, st) {
           if (context.mounted) {
-            ScaffoldMessenger.of(
-              context,
-            ).showSnackBar(SnackBar(content: Text("Error occurred: $e")));
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text("Error occurred: $e"),
+                action: SnackBarAction(
+                  label: "Details",
+                  onPressed: () {
+                    showDialog(
+                      context: context,
+                      builder: (_) {
+                        return AlertDialog(
+                          title: Text("Error Details"),
+                          content: Text(e.toString()),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.pop(context),
+                              child: Text("Close"),
+                            ),
+                          ],
+                        );
+                      },
+                    );
+                  },
+                ),
+              ),
+            );
           }
         },
       );
@@ -65,8 +101,11 @@ class DataEntryScreen extends ConsumerWidget {
               return Center(child: Text("No project selected"));
             }
 
-            final currentTable = activeTableName ?? project.tables.keys.first;
-            return TableFormSection(tableName: currentTable);
+            if (activeTableName == null) {
+              return Center(child: const CircularProgressIndicator());
+            }
+
+            return TableFormSection(tableName: activeTableName);
           },
 
           // Handle error and loading states
@@ -87,6 +126,7 @@ class DataEntryScreen extends ConsumerWidget {
             print("TABLE IS NULL");
             return;
           }
+
           print("TABLE SAVED");
 
           await ref.read(formSaveProvider.notifier).saveTable(table);
@@ -98,6 +138,109 @@ class DataEntryScreen extends ConsumerWidget {
       ),
     );
   }
+}
+
+@override
+Widget build(BuildContext context, WidgetRef ref) {
+  final projectAsync = ref.watch(projectViewModelProvider);
+  final activeTableName = ref.watch(activeTableProvider);
+
+  // Snack bar updates
+  ref.listen<AsyncValue<void>>(formSaveProvider, (previous, next) {
+    next.whenOrNull(
+      data: (_) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text("Recorded")));
+        }
+      },
+      error: (e, st) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text("Error occurred: $e"),
+              action: SnackBarAction(
+                label: "Details",
+                onPressed: () {
+                  showDialog(
+                    context: context,
+                    builder: (_) {
+                      return AlertDialog(
+                        title: Text("Error Details"),
+                        content: Text(e.toString()),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.pop(context),
+                            child: Text("Close"),
+                          ),
+                        ],
+                      );
+                    },
+                  );
+                },
+              ),
+            ),
+          );
+        }
+      },
+    );
+  });
+
+  return Scaffold(
+    appBar: AppBar(
+      title: projectAsync.when(
+        data: (project) => Text('Data Entry'),
+        error: (_, __) => const Text("Error"),
+        loading: () => const Text('Loading...'),
+      ),
+    ),
+    drawer: ProjectDrawer(),
+    body: Padding(
+      padding: const EdgeInsets.all(28.0),
+      child: projectAsync.when(
+        error: (err, stack) => Center(child: Text("Error: $err")),
+        data: (project) {
+          if (project.tables.isEmpty) {
+            return Center(child: Text("No project selected"));
+          }
+
+          if (activeTableName == null) {
+            return Center(child: const CircularProgressIndicator());
+          }
+
+          return TableFormSection(tableName: activeTableName);
+        },
+
+        // Handle error and loading states
+        loading: () => const Center(child: CircularProgressIndicator()),
+      ),
+    ),
+    floatingActionButton: FloatingActionButton.extended(
+      onPressed: () async {
+        final projectMap = ref.read(projectViewModelProvider).value;
+
+        if (projectMap == null) return;
+
+        final table = projectMap.tables[activeTableName];
+        print("ACTIVE TABLE NAME: $activeTableName");
+
+        // Table is returning null for some reason
+        if (table == null) {
+          print("TABLE IS NULL");
+          return;
+        }
+
+        print("TABLE SAVED");
+
+        await ref.read(formSaveProvider.notifier).saveTable(table);
+      },
+      label: Padding(
+        padding: const EdgeInsets.all(20.0),
+        child: Text("Save Record"),
+      ),
+    ),
+  );
 }
 
 class TableFormSection extends ConsumerWidget {
@@ -144,9 +287,11 @@ class DynamicFlexField extends ConsumerWidget {
       padding: const EdgeInsets.symmetric(horizontal: 12.0),
       margin: const EdgeInsets.only(bottom: 16.0, top: 4.0),
       decoration: BoxDecoration(
-        color: Colors.grey.shade100, // Light background color
+        color: Theme.of(
+          context,
+        ).colorScheme.surfaceContainerHighest, // Light background color
         borderRadius: BorderRadius.circular(10.0),
-        border: Border.all(color: Colors.grey.shade300),
+        border: Border.all(color: Theme.of(context).colorScheme.onSecondary),
       ),
 
       child: FlexFieldFactory.createField(
@@ -266,8 +411,9 @@ class ProjectDrawer extends ConsumerWidget {
                         "${tableData?.attributes.length ?? 0} attributes",
                       ),
                       onTap: () {
-                        ref.read(activeTableProvider.notifier).state =
-                            tableName;
+                        ref
+                            .read(activeTableProvider.notifier)
+                            .setActiveTable(tableName);
                       },
                     );
                   },
