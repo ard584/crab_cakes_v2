@@ -1,23 +1,22 @@
 import 'package:sqlite3/sqlite3.dart';
-import 'package:ui_prototype/application/interfaces/table_repository.dart';
+import 'package:ui_prototype/application/project/interfaces/active_project/insert_generator.dart';
+import 'package:ui_prototype/application/table_repository.dart';
 import 'package:ui_prototype/domain/db_table.dart';
-import 'package:ui_prototype/infrastructure/project/sqlite/sql_insert_generator.dart';
-import 'package:ui_prototype/presentation/view_models/db_table_view_model.dart';
-import 'package:ui_prototype/presentation/view_models/project_input.dart';
+import 'package:ui_prototype/domain/models/db_row.dart';
 
-class SqliteTableRepository implements TableRepository {
+class SqliteActiveProjectRepository implements ActiveProjectRepository {
   final Database db;
+  final InsertGenerator generator;
 
-  SqliteTableRepository({required this.db});
+  SqliteActiveProjectRepository({required this.db, required this.generator});
 
   @override
-  void saveTable(TableInput table) {
+  void insertRow({required String tableName, required Map<String, dynamic> values}) {
     // Call insert generator
 
-    final generator = SQLInsertGenerator(table: table);
-
-    final sql = generator.generateInsertIntoTable();
-    final values = generator.generateValues();
+    final record = generator.generate(tableName, values);
+    final sql = record.sql;
+    final insertValues = record.data;
 
     PreparedStatement? stmt;
 
@@ -27,7 +26,7 @@ class SqliteTableRepository implements TableRepository {
 
       // Prepare & execute statement
       stmt = db.prepare(sql);
-      stmt.execute(values);
+      stmt.execute(insertValues);
 
       // Commit transaction
       db.execute('COMMIT;');
@@ -42,7 +41,7 @@ class SqliteTableRepository implements TableRepository {
   @override
   DbTable getTableSchema(String tableName) {
     // Get the schema so we can determine column info
-    final schema = db.select("PRAGMA table_info $tableName;");
+    final schema = db.select("PRAGMA table_info($tableName);");
 
     // Convert columns to list of DbColumns
     final columns = schema.map((row) {
@@ -63,7 +62,7 @@ class SqliteTableRepository implements TableRepository {
 
     final result = db.select("SELECT * FROM $tableName");
 
-    final rows = result.rows.map((row) {
+    final rows = result.map((row) {
       return DbRow(values: row);
     }).toList();
 
@@ -75,10 +74,19 @@ class SqliteTableRepository implements TableRepository {
 
     final result = db.select("SELECT * FROM $tableName LIMIT ? OFFSET ?", [limit, offset]);
 
-    final rows = result.rows.map((row) {
+    final rows = result.map((row) {
       return DbRow(values: row);
     }).toList();
 
     return rows;
+  }
+
+  @override
+  List<DbRow> getRowsOrdered(String tableName, int limit, int offset) {
+    final result = db.select(
+      "SELECT * FROM $tableName ORDER BY created_at_time DESC LIMIT ? OFFSET ?",
+      [limit, offset]
+    );
+    return result.map((row) => DbRow(values: row)).toList();
   }
 }

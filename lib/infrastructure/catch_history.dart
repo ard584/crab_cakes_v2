@@ -1,56 +1,75 @@
-// Returns a map of the last 5 catches
-List<Map<String, dynamic>> getCatchMap() 
-{
-  List<Map<String, dynamic>> catches = getCatches();
-  
-  // pad to 5 with empty maps
-  while (catches.length < 5) 
-  {
-    final Map<String, dynamic> emptyMap = {
-      for (int i = 0; i < 8; i++) getColumnName(i): '',
-    };
-    catches.add(emptyMap);
+import 'package:ui_prototype/application/table_repository.dart';
+import 'package:ui_prototype/presentation/view_models/project_input.dart';
+
+class CatchHistoryViewModel {
+  final ActiveProjectRepository db;
+  final TableInput table;
+
+  CatchHistoryViewModel({required this.db, required this.table});
+
+  // Column names derived from the table definition
+  List<String> get _tableColumns => table.attributes.keys.toList();
+
+// get the map of the recent saves, fill with empty if less than 5 entries
+  List<Map<String, dynamic>> getCatchMap() {
+    List<Map<String, dynamic>> catches = getCatches();
+    final int columnCount = catches.isNotEmpty
+        ? catches[0].keys.length
+        : _tableColumns.length;
+
+    while (catches.length < 5) {
+      final Map<String, dynamic> emptyMap = {
+        for (int i = 0; i < columnCount; i++) getColumnName(i): '',
+      };
+      catches.add(emptyMap);
+    }
+
+    return catches;
   }
 
-  return catches;
-}
+// get column names to be dispalyed
+  String getColumnName(int index) {
+    final catches = getCatches();
+    final keys = catches.isNotEmpty
+        ? catches[0].keys.toList()
+        : _tableColumns;
 
-// Get names of columns used for empty map filling
-String getColumnName(int index) {
-  final catches = getCatches();
-  if (catches.isEmpty) return 'unknown';
-  final keys = catches[0].keys.toList();
-  if (index < 0 || index >= keys.length) return 'unknown';
-  return keys[index];
-}
-List<Map<String, dynamic>> getCatches()
-{
-  // replace with logic to get map from database
-    List<Map<String, dynamic>> catches = 
-  [
-    {'tag': 12345678901234, 
-    'ID_DateTime': '10:00am', 
-    'species': 'FISH', 
-    'T_len': '150', 
-    'F_len': '15', 
-    'weight': 12.0, 
-    'sex': 'F', 
-    'mod': '1'},
-  ];
-  return catches;
-}
+    if (index < 0 || index >= keys.length) return 'unknown';
+    return keys[index];
+  }
 
-double getColumnWidth(int columnIndex) {
-  final catches = getCatchMap();
-  
-  double maxWidth = getColumnName(columnIndex).length.toDouble();
-  
-  for (final row in catches) {
-    final value = row[row.keys.elementAt(columnIndex)].toString();
-    final width = value.length.toDouble();
-    if (width > maxWidth) maxWidth = width;
+// get most recent 5 catches
+  List<Map<String, dynamic>> getCatches() {
+    // If table does NOT have created_at_time
+    // use getRows, wont show by most recent
+    final rows = db.getRows(table.name, 5, 0);
+    
+    // if tbale has "created_at_time TEXT DEFAULT (datetime('now', 'localtime'))"
+    // use getRowsOrdered, will show by most recent
+    // final rows = db.getRowsOrdered(table.name, 5, 0);
+
+    return rows.map((row) => row.values).toList();
   }
   
-  final result = (maxWidth * 10.0) + 24;
-  return result;
+// Get number of columns max of 8
+  int getColumnCount() {
+    final catches = getCatches();
+    final count = catches.isNotEmpty ? catches[0].keys.length : _tableColumns.length;
+    return count > 8 ? 8 : count;
+  }
+
+// get character width of column data to ensure they fit
+  double getColumnWidth(int columnIndex) {
+    final catches = getCatchMap();
+
+    double maxWidth = getColumnName(columnIndex).length.toDouble();
+
+    for (final row in catches) {
+      final value = row[row.keys.elementAt(columnIndex)].toString();
+      final width = value.length.toDouble();
+      if (width > maxWidth) maxWidth = width;
+    }
+
+    return (maxWidth * 10.0) + 24;
+  }
 }

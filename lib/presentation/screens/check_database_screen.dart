@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:ui_prototype/application/interfaces/table_repository.dart';
+import 'package:ui_prototype/application/table_repository.dart';
 import 'package:ui_prototype/infrastructure/providers/flex_form_provider.dart';
 import 'package:ui_prototype/infrastructure/providers/project_database_provider.dart';
-import 'package:ui_prototype/presentation/models/project_db.dart';
+import 'package:ui_prototype/domain/models/project_db.dart';
 
 class CheckDatabaseScreen extends ConsumerWidget {
   const CheckDatabaseScreen({super.key});
 
-  Future<void> displayRows(ProjectDb project, TableRepository table) async {
+  Future<void> displayRows(ProjectDb project, ActiveProjectRepository repo) async {
 
      for (final tableName in project.tables.entries) {
-      final res = table.getAllRows(tableName.key);
+      final res = repo.getAllRows(tableName.key);
       
       for (final row in res) {
         print("ROW: ${row.values}");
