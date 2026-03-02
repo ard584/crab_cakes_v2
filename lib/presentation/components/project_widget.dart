@@ -19,8 +19,16 @@ class ProjectWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+
+    final colorScheme = Theme.of(context).colorScheme;
+
+
     Widget child = Container(
-      decoration: reusableBoxDecoration,
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerHighest, // Light background color
+        borderRadius: BorderRadius.circular(10.0),
+        border: Border.all(color: colorScheme.inversePrimary),
+      ),
       padding: reusablePadding,
       child: Row(
         children: <Widget>[
@@ -33,12 +41,12 @@ class ProjectWidget extends StatelessWidget {
               Text(
                 projectDescription ?? '',
                 textScaler: TextScaler.linear(1.0),
-                style: TextStyle(color: Colors.blueGrey),
+                style: TextStyle(color: colorScheme.onSurfaceVariant),
               ),
               Text(
                 projectUpdatedAt.toString(),
                 textScaler: TextScaler.linear(1.0),
-                style: TextStyle(color: Colors.blueGrey),
+                style: TextStyle(color: colorScheme.secondary),
               ),
             ],
           ),
@@ -56,11 +64,5 @@ class ProjectWidget extends StatelessWidget {
     return ContextMenuRegion(contextMenu: contextMenu!, child: child);
   }
 }
-
-final reusableBoxDecoration = BoxDecoration(
-  color: Colors.grey.shade100, // Light background color
-  borderRadius: BorderRadius.circular(10.0),
-  border: Border.all(color: Colors.grey.shade300),
-);
 
 final reusablePadding = EdgeInsets.all(16);

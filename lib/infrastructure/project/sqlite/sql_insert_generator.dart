@@ -1,58 +1,53 @@
-import 'package:ui_prototype/presentation/view_models/project_input.dart';
+import 'package:ui_prototype/application/project/interfaces/active_project/insert_generator.dart';
 
-class SQLInsertGenerator {
-  // TODO: This should not rely on the viewModels, find a way to abstract this away
-  final TableInput table;
+class SQLInsertGenerator implements InsertGenerator {
+  bool _isValid(dynamic value) {
+    if (value == null) return false;
+    if (value is String && value.isEmpty) return false;
+    return true;
+  }
 
-  SQLInsertGenerator({required this.table});
+  Map<String, dynamic> _filterValues(Map<String, dynamic> values) {
+    final map = <String, dynamic>{};
 
-  List<AttributeFormField> _getActiveColumns() {
-    final List<AttributeFormField> activeColumns = [];
-
-    for (final attribute in table.attributes.values) {
-      if (attribute.controller.text.isNotEmpty) {
-        activeColumns.add(attribute);
+    for (final value in values.entries) {
+      if (_isValid(value.value)) {
+        map[value.key] = value.value;
       }
     }
 
-    return activeColumns;
+    return map;
   }
 
-  String _generateColumns() {
-    final activeColumns = _getActiveColumns();
-
-    String columns = activeColumns
-        .map((column) {
-          return column.fields.name;
-        })
-        .join(', ');
-
-    return columns;
+  List<dynamic> _generateValues(Map<String, dynamic> values) {
+    final filtered = _filterValues(values);
+    return filtered.values.toList();
   }
 
-  String _generatePlaceholders() {
-    final activeColumns = _getActiveColumns();
+  String _generateInsertStatement({
+    required String tableName,
+    required Map<String, dynamic> values,
+  }) {
+    final filtered = _filterValues(values);
 
-    int placeholderCount = activeColumns.length;
-    return List.filled(placeholderCount, '?').join(', ');
+    if (filtered.entries.isEmpty) {
+      throw Exception("Insert statement value map is empty");
+    }
+
+    final columns = filtered.keys.join(', ');
+    final placeholders = List.filled(filtered.length, '?').join(', ');
+
+    return "INSERT INTO $tableName ($columns) VALUES ($placeholders)";
   }
 
-  List<String> generateValues() {
-    final activeColumns = _getActiveColumns();
+  @override
+  ({List<dynamic> data, String sql}) generate(
+    String table,
+    Map<String, dynamic> data,
+  ) {
+    final statement = _generateInsertStatement(tableName: table, values: data);
+    final values = _generateValues(data);
 
-    final values = activeColumns.map((attribute) {
-      return attribute.controller.text;
-    }).toList();
-
-    return values;
-  }
-
-  String generateInsertIntoTable() {
-    String columns = _generateColumns();
-    String placeholders = _generatePlaceholders();
-
-    String statement =
-        "INSERT INTO ${table.name} ( $columns ) VALUES ( $placeholders )";
-    return statement;
+    return (sql: statement, data: values);
   }
 }
