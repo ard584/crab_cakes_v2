@@ -14,10 +14,15 @@ import 'package:ui_prototype/application/scanner/interfaces/scanner_device_disco
 
 //importing DTO
 import 'package:ui_prototype/application/scanner/dtos/discovered_port.dart';
+import 'package:ui_prototype/domain/value_objects/parse_result.dart';
 
 //importing concrete infrastructure implementations
 import 'package:ui_prototype/infrastructure/scanner/libserialport_adapter.dart';
 import 'package:ui_prototype/infrastructure/scanner/libserialport_device_discovery.dart';
+
+//importing domain-level tools
+import 'package:ui_prototype/domain/entities/scan_event.dart';
+import 'package:ui_prototype/domain/core/biomark_scan_parser.dart';
 
 //------------------------------------------------------------------------------
 
@@ -64,17 +69,19 @@ final scanStreamProvider = Provider<Stream<String>>((ref) {
 
 });
 
+//provider for the SPECIFIC Biomark Parser
+final biomarkScanParserProvider = Provider<BiomarkScanParser>((ref) {
+  return BiomarkScanParser();
+});
 
-final pitIdProvider = Provider<Stream<String>>((ref) {
+final scanEventProvider = StreamProvider<ParseResult<ScanEvent>>((ref) {
   final lines = ref.watch(scanStreamProvider);
+  final parser = ref.watch(biomarkScanParserProvider);
   
   return lines
     .map((s)=>s.trim())
-    .where((s)=>s.isNotEmpty);
-    // .map((raw) {
-    //TODO: CALL THE DOMAIN LEVEL PARSER FOR THE SCAN AND RETURN A STREAM OF SCAN EVENTS
-    // }
-    // );
+    .where((s)=>s.isNotEmpty)
+    .map((raw)=>parser.parse(raw));
 });
 
 //-------------------- Wiring Complete -----------------------------------------
