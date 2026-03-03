@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:pluto_grid/pluto_grid.dart';
 import 'package:ui_prototype/application/table_repository.dart';
+import 'package:ui_prototype/infrastructure/project/active_project/pluto_grid_constructor.dart';
 import 'package:ui_prototype/infrastructure/providers/flex_form_provider.dart';
 import 'package:ui_prototype/infrastructure/providers/project_database_provider.dart';
 import 'package:ui_prototype/domain/models/project_db.dart';
@@ -8,15 +10,31 @@ import 'package:ui_prototype/domain/models/project_db.dart';
 class CheckDatabaseScreen extends ConsumerWidget {
   const CheckDatabaseScreen({super.key});
 
-  Future<void> displayRows(ProjectDb project, ActiveProjectRepository repo) async {
+  PlutoGrid displayGrid(ProjectDb project, ActiveProjectRepository repo) {
+    final tableName = project.tables.entries.first.key;
 
-     for (final tableName in project.tables.entries) {
-      final res = repo.getAllRows(tableName.key);
-      
-      for (final row in res) {
-        print("ROW: ${row.values}");
-      }
-     }
+    final table = repo.getTableSchema(tableName);
+
+    final grid = PlutoGridConstructor();
+    final columns = grid.constructColumns(table);
+
+    final dbRows = repo.getAllRows(tableName);
+    final List<PlutoRow> rows = [];
+
+    for (final dbRow in dbRows) {
+      final plutoRow = grid.constructRow(table, dbRow);
+      rows.add(plutoRow);
+    }
+
+    // Create grid
+    final plutoGrid = grid.constructGrid(
+      columns: columns,
+      rows: rows,
+      onChanged: (event) {
+        print("EVENT: $event");
+      },
+    );
+    return plutoGrid;
   }
 
   @override
@@ -24,7 +42,6 @@ class CheckDatabaseScreen extends ConsumerWidget {
     // Get current project
     final table = ref.watch(projectDatabaseProvider);
     final projectAsync = ref.watch(projectViewModelProvider);
-
 
     return projectAsync.when(
       error: (e, st) {
@@ -35,25 +52,15 @@ class CheckDatabaseScreen extends ConsumerWidget {
       },
       data: (project) {
 
-        String test = '';
-
-        for (final tableName in project.project.tables.entries) {
-
-          final rows = table.getAllRows(tableName.key);
-          
-          for (final row in rows) {
-            test += '${row.values}\n';
-          }
-        }
+        final grid = displayGrid(project.project, table);
 
         return Scaffold(
           appBar: AppBar(title: const Text('View Entries')),
-          body: Center(child: Padding(
-            padding: const EdgeInsets.all(20.0),
-            child: Text(test),
-          )), floatingActionButton: FloatingActionButton(onPressed: () async {
-
-          }),);
+          body: Center(
+            child: Padding(padding: const EdgeInsets.all(20.0), child: grid),
+          ),
+          floatingActionButton: FloatingActionButton(onPressed: () async {}),
+        );
       },
     );
   }
