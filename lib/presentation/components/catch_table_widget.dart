@@ -18,7 +18,7 @@ class CatchHistoryTable extends StatelessWidget {
 
     return SizedBox(
       width: MediaQuery.of(context).size.width * 0.5,
-      height: 200,
+      height: 150,
       child: Container(
         padding: const EdgeInsets.all(0),
         alignment: Alignment.centerRight,

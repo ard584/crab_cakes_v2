@@ -40,13 +40,14 @@ class CatchHistoryViewModel {
 
 // get most recent 5 catches
   List<Map<String, dynamic>> getCatches() {
-    // If table does NOT have created_at_time
-    // use getRows, wont show by most recent
-    final rows = db.getRows(table.name, 5, 0);
-    
-    // if tbale has "created_at_time TEXT DEFAULT (datetime('now', 'localtime'))"
-    // use getRowsOrdered, will show by most recent
-    // final rows = db.getRowsOrdered(table.name, 5, 0);
+    final schema = db.getTableSchema(table.name);
+    final hasCreatedAt = schema.columns.any(
+      (col) => col.name.toLowerCase() == 'created_at_time'
+    );
+
+    final rows = hasCreatedAt
+        ? db.getRowsOrdered(table.name, 5, 0)
+        : db.getRowsOrderedId(table.name, 5, 0);
 
     return rows.map((row) => row.values).toList();
   }
