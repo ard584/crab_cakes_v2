@@ -1,5 +1,5 @@
 class DbRow {
-  final Map<String, Object?> values;
+  final Map<String, dynamic> values;
 
   DbRow({required this.values});
 

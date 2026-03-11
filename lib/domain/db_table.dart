@@ -56,6 +56,20 @@ class DbTable {
   }
 
   int get columnCount => columns.length;
+
+  List<DbColumn> getPrimaryKey() {
+
+    List<DbColumn> pk = [];
+
+    for (final col in columns) {
+      if (col.primaryKey) {
+        pk.add(col);
+      }
+    }
+
+    return pk;
+
+  }
 }
 
 class DbColumn {

@@ -3,6 +3,7 @@ import 'package:flutter_context_menu/flutter_context_menu.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ui_prototype/domain/models/project.dart';
 import 'package:ui_prototype/infrastructure/providers/app_db_provider.dart';
+import 'package:ui_prototype/presentation/dialogs/confirm_delete.dart';
 import 'package:ui_prototype/presentation/screens/data_entry_screen.dart';
 import 'package:ui_prototype/presentation/screens/project_creation.dart';
 import 'package:ui_prototype/presentation/screens/update_project_screen.dart';
@@ -19,8 +20,6 @@ class _ProjectSelectionState extends ConsumerState<ProjectSelection> {
         loading: () => Center(child: CircularProgressIndicator()),
         error: (err, stack) => Center(child: Text("Error: $err")),
         data: (projects) {
-
-
           return Padding(
             padding: EdgeInsets.all(40.0),
             child: ListView.builder(
@@ -76,62 +75,6 @@ class _ProjectSelectionState extends ConsumerState<ProjectSelection> {
   }
 }
 
-Future<bool> confirmDelete(BuildContext context) async {
-  final textController = TextEditingController();
-
-  final result = await showDialog<bool>(
-    context: context,
-    builder: (context) {
-      return AlertDialog(
-        title: Text("Confirm Delete"),
-        content: Text(
-          "Are you sure you want to delete this project?"
-          "\nType 'DELETE' to confirm",
-        ),
-        actions: [
-          TextField(
-            controller: textController,
-            decoration: InputDecoration(
-              hintText: 'DELETE',
-              hintStyle: TextStyle(color: Colors.grey.shade500),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(4.0),
-            child: Column(
-              children: [
-                SizedBox(height: 8.0),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    TextButton(
-                      onPressed: () => Navigator.pop(context, false),
-                      child: const Text("Cancel"),
-                    ),
-                    TextButton(
-                      onPressed: () {
-
-                        if (textController.text.compareTo('DELETE') == 0) {
-                          Navigator.pop(context, true);
-                        } else {
-                          Navigator.pop(context, false);
-                        }
-                      },
-                      child: const Text("Delete"),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ],
-      );
-    },
-  );
-
-  return result ?? false;
-}
-
 List<ContextMenuEntry> _buildProjectContextMenu({
   required BuildContext context,
   required ProjectModel project,
@@ -144,10 +87,15 @@ List<ContextMenuEntry> _buildProjectContextMenu({
       icon: Icon(Icons.delete),
       value: 'delete',
       onSelected: (value) async {
-        final result = await confirmDelete(context);
+        final result = await confirmDelete(
+          context,
+          "Are you sure you want to delete this project?",
+        );
 
         if (result == true) {
-          ref.read(projectListProvider.notifier).deleteProject(projectId: project.id);
+          ref
+              .read(projectListProvider.notifier)
+              .deleteProject(projectId: project.id);
         }
       },
     ),
@@ -158,9 +106,9 @@ List<ContextMenuEntry> _buildProjectContextMenu({
       onSelected: (value) {
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => UpdateProjectScreen(
-            project: project,
-          )),
+          MaterialPageRoute(
+            builder: (context) => UpdateProjectScreen(project: project),
+          ),
         );
       },
     ),

@@ -12,4 +12,7 @@ abstract interface class ActiveProjectRepository {
 
   // Saves the current table
   void insertRow({required String tableName, required Map<String, dynamic> values});
+
+  // Deletes row
+  void deleteRow({required String tableName, required DbRow row});
 }

@@ -11,7 +11,10 @@ class SqliteActiveProjectRepository implements ActiveProjectRepository {
   SqliteActiveProjectRepository({required this.db, required this.generator});
 
   @override
-  void insertRow({required String tableName, required Map<String, dynamic> values}) {
+  void insertRow({
+    required String tableName,
+    required Map<String, dynamic> values,
+  }) {
     // Call insert generator
 
     final record = generator.generate(tableName, values);
@@ -59,8 +62,22 @@ class SqliteActiveProjectRepository implements ActiveProjectRepository {
 
   @override
   List<DbRow> getAllRows(String tableName) {
+    final result = db.select("SELECT rowid AS _rowid_, * FROM $tableName");
 
-    final result = db.select("SELECT * FROM $tableName");
+    final rows = result.map((row) {
+      // Initialize and return DbRow
+      return DbRow(values: row);
+    }).toList();
+
+    return rows;
+  }
+
+  @override
+  List<DbRow> getRows(String tableName, int limit, int offset) {
+    final result = db.select(
+      "SELECT rowid AS _rowid_, * FROM $tableName LIMIT ? OFFSET ?",
+      [limit, offset],
+    );
 
     final rows = result.map((row) {
       return DbRow(values: row);
@@ -70,14 +87,27 @@ class SqliteActiveProjectRepository implements ActiveProjectRepository {
   }
 
   @override
-  List<DbRow> getRows(String tableName, int limit, int offset) {
+  void deleteRow({required String tableName, required DbRow row}) {
+    PreparedStatement? stmt;
 
-    final result = db.select("SELECT * FROM $tableName LIMIT ? OFFSET ?", [limit, offset]);
+    final rowid = row["rowid"];
 
-    final rows = result.map((row) {
-      return DbRow(values: row);
-    }).toList();
+    if (rowid == null) {
+      throw Exception(
+        "rowid column is null. Cannot delete or update rows without rowid.",
+      );
+    }
 
-    return rows;
+    try {
+      db.execute('BEGIN');
+
+      stmt = db.prepare('DELETE FROM $tableName WHERE rowid = ?;');
+      stmt.execute([rowid]);
+    } catch (error) {
+      db.execute('ROLLBACK');
+      rethrow;
+    } finally {
+      stmt?.dispose();
+    }
   }
 }

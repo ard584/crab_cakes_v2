@@ -13,7 +13,6 @@ class PlutoGridConstructor
         > {
   @override
   List<PlutoColumn> constructColumns(DbTable table) {
-    // TODO: implement constructColumns
     // Define list of pluto columns
     List<PlutoColumn> columns = [];
 
@@ -69,7 +68,6 @@ class PlutoGridConstructor
 
   @override
   constructRow(DbTable table, DbRow row) {
-    // TODO: implement constructRow
     // Define PlutoRow
     final PlutoRow plutoRow = PlutoRow(cells: {});
 
