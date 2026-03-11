@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pluto_grid/pluto_grid.dart';
 import 'package:ui_prototype/application/table_repository.dart';
+import 'package:ui_prototype/domain/models/db_row.dart';
 import 'package:ui_prototype/infrastructure/project/active_project/pluto_grid_constructor.dart';
 import 'package:ui_prototype/infrastructure/providers/flex_form_provider.dart';
 import 'package:ui_prototype/infrastructure/providers/project_database_provider.dart';
@@ -71,6 +72,14 @@ class _CheckDatabaseState extends ConsumerState<CheckDatabaseScreen> {
             );
 
             if (delete) {
+              for (final row in selectedRows) {
+
+                // Call delete method by PlutoRow key (set to rowIdx)
+                final DbRow dbRow = (row.key as ValueKey<DbRow>).value;
+                repo.deleteRow(tableName: tableName, row: dbRow);
+              }
+
+              // Remove rows from stateManager
               stateManager.removeRows(selectedRows);
             }
           },

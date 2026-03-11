@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:pluto_grid/pluto_grid.dart';
 import 'package:ui_prototype/application/project/interfaces/active_project/grid_constructor.dart';
 import 'package:ui_prototype/domain/db_table.dart';
@@ -69,7 +70,10 @@ class PlutoGridConstructor
   @override
   constructRow(DbTable table, DbRow row) {
     // Define PlutoRow
-    final PlutoRow plutoRow = PlutoRow(cells: {});
+    final PlutoRow plutoRow = PlutoRow(
+      cells: {},
+      key: ValueKey(row),
+    );
 
     // Iterate through row
     for (final cell in row.values.entries) {

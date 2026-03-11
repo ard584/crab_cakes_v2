@@ -86,25 +86,26 @@ class SqliteActiveProjectRepository implements ActiveProjectRepository {
     return rows;
   }
 
+  void deleteRowByRowId({required String tableName, required int id}) {
+    db.execute('DELETE ROW FROM $tableName WHERE rowid = ?', [id]);
+  }
+
   @override
   void deleteRow({required String tableName, required DbRow row}) {
     PreparedStatement? stmt;
 
-    final rowid = row["rowid"];
+    final rowid = row["_rowid_"];
 
     if (rowid == null) {
       throw Exception(
-        "rowid column is null. Cannot delete or update rows without rowid.",
+        "_rowid_ column is null. Cannot delete or update rows without rowid enabled.",
       );
     }
 
     try {
-      db.execute('BEGIN');
-
       stmt = db.prepare('DELETE FROM $tableName WHERE rowid = ?;');
       stmt.execute([rowid]);
     } catch (error) {
-      db.execute('ROLLBACK');
       rethrow;
     } finally {
       stmt?.dispose();
