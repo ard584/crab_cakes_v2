@@ -9,6 +9,8 @@ import 'package:ui_prototype/presentation/screens/project_selection.dart';
 import 'package:ui_prototype/presentation/services/flex_field/flex_field_factory.dart';
 import 'package:ui_prototype/presentation/view_models/project_input.dart';
 import 'package:ui_prototype/presentation/components/catch_table_widget.dart';
+import 'package:ui_prototype/presentation/components/battery_indicator.dart';
+import 'package:ui_prototype/presentation/components/status_panel.dart';
 
 import 'settings_screen.dart';
 
@@ -108,10 +110,17 @@ class _DataEntryState extends ConsumerState<DataEntryScreen> {
             // added: wrap in Column to show table above form fields
             return Column(
               children: [
-                // Catch history table aligned to the top right
-                Align(
-                  alignment: Alignment.topRight,
-                  child: CatchHistorySection(tableName: activeTableName),
+                //made it a row to show status on the left followed by table on the
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const StatusPanel(),
+                    const SizedBox(width: 12),
+                    // push table to right
+                    const Spacer(), 
+                    CatchHistorySection(tableName: activeTableName),
+
+                  ]
                 ),
                 const SizedBox(height: 16),
                 // Form fields take remaining space
