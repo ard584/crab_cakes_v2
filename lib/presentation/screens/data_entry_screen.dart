@@ -27,7 +27,6 @@ class DataEntryScreen extends ConsumerStatefulWidget {
 }
 
 class _DataEntryState extends ConsumerState<DataEntryScreen> {
-  TableInput? _activeTable;
 
   @override
   Widget build(BuildContext context) {
@@ -36,9 +35,6 @@ class _DataEntryState extends ConsumerState<DataEntryScreen> {
 
     // Set activeProject state
     projectAsync.whenData((project) {
-      if (activeTableName != null) {
-        _activeTable = project.tables[activeTableName];
-      }
     });
 
     // Snack bar updates
@@ -257,7 +253,7 @@ class DrawerSubmenu extends StatelessWidget {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => const CheckDatabaseScreen(),
+                builder: (context) => CheckDatabaseScreen(),
               ),
             );
           },
