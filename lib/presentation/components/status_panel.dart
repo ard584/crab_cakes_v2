@@ -10,7 +10,6 @@ class StatusPanel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 220,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         border: Border.all(color: Colors.grey.shade400),
@@ -31,20 +30,19 @@ class StatusPanel extends StatelessWidget {
           ),
 
           const SizedBox(height: 12),
-          //did a row if anything else is needed to be added start below
-          Row(
-            children: const [
-              Expanded(
-                child: Text(
+          // Row displaying status items (more items can be added below)
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 4),
+            child: Row(
+              children: const [
+                Text(
                   "Battery",
                   style: TextStyle(fontSize: 16),
                 ),
-              ),
-              SizedBox(
-                width: 110,
-                child: BatteryIndicator(),
-              ),
-            ],
+                SizedBox(width: 12),
+                BatteryIndicator(),
+              ],
+            )
           ),
 
         ],

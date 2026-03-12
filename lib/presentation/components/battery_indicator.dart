@@ -2,7 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:battery_plus/battery_plus.dart';
+import 'package:ui_prototype/domain/enums/battery_state.dart';
 import 'package:ui_prototype/infrastructure/providers/battery_provider.dart';
 
 //used consumerWidget so it can listen to riverpod providers
@@ -28,6 +28,7 @@ class BatteryIndicator extends ConsumerWidget {
             final isCharging = state == BatteryState.charging;
 
             return Row(
+              mainAxisSize: MainAxisSize.min,
               children: [
                 CustomBatteryWidget(
                   level: level,
@@ -59,7 +60,7 @@ class CustomBatteryWidget extends StatelessWidget {
   });
 
   @override
-  //change colors based on battery
+  //change colors based on battery percentage
   Widget build(BuildContext context) {
     Color batteryColor;
 
@@ -87,20 +88,6 @@ class CustomBatteryWidget extends StatelessWidget {
           ),
         ),
 
-        // Battery fillde based on percentage
-        Positioned(
-          left: 2,
-          child: Container(
-            width: (28 * (level / 100)).clamp(0, 28),
-            height: 12,
-            decoration: BoxDecoration(
-              color: batteryColor,
-              borderRadius: BorderRadius.circular(2),
-            ),
-          ),
-        ),
-
-        //these below are not needed but i had some extra time and wanted to make imporvments
 
         // create a charging bolt when user is charging their device
         if (isCharging)

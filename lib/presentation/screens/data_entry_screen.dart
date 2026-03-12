@@ -110,7 +110,7 @@ class _DataEntryState extends ConsumerState<DataEntryScreen> {
             // added: wrap in Column to show table above form fields
             return Column(
               children: [
-                //made it a row to show status on the left followed by table on the right
+                //made it a row to show status on the left followed by table on the
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
