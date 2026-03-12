@@ -48,10 +48,47 @@ class CheckDatabaseScreen extends ConsumerStatefulWidget {
 }
 
 class _CheckDatabaseScreenState extends ConsumerState<CheckDatabaseScreen> {
+  PlutoGridStateManager? _stateManager;
+
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+
     return Scaffold(
       appBar: AppBar(title: const Text('View Entries')),
+      floatingActionButton: _stateManager == null
+          ? null
+          : ListenableBuilder(
+              listenable: _stateManager!,
+              builder: (context, child) {
+                final manager = _stateManager;
+                if (manager == null) return SizedBox.shrink();
+
+                final isSelected = manager.currentSelectingRows.isNotEmpty;
+                final rowCount = manager.currentSelectingRows.length;
+
+                return AnimatedSize(
+                  duration: Duration(milliseconds: 400),
+                  curve: Curves.easeInOutCubicEmphasized,
+                  clipBehavior: Clip.none,
+                  child: TweenAnimationBuilder<Color?>(
+                    duration: Duration(milliseconds: 300),
+                    tween: ColorTween(
+                      end: isSelected
+                          ? scheme.primaryContainer
+                          : scheme.surfaceContainerHighest,
+                    ),
+                    builder: (context, color, child) {
+                      return FloatingActionButton.extended(
+                        onPressed: isSelected ? () {} : () {},
+                        label: Text("Update $rowCount rows"),
+                        backgroundColor: color,
+                      );
+                    },
+                  ),
+                );
+              },
+            ),
       body: Center(
         child: Padding(
           padding: const EdgeInsets.all(20.0),
@@ -68,7 +105,15 @@ class _CheckDatabaseScreenState extends ConsumerState<CheckDatabaseScreen> {
                   ),
                 ),
               ),
-              Expanded(child: TableGrid()),
+              Expanded(
+                child: TableGrid(
+                  onGridLoaded: (manager) {
+                    setState(() {
+                      _stateManager = manager;
+                    });
+                  },
+                ),
+              ),
             ],
           ),
         ),
@@ -78,7 +123,9 @@ class _CheckDatabaseScreenState extends ConsumerState<CheckDatabaseScreen> {
 }
 
 class TableGrid extends ConsumerStatefulWidget {
-  const TableGrid({super.key});
+  final Function(PlutoGridStateManager)? onGridLoaded;
+
+  const TableGrid({super.key, this.onGridLoaded});
 
   @override
   ConsumerState<ConsumerStatefulWidget> createState() {
@@ -87,7 +134,6 @@ class TableGrid extends ConsumerStatefulWidget {
 }
 
 class _TableGridState extends ConsumerState<TableGrid> {
-
   @override
   Widget build(BuildContext context) {
     final repo = ref.watch(projectDatabaseProvider);
@@ -113,6 +159,12 @@ class _TableGridState extends ConsumerState<TableGrid> {
       columns: columns,
       rows: rows,
       mode: PlutoGridMode.multiSelect,
+      onLoaded: (PlutoGridOnLoadedEvent event) {
+        final function = widget.onGridLoaded;
+        if (function != null) {
+          function(event.stateManager);
+        }
+      },
       createHeader: (stateManager) {
         return ListenableBuilder(
           listenable: stateManager,
