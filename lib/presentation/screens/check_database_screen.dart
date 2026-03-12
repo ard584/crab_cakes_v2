@@ -2,12 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pluto_grid/pluto_grid.dart';
 import 'package:ui_prototype/application/table_repository.dart';
-import 'package:ui_prototype/domain/models/db_row.dart';
 import 'package:ui_prototype/infrastructure/project/active_project/pluto_grid_constructor.dart';
+import 'package:ui_prototype/infrastructure/providers/delete_rows_provider.dart';
 import 'package:ui_prototype/infrastructure/providers/flex_form_provider.dart';
 import 'package:ui_prototype/infrastructure/providers/project_database_provider.dart';
 import 'package:ui_prototype/domain/models/project_db.dart';
 import 'package:ui_prototype/presentation/dialogs/confirm_delete.dart';
+import 'package:ui_prototype/presentation/adapters/pluto_grid_adapter.dart';
 
 class CheckDatabaseScreen extends ConsumerStatefulWidget {
   const CheckDatabaseScreen({super.key});
@@ -25,7 +26,6 @@ class _CheckDatabaseState extends ConsumerState<CheckDatabaseScreen> {
     String tableName,
   ) {
     final table = repo.getTableSchema(tableName);
-    late PlutoGridStateManager stateManager;
 
     final grid = PlutoGridConstructor();
     final columns = grid.constructColumns(table);
@@ -42,19 +42,9 @@ class _CheckDatabaseState extends ConsumerState<CheckDatabaseScreen> {
       rows: rows,
       configuration: PlutoGridConfiguration(),
       onChanged: (event) {
-        final rowid = dbRows[event.rowIdx].values.keys;
-        print("ROWID: $rowid");
-        final changedRow = dbRows[event.rowIdx];
-        print(changedRow);
+        event.row;
       },
       mode: PlutoGridMode.multiSelect,
-      onLoaded: (event) {
-        stateManager = event.stateManager;
-        print("STATEMANAGER: $stateManager");
-      },
-      onRowSecondaryTap: (event) {
-        print("EVENT: $event");
-      },
       createHeader: (stateManager) {
         return TextButton.icon(
           onPressed: () async {
@@ -72,12 +62,12 @@ class _CheckDatabaseState extends ConsumerState<CheckDatabaseScreen> {
             );
 
             if (delete) {
-              for (final row in selectedRows) {
+              // Get dbRows from PlutoRows
+              final dbRows = extractDbRows(selectedRows);
 
-                // Call delete method by PlutoRow key (set to rowIdx)
-                final DbRow dbRow = (row.key as ValueKey<DbRow>).value;
-                repo.deleteRow(tableName: tableName, row: dbRow);
-              }
+              // Call use case
+              final deleteRowsUseCase = ref.read(deleteRowsProvider);
+              deleteRowsUseCase(tableName: tableName, rows: dbRows);
 
               // Remove rows from stateManager
               stateManager.removeRows(selectedRows);
@@ -138,9 +128,6 @@ class _CheckDatabaseState extends ConsumerState<CheckDatabaseScreen> {
                 ref
                     .read(activeTableProvider.notifier)
                     .setActiveTable(table.key);
-
-                print("ACTIVE TABLE: ${table.key}");
-                print("ACTIVE TABLE PROVIDER: $activeTableName");
               }
             },
           );
