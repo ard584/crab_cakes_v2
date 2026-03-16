@@ -80,4 +80,23 @@ class SqliteActiveProjectRepository implements ActiveProjectRepository {
 
     return rows;
   }
+
+  @override
+  List<DbRow> getRowsOrdered(String tableName, int limit, int offset) {
+    final result = db.select(
+      "SELECT * FROM $tableName ORDER BY created_at_time DESC LIMIT ? OFFSET ?",
+      [limit, offset]
+    );
+    return result.map((row) => DbRow(values: row)).toList();
+  }
+
+  @override
+  List<DbRow> getRowsOrderedId(String tableName, int limit, int offset) {
+    final result = db.select(
+      "SELECT * FROM $tableName ORDER BY rowid DESC LIMIT ? OFFSET ?",
+      [limit, offset]
+    );
+    return result.map((row) => DbRow(values: row)).toList();
+  }
 }
+ 
