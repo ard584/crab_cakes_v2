@@ -48,47 +48,82 @@ class CheckDatabaseScreen extends ConsumerStatefulWidget {
 }
 
 class _CheckDatabaseScreenState extends ConsumerState<CheckDatabaseScreen> {
-  PlutoGridStateManager? _stateManager;
+  PlutoGridStateManager? stateManager;
+
+  bool _showDeleteButton = false;
+  final Set<PlutoRow> _updatedRows = {};
 
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final tableName = ref.watch(activeTableProvider);
+    int _rowCount = _updatedRows.length;
+
+    void _updateShowDeleteButton() {
+      if (stateManager != null && stateManager!.checkedRows.isNotEmpty) {
+        print("ENABLING SHOW DELETE BUTTON");
+
+        setState(() {
+          _showDeleteButton = true;
+        });
+      } else {
+        setState(() {
+          _showDeleteButton = false;
+        });
+      }
+    }
+
+    if (tableName == null) {
+      return Center(child: Text("TableName is null."));
+    }
+
+    final repo = ref.watch(projectDatabaseProvider);
+    final table = repo.getTableSchema(tableName);
+
+    final constructor = PlutoGridConstructor();
+    List<PlutoColumn> columns = constructor.constructColumns(table);
+    final dbRows = repo.getAllRows(tableName);
+    final rows = dbRows.map((row) {
+      PlutoRow current_row = constructor.constructRow(table, row);
+      final check_row = PlutoCell(value: "");
+      current_row.cells['check_box'] = check_row;
+      return current_row;
+    }).toList();
+
+    print("ROW: ${rows.first.cells}");
+
+    final check_col = PlutoColumn(
+      title: '',
+      field: 'check_box',
+      type: PlutoColumnType.text(),
+      enableEditingMode: false,
+      readOnly: false,
+      enableRowChecked: true,
+      width: 80,
+    );
 
     return Scaffold(
       appBar: AppBar(title: const Text('View Entries')),
-      floatingActionButton: _stateManager == null
-          ? null
-          : ListenableBuilder(
-              listenable: _stateManager!,
-              builder: (context, child) {
-                final manager = _stateManager;
-                if (manager == null) return SizedBox.shrink();
-
-                final isSelected = manager.currentSelectingRows.isNotEmpty;
-                final rowCount = manager.currentSelectingRows.length;
-
-                return AnimatedSize(
-                  duration: Duration(milliseconds: 400),
-                  curve: Curves.easeInOutCubicEmphasized,
-                  clipBehavior: Clip.none,
-                  child: TweenAnimationBuilder<Color?>(
-                    duration: Duration(milliseconds: 300),
-                    tween: ColorTween(
-                      end: isSelected
-                          ? scheme.primaryContainer
-                          : scheme.surfaceContainerHighest,
-                    ),
-                    builder: (context, color, child) {
-                      return FloatingActionButton.extended(
-                        onPressed: isSelected ? () {} : () {},
-                        label: Text("Update $rowCount rows"),
-                        backgroundColor: color,
-                      );
-                    },
-                  ),
-                );
-              },
-            ),
+      floatingActionButton: AnimatedSize(
+        duration: Duration(milliseconds: 400),
+        curve: Curves.easeInOutCubicEmphasized,
+        clipBehavior: Clip.none,
+        child: TweenAnimationBuilder<Color?>(
+          duration: Duration(milliseconds: 300),
+          tween: ColorTween(
+            end: _rowCount > 0
+                ? scheme.primaryContainer
+                : scheme.surfaceContainerHighest,
+          ),
+          builder: (context, color, child) {
+            return FloatingActionButton.extended(
+              onPressed: _rowCount > 0 ? () {} : () {},
+              label: Text("Update $_rowCount rows"),
+              backgroundColor: color,
+            );
+          },
+        ),
+      ),
       body: Center(
         child: Padding(
           padding: const EdgeInsets.all(20.0),
@@ -105,12 +140,72 @@ class _CheckDatabaseScreenState extends ConsumerState<CheckDatabaseScreen> {
                   ),
                 ),
               ),
+              Row(
+                children: [
+                  TextButton.icon(
+                    onPressed: _showDeleteButton
+                        ? () async {
+                            final currentStateManager = stateManager;
+                            if (currentStateManager == null) return;
+
+                            final selectedRows =
+                                currentStateManager.checkedRows;
+
+                            String promptRows = "rows";
+
+                            if (selectedRows.length == 1) {
+                              promptRows = "row";
+                            }
+
+                            final delete = await confirmDelete(
+                              context,
+                              "Are you sure you want to delete ${selectedRows.length} $promptRows?",
+                            );
+
+                            if (delete) {
+                              // Get dbRows from PlutoRows
+                              final dbRows = extractDbRows(selectedRows);
+                              print("DELETED ROWS: $dbRows");
+
+                              // Call use case
+                              final deleteRowsUseCase = ref.read(
+                                deleteRowsProvider,
+                              );
+                              deleteRowsUseCase(
+                                tableName: tableName,
+                                rows: dbRows,
+                              );
+
+                              // Remove rows from stateManager
+                              currentStateManager.removeRows(selectedRows);
+                            }
+                          }
+                        : null,
+                    icon: const Icon(Icons.delete),
+                    label: Text('Delete'),
+                  ),
+                ],
+              ),
               Expanded(
-                child: TableGrid(
-                  onGridLoaded: (manager) {
-                    setState(() {
-                      _stateManager = manager;
+                child: PlutoGrid(
+                  key: ValueKey(tableName),
+                  columns: [check_col, ...columns],
+                  rows: rows,
+                  mode: PlutoGridMode.normal,
+                  onLoaded: (PlutoGridOnLoadedEvent event) {
+                    stateManager = event.stateManager;
+                  },
+                  onChanged: (event) {
+                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                      if (!mounted) return;
+
+                      setState(() {
+                        _updatedRows.add(event.row);
+                      });
                     });
+                  },
+                  onRowChecked: (event) {
+                    _updateShowDeleteButton();
                   },
                 ),
               ),
@@ -122,91 +217,81 @@ class _CheckDatabaseScreenState extends ConsumerState<CheckDatabaseScreen> {
   }
 }
 
-class TableGrid extends ConsumerStatefulWidget {
-  final Function(PlutoGridStateManager)? onGridLoaded;
+// class TableGrid extends ConsumerStatefulWidget {
+//   final Function(PlutoGridStateManager)? onGridLoaded;
 
-  const TableGrid({super.key, this.onGridLoaded});
+//   const TableGrid({super.key, this.onGridLoaded});
 
-  @override
-  ConsumerState<ConsumerStatefulWidget> createState() {
-    return _TableGridState();
-  }
-}
+//   @override
+//   ConsumerState<ConsumerStatefulWidget> createState() {
+//     return _TableGridState();
+//   }
+// }
 
-class _TableGridState extends ConsumerState<TableGrid> {
-  @override
-  Widget build(BuildContext context) {
-    final repo = ref.watch(projectDatabaseProvider);
-    final tableName = ref.watch(activeTableProvider);
+// class _TableGridState extends ConsumerState<TableGrid> {
+//   @override
+//   Widget build(BuildContext context) {
+//     final repo = ref.watch(projectDatabaseProvider);
+//     final tableName = ref.watch(activeTableProvider);
 
-    if (tableName == null) {
-      return Center(child: Text("Select a table"));
-    }
+//     // if (tableName == null) {
+//     //   return Center(child: Text("Select a table"));
+//     // }
 
-    final table = repo.getTableSchema(tableName);
+//     // final table = repo.getTableSchema(tableName);
 
-    final constructor = PlutoGridConstructor();
-    final columns = constructor.constructColumns(table);
+//     // final constructor = PlutoGridConstructor();
+//     // List<PlutoColumn> columns = constructor.constructColumns(table);
 
-    final dbRows = repo.getAllRows(tableName);
+//     // final dbRows = repo.getAllRows(tableName);
 
-    final rows = dbRows.map((row) {
-      return constructor.constructRow(table, row);
-    }).toList();
+//     // final rows = dbRows.map((row) {
+//     //   PlutoRow current_row = constructor.constructRow(table, row);
 
-    return PlutoGrid(
-      key: ValueKey(tableName),
-      columns: columns,
-      rows: rows,
-      mode: PlutoGridMode.multiSelect,
-      onLoaded: (PlutoGridOnLoadedEvent event) {
-        final function = widget.onGridLoaded;
-        if (function != null) {
-          function(event.stateManager);
-        }
-      },
-      createHeader: (stateManager) {
-        return ListenableBuilder(
-          listenable: stateManager,
-          builder: (context, child) {
-            final bool hasSelection =
-                stateManager.currentSelectingRows.isNotEmpty;
+//     //   final check_row = PlutoCell(value: "");
+//     //   current_row.cells['check_box'] = check_row;
 
-            return TextButton.icon(
-              onPressed: hasSelection
-                  ? () async {
-                      final selectedRows = stateManager.currentSelectingRows;
+//     //   return current_row;
+//     // }).toList();
 
-                      String promptRows = "rows";
+//     // print("ROW: ${rows.first.cells}");
 
-                      if (selectedRows.length == 1) {
-                        promptRows = "row";
-                      }
+//     // final check_col = PlutoColumn(
+//     //   title: '',
+//     //   field: 'check_box',
+//     //   type: PlutoColumnType.text(),
+//     //   enableEditingMode: false,
+//     //   readOnly: false,
+//     //   enableRowChecked: true,
+//     //   width: 80,
+//     // );
 
-                      final delete = await confirmDelete(
-                        context,
-                        "Are you sure you want to delete ${selectedRows.length} $promptRows?",
-                      );
+//     // late PlutoGridStateManager stateManager;
 
-                      if (delete) {
-                        // Get dbRows from PlutoRows
-                        final dbRows = extractDbRows(selectedRows);
+//     // return PlutoGrid(
+//     //   key: ValueKey(tableName),
+//     //   columns: [check_col, ...columns],
+//     //   rows: rows,
+//     //   mode: PlutoGridMode.normal,
+//     //   onLoaded: (PlutoGridOnLoadedEvent event) {
+//     //     stateManager = event.stateManager;
 
-                        // Call use case
-                        final deleteRowsUseCase = ref.read(deleteRowsProvider);
-                        deleteRowsUseCase(tableName: tableName, rows: dbRows);
+//     //     event.stateManager.addListener(() {
+//     //       print("STATECHANGED");
+//     //       setState(() {});
+//     //     });
 
-                        // Remove rows from stateManager
-                        stateManager.removeRows(selectedRows);
-                      }
-                    }
-                  : null,
-              icon: const Icon(Icons.delete),
-              label: Text('Delete'),
-            );
-          },
-        );
-      },
-    );
-  }
-}
+//     //     final function = widget.onGridLoaded;
+//     //     if (function != null) {
+//     //       function(event.stateManager);
+//     //     }
+//     //   },
+//     //   onChanged: (event) {
+//     //     print("EVENT: ${event.row}");
+//     //   },
+//     //   onRowChecked: (event) {
+//     //     stateManager.notifyListeners();
+//     //   },
+//     // );
+//   }
+// }

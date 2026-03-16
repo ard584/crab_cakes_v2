@@ -1,14 +1,20 @@
 import 'package:sqlite3/sqlite3.dart';
 import 'package:ui_prototype/application/project/interfaces/active_project/insert_generator.dart';
+import 'package:ui_prototype/application/project/interfaces/active_project/update_generator.dart';
 import 'package:ui_prototype/application/table_repository.dart';
 import 'package:ui_prototype/domain/db_table.dart';
 import 'package:ui_prototype/domain/models/db_row.dart';
 
 class SqliteActiveProjectRepository implements ActiveProjectRepository {
   final Database db;
-  final InsertGenerator generator;
+  final InsertGenerator insert;
+  final UpdateGenerator update;
 
-  SqliteActiveProjectRepository({required this.db, required this.generator});
+  SqliteActiveProjectRepository({
+    required this.db,
+    required this.insert,
+    required this.update,
+  });
 
   @override
   void insertRow({
@@ -17,7 +23,7 @@ class SqliteActiveProjectRepository implements ActiveProjectRepository {
   }) {
     // Call insert generator
 
-    final record = generator.generate(tableName, values);
+    final record = insert.generate(tableName, values);
     final sql = record.sql;
     final insertValues = record.data;
 
@@ -88,6 +94,40 @@ class SqliteActiveProjectRepository implements ActiveProjectRepository {
 
   void deleteRowByRowId({required String tableName, required int id}) {
     db.execute('DELETE ROW FROM $tableName WHERE rowid = ?', [id]);
+  }
+
+  @override
+  void updateRow({required String tableName, required DbRow row}) {
+    final rowid = row["_rowid_"];
+
+    if (rowid == null) {
+      throw Exception(
+        "rowid column is null. Cannot delete or update rows without rowid enabled.",
+      );
+    }
+
+    final record = update.generate(tableName, row.values, "rowid", rowid);
+    final sql = record.sql;
+    final updateValues = record.data;
+
+    PreparedStatement? stmt;
+
+    try {
+      // Begin transaction
+      db.execute('BEGIN;');
+
+      // Prepare & execute statement
+      stmt = db.prepare(sql);
+      stmt.execute(updateValues);
+
+      // Commit transaction
+      db.execute('COMMIT;');
+    } catch (e) {
+      db.execute('ROLLBACK;');
+      rethrow;
+    } finally {
+      stmt?.dispose(); // always clean up
+    }
   }
 
   @override
