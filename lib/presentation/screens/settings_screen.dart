@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:ui_prototype/presentation/components/usb_backups_section.dart';
 import 'package:ui_prototype/presentation/utils/logger.dart';
+import 'package:ui_prototype/presentation/components/scanner_target_section.dart';
 
 //importing the specific sccanner connection component
 import 'package:ui_prototype/presentation/components/pit_reader_section.dart';
@@ -25,6 +26,7 @@ class SettingsScreen extends StatelessWidget {
               const UsbBackupDrivesSection(),
               ReusableLeftAlignedText(text: 'Paired PIT Readers'),
               const PitReadersSection(),
+              const ScannerTargetSection(),
               ReusableLeftAlignedText(text: 'Merge Data Files'),
               Container(
                 decoration: reusableBoxDecoration,

@@ -1,7 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import 'package:ui_prototype/domain/value_objects/parse_result.dart';
+import 'package:ui_prototype/domain/entities/scan_event.dart';
+import 'package:ui_prototype/domain/entities/settings/project_settings.dart';
+
 import 'package:ui_prototype/infrastructure/providers/flex_form_provider.dart';
 import 'package:ui_prototype/infrastructure/providers/form_save_notifier.dart';
+import 'package:ui_prototype/infrastructure/providers/pit_readers_providers.dart';
+
 import 'package:ui_prototype/presentation/screens/check_database_screen.dart';
 import 'package:ui_prototype/presentation/screens/export_screen.dart';
 import 'package:ui_prototype/presentation/screens/project_selection.dart';
@@ -10,6 +17,7 @@ import 'package:ui_prototype/presentation/view_models/project_input.dart';
 
 import 'package:ui_prototype/infrastructure/providers/external_backup_provider.dart';
 import 'package:ui_prototype/infrastructure/providers/active_database_connection_provider.dart';
+import 'package:ui_prototype/infrastructure/providers/settings_provider.dart';
 
 
 import 'settings_screen.dart';
@@ -37,7 +45,36 @@ class _DataEntryState extends ConsumerState<DataEntryScreen> {
   @override
   Widget build(BuildContext context) {
     final projectAsync = ref.watch(projectViewModelProvider);
+    final project = ref.watch(projectViewModelProvider).value;
+
     final activeTableName = ref.watch(activeTableProvider);
+    final activeTable = project?.tables[activeTableName];
+    final fieldList = activeTable?.attributes.values.toList();
+
+    
+    //setting up the stream subscription for scan detection
+    ref.listen(scanEventProvider, (prev, next) {
+      next.whenData((parseResult) {
+        if (parseResult is! ParseOk<ScanEvent>) return;
+
+        final scan = parseResult.value;
+
+        final settings = ref.read(projectSettingsProvider).value;
+        final targetTable = settings?.scanner.targetTable;
+        final targetCol = settings?.scanner.targetColumn;
+
+        if (targetTable == null || targetCol == null) return;
+        if (targetTable != activeTableName) return;
+        if (fieldList == null) return;
+
+        for (final field in fieldList) {
+          if (field.fields.name == targetCol) {
+            field.controller.text = scan.id ?? "";    
+            break;
+          }
+        }
+      });
+    });
 
     // Set activeProject state
     projectAsync.whenData((project) {
