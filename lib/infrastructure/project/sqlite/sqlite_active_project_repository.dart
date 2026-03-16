@@ -97,16 +97,10 @@ class SqliteActiveProjectRepository implements ActiveProjectRepository {
   }
 
   @override
-  void updateRow({required String tableName, required DbRow row}) {
-    final rowid = row["_rowid_"];
+  void updateRow({required String tableName, required DbRow row, required String id, required String idValue}) {
 
-    if (rowid == null) {
-      throw Exception(
-        "rowid column is null. Cannot delete or update rows without rowid enabled.",
-      );
-    }
-
-    final record = update.generate(tableName, row.values, "rowid", rowid);
+    final record = update.generate(tableName, row.values, id, idValue);
+    print("RECORD: $record");
     final sql = record.sql;
     final updateValues = record.data;
 

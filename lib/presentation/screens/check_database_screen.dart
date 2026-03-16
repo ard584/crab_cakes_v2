@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pluto_grid/pluto_grid.dart';
+import 'package:ui_prototype/application/project/use_cases/update_rows.dart';
 import 'package:ui_prototype/infrastructure/project/active_project/pluto_grid_constructor.dart';
 import 'package:ui_prototype/infrastructure/providers/delete_rows_provider.dart';
 import 'package:ui_prototype/infrastructure/providers/flex_form_provider.dart';
 import 'package:ui_prototype/infrastructure/providers/project_database_provider.dart';
+import 'package:ui_prototype/infrastructure/providers/update_rows_provider.dart';
 import 'package:ui_prototype/presentation/dialogs/confirm_delete.dart';
 import 'package:ui_prototype/presentation/adapters/pluto_grid_adapter.dart';
+import 'package:ui_prototype/presentation/dialogs/confirm_update.dart';
 
 Widget getTablesChoiceChips(WidgetRef ref) {
   final projectAsync = ref.watch(projectViewModelProvider);
@@ -51,13 +54,13 @@ class _CheckDatabaseScreenState extends ConsumerState<CheckDatabaseScreen> {
   PlutoGridStateManager? stateManager;
 
   bool _showDeleteButton = false;
-  final Set<PlutoRow> _updatedRows = {};
+  final Set<Key> _updatedRowKeys = {};
 
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final tableName = ref.watch(activeTableProvider);
-    int _rowCount = _updatedRows.length;
+    int _rowCount = _updatedRowKeys.length;
 
     void _updateShowDeleteButton() {
       if (stateManager != null && stateManager!.checkedRows.isNotEmpty) {
@@ -117,7 +120,47 @@ class _CheckDatabaseScreenState extends ConsumerState<CheckDatabaseScreen> {
           ),
           builder: (context, color, child) {
             return FloatingActionButton.extended(
-              onPressed: _rowCount > 0 ? () {} : () {},
+              onPressed: _rowCount > 0
+                  ? () async {
+                      print("TEST");
+
+                      final currentStateManager = stateManager;
+                      if (currentStateManager == null) return;
+
+                      String promptRows = "rows";
+                      final selectedRowKeys = _updatedRowKeys.toList();
+
+                      if (selectedRowKeys.length == 1) {
+                        promptRows = "row";
+                      }
+
+                      final delete = await confirmUpdate(
+                        context,
+                        "Are you sure you want to update ${selectedRowKeys.length} $promptRows?",
+                      );
+
+                      if (delete) {
+                        // Get updated rows from PlutoRows
+                        final updatedRows = extractPlutoRowsByKeys(
+                          _updatedRowKeys.toList(),
+                          currentStateManager,
+                        );
+
+                        // Convert updated rows to dbRows
+                        final dbRows = convertPlutoRowsToDbRows(updatedRows);
+                        print("EXTRACTED DB ROWS: $dbRows");
+
+                        // Get ID
+                        
+
+                        // Call use case
+                        final UpdateRowsUseCase use = ref.read(
+                          updateRowsProvider,
+                        );
+
+                      }
+                    }
+                  : null,
               label: Text("Update $_rowCount rows"),
               backgroundColor: color,
             );
@@ -200,7 +243,7 @@ class _CheckDatabaseScreenState extends ConsumerState<CheckDatabaseScreen> {
                       if (!mounted) return;
 
                       setState(() {
-                        _updatedRows.add(event.row);
+                        _updatedRowKeys.add(event.row.key);
                       });
                     });
                   },

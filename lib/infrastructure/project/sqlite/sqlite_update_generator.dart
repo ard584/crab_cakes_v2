@@ -7,22 +7,27 @@ class SqliteUpdateGenerator implements UpdateGenerator {
     dynamic identifier,
     dynamic key
   ) {
-    String sql = "UPDATE $table ";
+    String sql = "UPDATE $table SET ";
 
     List<String> sets = [];
 
-    for (final String columnName in data.keys) {
-      sets.add("SET $columnName = ?");
+    final Map<String, dynamic> columnsToUpdate = Map.from(data)..remove("_rowid_");
+
+    for (final String columnName in columnsToUpdate.keys) {
+      sets.add("$columnName = ?");
     }
 
     sql += sets.join(", ");
     sql += " WHERE $identifier = $key";
     sql += ";\n";
+
+    print("SQL: $sql");
     return sql;
   }
 
   List<dynamic> _generateValues(Map<String, dynamic> data) {
-    return data.values.toList();
+    final filteredValues = Map.from(data)..remove("_rowid_");
+    return filteredValues.values.toList();
   }
 
   @override

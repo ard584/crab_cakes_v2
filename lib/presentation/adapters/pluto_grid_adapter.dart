@@ -11,3 +11,34 @@ List<DbRow> extractDbRows(List<PlutoRow> rows) {
 
   return dbRows;
 }
+
+PlutoRow? extractPlutoRowByKey(Key key, PlutoGridStateManager stateManager) {
+  return stateManager.refRows.firstWhere((row) => row.key == key);
+}
+
+List<PlutoRow> extractPlutoRowsByKeys(
+  List<Key> keys,
+  PlutoGridStateManager stateManager,
+) {
+  final rows = stateManager.refRows;
+  return rows.where((row) => keys.contains(row.key)).toList();
+}
+
+DbRow convertPlutoRowToDbRow(PlutoRow row) {
+  final Map<String, dynamic> values = {};
+
+  row.cells.forEach((key, cell) {
+    values[key] = cell.value;
+  });
+
+  return DbRow(values: values);
+}
+
+List<DbRow> convertPlutoRowsToDbRows(List<PlutoRow> rows) {
+
+  // Extract dbRows
+
+  return rows.map((row) {
+    return convertPlutoRowToDbRow(row);
+  }).toList();
+}
