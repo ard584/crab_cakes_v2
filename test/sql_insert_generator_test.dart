@@ -73,7 +73,6 @@ void main() {
       final statement = record.sql;
 
       expect(statement, isNot(contains(', )')));
-      expect(statement, isNot(contains(', )')));
     });
   });
 

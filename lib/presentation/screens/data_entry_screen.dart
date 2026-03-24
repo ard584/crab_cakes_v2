@@ -116,7 +116,7 @@ class _DataEntryState extends ConsumerState<DataEntryScreen> {
                     const SizedBox(width: 12),
                     // push table to right
                     const Spacer(), 
-                    CatchHistorySection(tableName: activeTableName),
+                    // CatchHistorySection(tableName: activeTableName),
 
                   ]
                 ),

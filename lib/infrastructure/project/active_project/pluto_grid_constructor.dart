@@ -64,7 +64,7 @@ class PlutoGridConstructor
   }
 
   String _getFieldName(String tableName, String columnName) {
-    return "$tableName.$columnName";
+    return columnName;
   }
 
   @override

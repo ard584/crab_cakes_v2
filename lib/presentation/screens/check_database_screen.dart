@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pluto_grid/pluto_grid.dart';
 import 'package:ui_prototype/application/project/use_cases/update_rows.dart';
+import 'package:ui_prototype/domain/models/db_row.dart';
 import 'package:ui_prototype/infrastructure/project/active_project/pluto_grid_constructor.dart';
 import 'package:ui_prototype/infrastructure/providers/delete_rows_provider.dart';
 import 'package:ui_prototype/infrastructure/providers/flex_form_provider.dart';
@@ -134,23 +135,22 @@ class _CheckDatabaseScreenState extends ConsumerState<CheckDatabaseScreen> {
                         promptRows = "row";
                       }
 
-                      final delete = await confirmUpdate(
+                      final update = await confirmUpdate(
                         context,
                         "Are you sure you want to update ${selectedRowKeys.length} $promptRows?",
                       );
 
-                      if (delete) {
-                        // Get updated rows from PlutoRows
-                        final updatedRows = extractPlutoRowsByKeys(
-                          _updatedRowKeys.toList(),
-                          currentStateManager,
-                        );
+                      if (update) {
 
-                        // Convert updated rows to dbRows
-                        final dbRows = convertPlutoRowsToDbRows(updatedRows);
-                        print("EXTRACTED DB ROWS: $dbRows");
+                        // Get all updated rows
 
-                        // Get ID
+                        // Iterate through
+
+                          // Extract RowIdentifier
+
+                          // Create map of values by name of PlutoRow
+
+                          // Create DbRows for each
                         
 
                         // Call use case
@@ -207,16 +207,20 @@ class _CheckDatabaseScreenState extends ConsumerState<CheckDatabaseScreen> {
 
                             if (delete) {
                               // Get dbRows from PlutoRows
-                              final dbRows = extractDbRows(selectedRows);
-                              print("DELETED ROWS: $dbRows");
+                              final identifiers = extractIdentifiers(selectedRows);
+
+                              print("IDENTIFIERS: $identifiers");
+
+
 
                               // Call use case
                               final deleteRowsUseCase = ref.read(
                                 deleteRowsProvider,
                               );
+
                               deleteRowsUseCase(
                                 tableName: tableName,
-                                rows: dbRows,
+                                identifiers: identifiers
                               );
 
                               // Remove rows from stateManager

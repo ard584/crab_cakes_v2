@@ -3,6 +3,7 @@ import 'package:ui_prototype/application/project/interfaces/active_project/inser
 import 'package:ui_prototype/application/project/interfaces/active_project/update_generator.dart';
 import 'package:ui_prototype/application/table_repository.dart';
 import 'package:ui_prototype/domain/db_table.dart';
+import 'package:ui_prototype/domain/entities/row_identifier.dart';
 import 'package:ui_prototype/domain/models/db_row.dart';
 
 class SqliteActiveProjectRepository implements ActiveProjectRepository {
@@ -70,9 +71,21 @@ class SqliteActiveProjectRepository implements ActiveProjectRepository {
   List<DbRow> getAllRows(String tableName) {
     final result = db.select("SELECT rowid AS _rowid_, * FROM $tableName");
 
+    return _convertToDbRow(result);
+  }
+
+  List<DbRow> _convertToDbRow(ResultSet result) {
     final rows = result.map((row) {
-      // Initialize and return DbRow
-      return DbRow(values: row);
+      final identifier = SqliteRowIdentifier(
+        name: "rowid",
+        key: row["_rowid_"],
+      );
+
+      print("IDENTIFIER: $identifier");
+
+      final filteredRow = Map.from(row).remove("_rowid_");
+
+      return DbRow(identifier: identifier, values: filteredRow);
     }).toList();
 
     return rows;
@@ -85,38 +98,41 @@ class SqliteActiveProjectRepository implements ActiveProjectRepository {
       [limit, offset],
     );
 
-    final rows = result.map((row) {
-      return DbRow(values: row);
-    }).toList();
-
-    return rows;
+    return _convertToDbRow(result);
   }
 
-<<<<<<< HEAD
   @override
   List<DbRow> getRowsOrdered(String tableName, int limit, int offset) {
     final result = db.select(
       "SELECT * FROM $tableName ORDER BY created_at_time DESC LIMIT ? OFFSET ?",
-      [limit, offset]
+      [limit, offset],
     );
-    return result.map((row) => DbRow(values: row)).toList();
+    
+    return _convertToDbRow(result);
   }
 
   @override
   List<DbRow> getRowsOrderedId(String tableName, int limit, int offset) {
     final result = db.select(
       "SELECT * FROM $tableName ORDER BY rowid DESC LIMIT ? OFFSET ?",
-      [limit, offset]
+      [limit, offset],
     );
-    return result.map((row) => DbRow(values: row)).toList();
-=======
-  void deleteRowByRowId({required String tableName, required int id}) {
-    db.execute('DELETE ROW FROM $tableName WHERE rowid = ?', [id]);
+    
+    return _convertToDbRow(result);
   }
 
   @override
-  void updateRow({required String tableName, required DbRow row, required String id, required String idValue}) {
+  void deleteRowByRowID({required String tableName, required SqliteRowIdentifier id}) {
+    db.execute('DELETE ROW FROM $tableName WHERE ${id.name} = ?', [id.value]);
+  }
 
+  @override
+  void updateRow({
+    required String tableName,
+    required DbRow row,
+    required String id,
+    required String idValue,
+  }) {
     final record = update.generate(tableName, row.values, id, idValue);
     print("RECORD: $record");
     final sql = record.sql;
@@ -162,7 +178,5 @@ class SqliteActiveProjectRepository implements ActiveProjectRepository {
     } finally {
       stmt?.dispose();
     }
->>>>>>> alex-dev
   }
 }
- 

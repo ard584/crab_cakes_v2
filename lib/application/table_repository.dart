@@ -1,4 +1,5 @@
 import 'package:ui_prototype/domain/db_table.dart';
+import 'package:ui_prototype/domain/entities/row_identifier.dart';
 import 'package:ui_prototype/domain/models/db_row.dart';
 
 abstract interface class ActiveProjectRepository {
@@ -20,4 +21,5 @@ abstract interface class ActiveProjectRepository {
 
   // Deletes row
   void deleteRow({required String tableName, required DbRow row});
+  void deleteRowByRowID({required String tableName, required RowIdentifier id});
 }
