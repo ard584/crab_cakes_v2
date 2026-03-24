@@ -6,7 +6,8 @@ import 'package:ui_prototype/domain/db_table.dart';
 import 'package:ui_prototype/domain/entities/row_identifier.dart';
 import 'package:ui_prototype/domain/models/db_row.dart';
 
-class SqliteActiveProjectRepository implements ActiveProjectRepository {
+class SqliteActiveProjectRepository
+    implements ActiveProjectRepository<SqliteRowIdentifier> {
   final Database db;
   final InsertGenerator insert;
   final UpdateGenerator update;
@@ -78,7 +79,7 @@ class SqliteActiveProjectRepository implements ActiveProjectRepository {
     final rows = result.map((row) {
       final identifier = SqliteRowIdentifier(
         name: "rowid",
-        key: row["_rowid_"],
+        value: row["_rowid_"],
       );
 
       print("IDENTIFIER: $identifier");
@@ -107,7 +108,7 @@ class SqliteActiveProjectRepository implements ActiveProjectRepository {
       "SELECT * FROM $tableName ORDER BY created_at_time DESC LIMIT ? OFFSET ?",
       [limit, offset],
     );
-    
+
     return _convertToDbRow(result);
   }
 
@@ -117,12 +118,15 @@ class SqliteActiveProjectRepository implements ActiveProjectRepository {
       "SELECT * FROM $tableName ORDER BY rowid DESC LIMIT ? OFFSET ?",
       [limit, offset],
     );
-    
+
     return _convertToDbRow(result);
   }
 
   @override
-  void deleteRowByRowID({required String tableName, required SqliteRowIdentifier id}) {
+  void deleteRowByRowID({
+    required String tableName,
+    required SqliteRowIdentifier id,
+  }) {
     db.execute('DELETE ROW FROM $tableName WHERE ${id.name} = ?', [id.value]);
   }
 
