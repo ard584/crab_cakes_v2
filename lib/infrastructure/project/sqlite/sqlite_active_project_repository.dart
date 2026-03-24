@@ -76,7 +76,15 @@ class SqliteActiveProjectRepository
   }
 
   List<DbRow> _convertToDbRow(ResultSet result) {
+
+    print("RESULT: $result");
+
+
     final rows = result.map((row) {
+
+      print("ROW: $row");
+
+
       final identifier = SqliteRowIdentifier(
         name: "rowid",
         value: row["_rowid_"],
@@ -84,7 +92,8 @@ class SqliteActiveProjectRepository
 
       print("IDENTIFIER: $identifier");
 
-      final filteredRow = Map.from(row).remove("_rowid_");
+      final Map<String, dynamic> filteredRow = Map.from(row);
+      filteredRow.remove('_rowid_');
 
       return DbRow(identifier: identifier, values: filteredRow);
     }).toList();

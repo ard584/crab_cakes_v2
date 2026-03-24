@@ -12,7 +12,7 @@ class SqliteRowIdentifier implements RowIdentifier {
   SqliteRowIdentifier({required this.name, required this.value});
 
   @override
-  ({String name, dynamic value}) get {
+  ({String name, dynamic value}) get identifier {
     // Create immutable named record type
     return (name: name, value: value);
   }
