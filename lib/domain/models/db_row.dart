@@ -1,8 +1,8 @@
 import 'package:ui_prototype/domain/entities/row_identifier.dart';
 
-class DbRow {
+class DbRow<T extends RowIdentifier> {
   final Map<String, dynamic> values;
-  final RowIdentifier identifier;
+  final T identifier;
 
   DbRow({required this.identifier, required this.values});
 

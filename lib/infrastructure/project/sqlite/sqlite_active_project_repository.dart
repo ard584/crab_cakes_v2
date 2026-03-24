@@ -69,13 +69,13 @@ class SqliteActiveProjectRepository
   }
 
   @override
-  List<DbRow> getAllRows(String tableName) {
+  List<DbRow<SqliteRowIdentifier>> getAllRows(String tableName) {
     final result = db.select("SELECT rowid AS _rowid_, * FROM $tableName");
 
     return _convertToDbRow(result);
   }
 
-  List<DbRow> _convertToDbRow(ResultSet result) {
+  List<DbRow<SqliteRowIdentifier>> _convertToDbRow(ResultSet result) {
 
     print("RESULT: $result");
 
@@ -102,7 +102,7 @@ class SqliteActiveProjectRepository
   }
 
   @override
-  List<DbRow> getRows(String tableName, int limit, int offset) {
+  List<DbRow<SqliteRowIdentifier>> getRows(String tableName, int limit, int offset) {
     final result = db.select(
       "SELECT rowid AS _rowid_, * FROM $tableName LIMIT ? OFFSET ?",
       [limit, offset],
@@ -112,7 +112,7 @@ class SqliteActiveProjectRepository
   }
 
   @override
-  List<DbRow> getRowsOrdered(String tableName, int limit, int offset) {
+  List<DbRow<SqliteRowIdentifier>> getRowsOrdered(String tableName, int limit, int offset) {
     final result = db.select(
       "SELECT * FROM $tableName ORDER BY created_at_time DESC LIMIT ? OFFSET ?",
       [limit, offset],
@@ -122,7 +122,7 @@ class SqliteActiveProjectRepository
   }
 
   @override
-  List<DbRow> getRowsOrderedId(String tableName, int limit, int offset) {
+  List<DbRow<SqliteRowIdentifier>> getRowsOrderedId(String tableName, int limit, int offset) {
     final result = db.select(
       "SELECT * FROM $tableName ORDER BY rowid DESC LIMIT ? OFFSET ?",
       [limit, offset],
@@ -136,7 +136,7 @@ class SqliteActiveProjectRepository
     required String tableName,
     required SqliteRowIdentifier id,
   }) {
-    db.execute('DELETE ROW FROM $tableName WHERE ${id.name} = ?', [id.value]);
+    db.execute('DELETE FROM $tableName WHERE ${id.name} = ?', [id.value]);
   }
 
   @override

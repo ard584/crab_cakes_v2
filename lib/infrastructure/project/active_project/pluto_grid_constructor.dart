@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:pluto_grid/pluto_grid.dart';
 import 'package:ui_prototype/application/project/interfaces/active_project/grid_constructor.dart';
 import 'package:ui_prototype/domain/db_table.dart';
+import 'package:ui_prototype/domain/entities/row_identifier.dart';
 import 'package:ui_prototype/domain/models/db_row.dart';
 
 class PlutoGridConstructor
@@ -68,11 +69,15 @@ class PlutoGridConstructor
   }
 
   @override
-  constructRow(DbTable table, DbRow row) {
+  constructRow<T extends RowIdentifier>(DbTable table, DbRow<T> row) {
+
+    // Extract RowIdentifier
+    final id = row.identifier as SqliteRowIdentifier;
+    
     // Define PlutoRow
     final PlutoRow plutoRow = PlutoRow(
       cells: {},
-      key: ValueKey(row),
+      key: ValueKey(id),
     );
 
     // Iterate through row
