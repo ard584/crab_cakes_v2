@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:pluto_grid/pluto_grid.dart';
 import 'package:ui_prototype/domain/entities/row_identifier.dart';
+import 'package:ui_prototype/domain/models/db_row.dart';
 // import 'package:ui_prototype/domain/models/db_row.dart';
 
 List<RowIdentifier> extractIdentifiers(List<PlutoRow> rows) {
@@ -14,43 +15,36 @@ List<RowIdentifier> extractIdentifiers(List<PlutoRow> rows) {
   return identifiers;
 }
 
-// List<DbRow> extractDbRows(List<PlutoRow> rows) {
-//   final List<DbRow> dbRows = [];
+PlutoRow? extractPlutoRowByKey(Key key, PlutoGridStateManager stateManager) {
+  return stateManager.refRows.firstWhere((row) => row.key == key);
+}
 
-//   for (final row in rows) {
-//     dbRows.add((row.key as ValueKey<DbRow>).value);
-//   }
+List<PlutoRow> extractPlutoRowsByKeys(
+  List<Key> keys,
+  PlutoGridStateManager stateManager,
+) {
+  final rows = stateManager.refRows;
+  return rows.where((row) => keys.contains(row.key)).toList();
+}
 
-//   return dbRows;
-// }
+class PlutoRowMapper {
+  static DbRow<SqliteRowIdentifier> toDbRow({
+    required PlutoRow row,
+    required Set<String> dbColumnNames,
+  }) {
+    // Extract RowIdentifier
+    final key = (row.key as ValueKey).value;
+    final identifier = key as SqliteRowIdentifier;
 
-// PlutoRow? extractPlutoRowByKey(Key key, PlutoGridStateManager stateManager) {
-//   return stateManager.refRows.firstWhere((row) => row.key == key);
-// }
+    final Map<String, dynamic> values = {};
 
-// List<PlutoRow> extractPlutoRowsByKeys(
-//   List<Key> keys,
-//   PlutoGridStateManager stateManager,
-// ) {
-//   final rows = stateManager.refRows;
-//   return rows.where((row) => keys.contains(row.key)).toList();
-// }
+    // Filter non-database values out
+    for (final cell in row.cells.entries) {
+      if (dbColumnNames.contains(cell.key)) {
+        values[cell.key] = cell.value.value;
+      }
+    }
 
-// DbRow convertPlutoRowToDbRow(PlutoRow row) {
-//   final Map<String, dynamic> values = {};
-
-//   row.cells.forEach((key, cell) {
-//     values[key] = cell.value;
-//   });
-
-//   return DbRow(values: values);
-// }
-
-// List<DbRow> convertPlutoRowsToDbRows(List<PlutoRow> rows) {
-
-//   // Extract dbRows
-
-//   return rows.map((row) {
-//     return convertPlutoRowToDbRow(row);
-//   }).toList();
-// }
+    return DbRow(identifier: identifier, values: values);
+  }
+}

@@ -77,20 +77,14 @@ class SqliteActiveProjectRepository
 
   List<DbRow<SqliteRowIdentifier>> _convertToDbRow(ResultSet result) {
 
-    print("RESULT: $result");
-
 
     final rows = result.map((row) {
-
-      print("ROW: $row");
 
 
       final identifier = SqliteRowIdentifier(
         name: "rowid",
         value: row["_rowid_"],
       );
-
-      print("IDENTIFIER: $identifier");
 
       final Map<String, dynamic> filteredRow = Map.from(row);
       filteredRow.remove('_rowid_');
@@ -142,11 +136,10 @@ class SqliteActiveProjectRepository
   @override
   void updateRow({
     required String tableName,
-    required DbRow row,
-    required String id,
-    required String idValue,
+    required DbRow<SqliteRowIdentifier> row,
   }) {
-    final record = update.generate(tableName, row.values, id, idValue);
+    final SqliteRowIdentifier identifier = row.identifier;
+    final record = update.generate(tableName, row.values, identifier.name, identifier.value);
     print("RECORD: $record");
     final sql = record.sql;
     final updateValues = record.data;

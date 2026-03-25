@@ -11,7 +11,8 @@ class PlutoGridConstructor
           PlutoGrid,
           PlutoRow,
           PlutoColumn,
-          PlutoOnChangedEventCallback
+          PlutoOnChangedEventCallback,
+          SqliteRowIdentifier
         > {
   @override
   List<PlutoColumn> constructColumns(DbTable table) {
@@ -69,10 +70,10 @@ class PlutoGridConstructor
   }
 
   @override
-  constructRow<T extends RowIdentifier>(DbTable table, DbRow<T> row) {
+  constructRow(DbTable table, DbRow row) {
 
     // Extract RowIdentifier
-    final id = row.identifier as SqliteRowIdentifier;
+    final id = row.identifier;
     
     // Define PlutoRow
     final PlutoRow plutoRow = PlutoRow(
