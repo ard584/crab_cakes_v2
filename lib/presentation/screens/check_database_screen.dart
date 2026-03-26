@@ -214,8 +214,6 @@ class _CheckDatabaseScreenState extends ConsumerState<CheckDatabaseScreen> {
                                 selectedRows,
                               );
 
-                              print("IDENTIFIERS: $identifiers");
-
                               // Call use case
                               final deleteRowsUseCase = ref.read(
                                 deleteRowsProvider,
@@ -271,82 +269,3 @@ class _CheckDatabaseScreenState extends ConsumerState<CheckDatabaseScreen> {
     );
   }
 }
-
-// class TableGrid extends ConsumerStatefulWidget {
-//   final Function(PlutoGridStateManager)? onGridLoaded;
-
-//   const TableGrid({super.key, this.onGridLoaded});
-
-//   @override
-//   ConsumerState<ConsumerStatefulWidget> createState() {
-//     return _TableGridState();
-//   }
-// }
-
-// class _TableGridState extends ConsumerState<TableGrid> {
-//   @override
-//   Widget build(BuildContext context) {
-//     final repo = ref.watch(projectDatabaseProvider);
-//     final tableName = ref.watch(activeTableProvider);
-
-//     // if (tableName == null) {
-//     //   return Center(child: Text("Select a table"));
-//     // }
-
-//     // final table = repo.getTableSchema(tableName);
-
-//     // final constructor = PlutoGridConstructor();
-//     // List<PlutoColumn> columns = constructor.constructColumns(table);
-
-//     // final dbRows = repo.getAllRows(tableName);
-
-//     // final rows = dbRows.map((row) {
-//     //   PlutoRow current_row = constructor.constructRow(table, row);
-
-//     //   final check_row = PlutoCell(value: "");
-//     //   current_row.cells['check_box'] = check_row;
-
-//     //   return current_row;
-//     // }).toList();
-
-//     // print("ROW: ${rows.first.cells}");
-
-//     // final check_col = PlutoColumn(
-//     //   title: '',
-//     //   field: 'check_box',
-//     //   type: PlutoColumnType.text(),
-//     //   enableEditingMode: false,
-//     //   readOnly: false,
-//     //   enableRowChecked: true,
-//     //   width: 80,
-//     // );
-
-//     // late PlutoGridStateManager stateManager;
-
-//     // return PlutoGrid(
-//     //   key: ValueKey(tableName),
-//     //   columns: [check_col, ...columns],
-//     //   rows: rows,
-//     //   mode: PlutoGridMode.normal,
-//     //   onLoaded: (PlutoGridOnLoadedEvent event) {
-//     //     stateManager = event.stateManager;
-
-//     //     event.stateManager.addListener(() {
-//     //       print("STATECHANGED");
-//     //       setState(() {});
-//     //     });
-
-//     //     final function = widget.onGridLoaded;
-//     //     if (function != null) {
-//     //       function(event.stateManager);
-//     //     }
-//     //   },
-//     //   onChanged: (event) {
-//     //     print("EVENT: ${event.row}");
-//     //   },
-//     //   onRowChecked: (event) {
-//     //     stateManager.notifyListeners();
-//     //   },
-//     // );
-//   }
-// }
