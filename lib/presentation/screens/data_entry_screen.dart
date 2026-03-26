@@ -9,7 +9,6 @@ import 'package:ui_prototype/presentation/screens/project_selection.dart';
 import 'package:ui_prototype/presentation/services/flex_field/flex_field_factory.dart';
 import 'package:ui_prototype/presentation/view_models/project_input.dart';
 import 'package:ui_prototype/presentation/components/catch_table_widget.dart';
-import 'package:ui_prototype/presentation/components/battery_indicator.dart';
 import 'package:ui_prototype/presentation/components/status_panel.dart';
 
 import 'settings_screen.dart';

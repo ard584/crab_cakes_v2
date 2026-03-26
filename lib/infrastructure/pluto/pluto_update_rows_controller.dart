@@ -20,8 +20,6 @@ class PlutoUpdateRowsController {
       return PlutoRowMapper.toDbRow(row: row, dbColumnNames: columnNames);
     }).toList();
 
-    print("DBROWS: $dbRows");
-
     // Call use case
     useCase.call(tableName: table.name, rows: dbRows);
   }

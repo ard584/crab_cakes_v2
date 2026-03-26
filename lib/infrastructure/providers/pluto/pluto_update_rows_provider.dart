@@ -3,5 +3,5 @@ import 'package:ui_prototype/infrastructure/pluto/pluto_update_rows_controller.d
 import 'package:ui_prototype/infrastructure/providers/update_rows_provider.dart';
 
 final plutoUpdateRowsProvider = Provider(
-  (ref) => PlutoUpdateRowsController(useCase: ref.read(updateRowsProvider)),
+  (ref) => PlutoUpdateRowsController(useCase: ref.watch(updateRowsProvider)),
 );

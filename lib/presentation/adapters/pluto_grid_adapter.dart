@@ -8,7 +8,6 @@ List<RowIdentifier> extractIdentifiers(List<PlutoRow> rows) {
   final List<RowIdentifier> identifiers = [];
 
   for (final row in rows) {
-    print("ROW KEY: ${row.key}");
     identifiers.add((row.key as ValueKey<RowIdentifier>).value);
   }
 
@@ -20,11 +19,16 @@ PlutoRow? extractPlutoRowByKey(Key key, PlutoGridStateManager stateManager) {
 }
 
 List<PlutoRow> extractPlutoRowsByKeys(
-  List<Key> keys,
+  List<RowIdentifier> identifiers,
   PlutoGridStateManager stateManager,
 ) {
   final rows = stateManager.refRows;
-  return rows.where((row) => keys.contains(row.key)).toList();
+  return rows
+      .where(
+        (row) =>
+            identifiers.contains((row.key as ValueKey<RowIdentifier>).value),
+      )
+      .toList();
 }
 
 class PlutoRowMapper {

@@ -140,7 +140,6 @@ class SqliteActiveProjectRepository
   }) {
     final SqliteRowIdentifier identifier = row.identifier;
     final record = update.generate(tableName, row.values, identifier.name, identifier.value);
-    print("RECORD: $record");
     final sql = record.sql;
     final updateValues = record.data;
 

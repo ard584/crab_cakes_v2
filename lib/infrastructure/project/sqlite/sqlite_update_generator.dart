@@ -20,8 +20,7 @@ class SqliteUpdateGenerator implements UpdateGenerator {
     sql += sets.join(", ");
     sql += " WHERE $identifier = $key";
     sql += ";\n";
-
-    print("SQL: $sql");
+    
     return sql;
   }
 
