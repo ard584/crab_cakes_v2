@@ -94,32 +94,12 @@ class SqliteActiveProjectRepository
 
     return rows;
   }
-
+  
   @override
-  List<DbRow<SqliteRowIdentifier>> getRows(String tableName, int limit, int offset) {
+  List<DbRow> getRowsOrderedBy(String tableName, int limit, int offset, String orderColumn) {
     final result = db.select(
-      "SELECT rowid AS _rowid_, * FROM $tableName LIMIT ? OFFSET ?",
-      [limit, offset],
-    );
-
-    return _convertToDbRow(result);
-  }
-
-  @override
-  List<DbRow<SqliteRowIdentifier>> getRowsOrdered(String tableName, int limit, int offset) {
-    final result = db.select(
-      "SELECT * FROM $tableName ORDER BY created_at_time DESC LIMIT ? OFFSET ?",
-      [limit, offset],
-    );
-
-    return _convertToDbRow(result);
-  }
-
-  @override
-  List<DbRow<SqliteRowIdentifier>> getRowsOrderedId(String tableName, int limit, int offset) {
-    final result = db.select(
-      "SELECT * FROM $tableName ORDER BY rowid DESC LIMIT ? OFFSET ?",
-      [limit, offset],
+      "SELECT * FROM $tableName ORDER BY $orderColumn DESC LIMIT ? OFFSET ?",
+      [limit, offset]
     );
 
     return _convertToDbRow(result);

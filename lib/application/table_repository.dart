@@ -10,8 +10,7 @@ abstract interface class ActiveProjectRepository<TIdentifier extends RowIdentifi
   // Load rows
   List<DbRow> getRows(String tableName, int limit, int offset);
   List<DbRow> getAllRows(String tableName);
-  List<DbRow> getRowsOrdered(String tableName, int limit, int offset);
-  List<DbRow> getRowsOrderedId(String tableName, int limit, int offset);
+  List<DbRow> getRowsOrderedBy(String tableName, int limit, int offset, String orderColumn);
 
   // Saves the current table
   void insertRow({required String tableName, required Map<String, dynamic> values});
