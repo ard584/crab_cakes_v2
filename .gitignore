@@ -51,8 +51,10 @@ app.*.map.json
 # Xcode settings
 macos/Runner.xcworkspace/xcshareddata/WorkspaceSettings.xcsettings
 macos/Runner.xcworkspace/xcuserdata/
+DeveloperSettings.xcconfig
 macos/Runner/
 macos/Pods/
+macos/Runner/Configs/AppInfo.xcconfig
 
 # Environment variables
 .env.local
