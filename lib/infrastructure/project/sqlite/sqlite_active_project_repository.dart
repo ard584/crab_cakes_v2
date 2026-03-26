@@ -76,11 +76,7 @@ class SqliteActiveProjectRepository
   }
 
   List<DbRow<SqliteRowIdentifier>> _convertToDbRow(ResultSet result) {
-
-
     final rows = result.map((row) {
-
-
       final identifier = SqliteRowIdentifier(
         name: "rowid",
         value: row["_rowid_"],
@@ -94,12 +90,27 @@ class SqliteActiveProjectRepository
 
     return rows;
   }
-  
+
   @override
-  List<DbRow> getRowsOrderedBy(String tableName, int limit, int offset, String orderColumn) {
+  List<DbRow<RowIdentifier>> getRows(String tableName, int limit, int offset) {
+    final result = db.select(
+      "SELECT rowid AS _rowid_, * FROM  LIMIT ? OFFSET ?",
+      [limit, offset],
+    );
+
+    return _convertToDbRow(result);
+  }
+
+  @override
+  List<DbRow> getRowsOrderedBy(
+    String tableName,
+    int limit,
+    int offset,
+    String orderColumn,
+  ) {
     final result = db.select(
       "SELECT * FROM $tableName ORDER BY $orderColumn DESC LIMIT ? OFFSET ?",
-      [limit, offset]
+      [limit, offset],
     );
 
     return _convertToDbRow(result);
@@ -119,8 +130,12 @@ class SqliteActiveProjectRepository
     required DbRow<SqliteRowIdentifier> row,
   }) {
     final SqliteRowIdentifier identifier = row.identifier;
-    final record = update.generate(tableName, row.values, identifier.name, identifier.value);
-    print("RECORD: $record");
+    final record = update.generate(
+      tableName,
+      row.values,
+      identifier.name,
+      identifier.value,
+    );
     final sql = record.sql;
     final updateValues = record.data;
 
