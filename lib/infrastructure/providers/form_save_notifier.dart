@@ -18,6 +18,10 @@ class FormSaveNotifier extends AsyncNotifier<void> {
     state = await AsyncValue.guard(() async {
       final saveTable = ref.read(saveTableProvider);
       saveTable(table);
+    // Clear all fields after save
+    for (final attribute in table.attributes.values) {
+      attribute.controller.clear();
+    }
     });
   }
 }

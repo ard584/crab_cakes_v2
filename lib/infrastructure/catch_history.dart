@@ -45,9 +45,8 @@ class CatchHistoryViewModel {
       (col) => col.name.toLowerCase() == 'created_at_time'
     );
 
-    final rows = hasCreatedAt
-        ? db.getRowsOrdered(table.name, 5, 0)
-        : db.getRowsOrderedId(table.name, 5, 0);
+  final orderColumn = hasCreatedAt ? 'created_at_time' : 'rowid';
+  final rows = db.getRowsOrderedBy(table.name, 5, 0, orderColumn);
 
     return rows.map((row) => row.values).toList();
   }
