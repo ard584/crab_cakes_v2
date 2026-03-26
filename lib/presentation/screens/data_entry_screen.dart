@@ -40,8 +40,6 @@ class _DataEntryState extends ConsumerState<DataEntryScreen> {
 
     // Set activeProject state
     projectAsync.whenData((project) {
-      if (activeTableName != null) {
-      }
     });
 
     // Snack bar updates
@@ -126,7 +124,7 @@ class _DataEntryState extends ConsumerState<DataEntryScreen> {
                     const SizedBox(width: 12),
                     // push table to right
                     const Spacer(), 
-                    CatchHistorySection(tableName: activeTableName),
+                    // CatchHistorySection(tableName: activeTableName),
 
                   ]
                 ),
@@ -289,7 +287,7 @@ class DrawerSubmenu extends StatelessWidget {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => const CheckDatabaseScreen(),
+                builder: (context) => CheckDatabaseScreen(),
               ),
             );
           },
