@@ -7,13 +7,21 @@ import 'package:ui_prototype/domain/entities/settings/project_settings.dart';
 
 import 'package:ui_prototype/infrastructure/providers/flex_form_provider.dart';
 import 'package:ui_prototype/infrastructure/providers/form_save_notifier.dart';
+<<<<<<< HEAD
 import 'package:ui_prototype/infrastructure/providers/pit_readers_providers.dart';
 
+=======
+import 'package:ui_prototype/infrastructure/providers/project_database_provider.dart';
+>>>>>>> main
 import 'package:ui_prototype/presentation/screens/check_database_screen.dart';
 import 'package:ui_prototype/presentation/screens/export_screen.dart';
 import 'package:ui_prototype/presentation/screens/project_selection.dart';
 import 'package:ui_prototype/presentation/services/flex_field/flex_field_factory.dart';
 import 'package:ui_prototype/presentation/view_models/project_input.dart';
+import 'package:ui_prototype/presentation/components/catch_table_widget.dart';
+import 'package:ui_prototype/presentation/shortcuts/data_entry_shortcuts.dart';
+import 'package:ui_prototype/presentation/components/battery_indicator.dart';
+import 'package:ui_prototype/presentation/components/status_panel.dart';
 
 import 'package:ui_prototype/infrastructure/providers/external_backup_provider.dart';
 import 'package:ui_prototype/infrastructure/providers/active_database_connection_provider.dart';
@@ -39,8 +47,11 @@ class DataEntryScreen extends ConsumerStatefulWidget {
 }
 
 class _DataEntryState extends ConsumerState<DataEntryScreen> {
+<<<<<<< HEAD
   //TODO: Look into unused variable?
   TableInput? _activeTable;
+=======
+>>>>>>> main
 
   @override
   Widget build(BuildContext context) {
@@ -78,9 +89,6 @@ class _DataEntryState extends ConsumerState<DataEntryScreen> {
 
     // Set activeProject state
     projectAsync.whenData((project) {
-      if (activeTableName != null) {
-        _activeTable = project.tables[activeTableName];
-      }
     });
 
     // Snack bar updates
@@ -125,7 +133,15 @@ class _DataEntryState extends ConsumerState<DataEntryScreen> {
       );
     });
 
-    return Scaffold(
+  return DataEntryShortcuts(
+    onSave: () async {
+      final projectMap = ref.read(projectViewModelProvider).value;
+      if (projectMap == null) return;
+      final table = projectMap.tables[activeTableName];
+      if (table == null) return;
+      await ref.read(formSaveProvider.notifier).saveTable(table);
+    },
+    child: Scaffold(
       appBar: AppBar(
         title: projectAsync.when(
           data: (project) => Text('Data Entry'),
@@ -147,7 +163,26 @@ class _DataEntryState extends ConsumerState<DataEntryScreen> {
               return Center(child: const CircularProgressIndicator());
             }
 
-            return TableFormSection(tableName: activeTableName);
+            return Column(
+              children: [
+                //made it a row to show status on the left followed by table on the
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const StatusPanel(),
+                    const SizedBox(width: 12),
+                    // push table to right
+                    const Spacer(), 
+                    // CatchHistorySection(tableName: activeTableName),
+
+                  ]
+                ),
+                const SizedBox(height: 16),
+                Expanded(
+                  child: TableFormSection(tableName: activeTableName),
+                ),
+              ],
+            );
           },
 
           // Handle error and loading states
@@ -155,6 +190,7 @@ class _DataEntryState extends ConsumerState<DataEntryScreen> {
         ),
       ),
       floatingActionButton: FloatingActionButton.extended(
+        focusNode: FocusNode(skipTraversal: true),
         onPressed: () async {
           final projectMap = ref.read(projectViewModelProvider).value;
           if (projectMap == null) return;
@@ -174,7 +210,8 @@ class _DataEntryState extends ConsumerState<DataEntryScreen> {
         },
         label: Padding(
           padding: const EdgeInsets.all(20.0),
-          child: Text("Save Record"),
+          child: Text("Save Record (f12)"),
+          ),
         ),
       ),
     );
@@ -298,7 +335,7 @@ class DrawerSubmenu extends StatelessWidget {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => const CheckDatabaseScreen(),
+                builder: (context) => CheckDatabaseScreen(),
               ),
             );
           },
@@ -367,6 +404,42 @@ class ProjectDrawer extends ConsumerWidget {
           const SizedBox(height: 10),
         ],
       ),
+    );
+  }
+}
+
+// automatically refreshes when a record is saved
+class CatchHistorySection extends ConsumerWidget {
+  final String tableName;
+
+  const CatchHistorySection({super.key, required this.tableName});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    // watching formSaveProvider will force table to refresh with data
+    ref.watch(formSaveProvider);
+
+    final projectAsync = ref.watch(projectViewModelProvider);
+
+    return projectAsync.when(
+      data: (project) {
+        final table = project.tables[tableName];
+
+        // if the table doesnt exist, show nothing
+        if (table == null) return const SizedBox.shrink();
+
+        try {
+          // get database and build table widget
+          final db = ref.read(projectDatabaseProvider);
+          return CatchHistoryTable(db: db, table: table);
+        } catch (_) {
+          // if the database isnt open, show nothing
+          return const SizedBox.shrink();
+        }
+      },
+
+      error: (_, __) => const SizedBox.shrink(),
+      loading: () => const SizedBox.shrink(),
     );
   }
 }
