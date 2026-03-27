@@ -7,12 +7,9 @@ import 'package:ui_prototype/domain/entities/settings/project_settings.dart';
 
 import 'package:ui_prototype/infrastructure/providers/flex_form_provider.dart';
 import 'package:ui_prototype/infrastructure/providers/form_save_notifier.dart';
-<<<<<<< HEAD
 import 'package:ui_prototype/infrastructure/providers/pit_readers_providers.dart';
 
-=======
 import 'package:ui_prototype/infrastructure/providers/project_database_provider.dart';
->>>>>>> main
 import 'package:ui_prototype/presentation/screens/check_database_screen.dart';
 import 'package:ui_prototype/presentation/screens/export_screen.dart';
 import 'package:ui_prototype/presentation/screens/project_selection.dart';
@@ -47,11 +44,6 @@ class DataEntryScreen extends ConsumerStatefulWidget {
 }
 
 class _DataEntryState extends ConsumerState<DataEntryScreen> {
-<<<<<<< HEAD
-  //TODO: Look into unused variable?
-  TableInput? _activeTable;
-=======
->>>>>>> main
 
   @override
   Widget build(BuildContext context) {
