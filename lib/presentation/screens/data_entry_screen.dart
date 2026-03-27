@@ -10,7 +10,6 @@ import 'package:ui_prototype/presentation/services/flex_field/flex_field_factory
 import 'package:ui_prototype/presentation/view_models/project_input.dart';
 import 'package:ui_prototype/presentation/components/catch_table_widget.dart';
 import 'package:ui_prototype/presentation/shortcuts/data_entry_shortcuts.dart';
-import 'package:ui_prototype/presentation/components/battery_indicator.dart';
 import 'package:ui_prototype/presentation/components/status_panel.dart';
 
 import 'settings_screen.dart';
@@ -124,7 +123,7 @@ class _DataEntryState extends ConsumerState<DataEntryScreen> {
                     const SizedBox(width: 12),
                     // push table to right
                     const Spacer(), 
-                    // CatchHistorySection(tableName: activeTableName),
+                    CatchHistorySection(tableName: activeTableName),
 
                   ]
                 ),
