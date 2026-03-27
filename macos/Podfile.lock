@@ -1,4 +1,6 @@
 PODS:
+  - battery_plus (0.0.1):
+    - FlutterMacOS
   - file_picker (0.0.1):
     - FlutterMacOS
   - flutter_libserialport (0.0.1):
@@ -39,6 +41,7 @@ PODS:
     - sqlite3/session
 
 DEPENDENCIES:
+  - battery_plus (from `Flutter/ephemeral/.symlinks/plugins/battery_plus/macos`)
   - file_picker (from `Flutter/ephemeral/.symlinks/plugins/file_picker/macos`)
   - flutter_libserialport (from `Flutter/ephemeral/.symlinks/plugins/flutter_libserialport/macos`)
   - flutter_secure_storage_darwin (from `Flutter/ephemeral/.symlinks/plugins/flutter_secure_storage_darwin/darwin`)
@@ -52,6 +55,8 @@ SPEC REPOS:
     - sqlite3
 
 EXTERNAL SOURCES:
+  battery_plus:
+    :path: Flutter/ephemeral/.symlinks/plugins/battery_plus/macos
   file_picker:
     :path: Flutter/ephemeral/.symlinks/plugins/file_picker/macos
   flutter_libserialport:
@@ -66,6 +71,7 @@ EXTERNAL SOURCES:
     :path: Flutter/ephemeral/.symlinks/plugins/sqlite3_flutter_libs/darwin
 
 SPEC CHECKSUMS:
+  battery_plus: 0495761dc45b8a1631ed5066d4af1990314eac6f
   file_picker: 7584aae6fa07a041af2b36a2655122d42f578c1a
   flutter_libserialport: 2c523cb8d8203fc6d1b0da88190da31ac970eb93
   flutter_secure_storage_darwin: acdb3f316ed05a3e68f856e0353b133eec373a23
