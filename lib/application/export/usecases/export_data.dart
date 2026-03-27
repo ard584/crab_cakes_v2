@@ -8,11 +8,11 @@ class ExportData {
   ExportData(this.picker, this.exporter);
 
   
-  Future<void> execute(String tableName) async {
+  Future<void> execute(String tableName, String delimiter) async {
     final filePath = await picker.getLocation();
 
     if(filePath == null) return;
 
-    await exporter.export(tableName, filePath);
+    await exporter.export(tableName, filePath, delimiter);
   }
 }

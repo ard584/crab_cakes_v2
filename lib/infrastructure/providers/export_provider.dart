@@ -33,3 +33,10 @@ final exportDataUsecaseProvider = Provider<ExportData?>((ref) {
   return ExportData(picker, exporter);
 });
 
+final exportBaseTablesProvider = FutureProvider<List<String>>((ref) async {
+  final exporter = ref.watch(dataExporterProvider);
+
+  if (exporter == null) return [];
+
+  return exporter.getBaseTables();
+});
