@@ -1,5 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:ui_prototype/presentation/components/usb_backups_section.dart';
 import 'package:ui_prototype/presentation/utils/logger.dart';
+import 'package:ui_prototype/presentation/components/scanner_target_section.dart';
+
+//importing the specific sccanner connection component
+import 'package:ui_prototype/presentation/components/pit_reader_section.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -18,92 +23,10 @@ class SettingsScreen extends StatelessWidget {
           child: Column(
             spacing: 16.0,
             children: <Widget>[
-              ReusableLeftAlignedText(text: 'USB Backup Locations'),
-              Container(
-                decoration: reusableBoxDecoration,
-                padding: reusablePadding,
-                child: Row(
-                  children: <Widget>[
-                    Icon(Icons.usb),
-                    const SizedBox(width: 8),
-                    Text('USB Drive 1'),
-                    Spacer(),
-                    IconButton(
-                      tooltip: 'Eject USB Drive from backup pool.',
-                      onPressed: () {
-                        log.d('Tapped settings');
-                      },
-                      icon: const Icon(Icons.eject),
-                    ),
-                  ],
-                ),
-              ),
-              Container(
-                decoration: reusableBoxDecoration,
-                padding: reusablePadding,
-                child: Row(
-                  children: <Widget>[
-                    Icon(Icons.usb),
-                    const SizedBox(width: 8),
-                    Text('USB Drive 1'),
-                    Spacer(),
-                    IconButton(
-                      tooltip: 'Eject USB Drive from backup pool.',
-                      onPressed: () {
-                        log.d('Tapped settings');
-                      },
-                      icon: const Icon(Icons.eject),
-                    ),
-                  ],
-                ),
-              ),
-              Container(
-                decoration: reusableBoxDecoration,
-                padding: reusablePadding,
-                child: Row(
-                  children: <Widget>[
-                    Icon(Icons.usb),
-                    const SizedBox(width: 8),
-                    Text('USB Drive 1'),
-                    Spacer(),
-                    IconButton(
-                      tooltip: 'Eject USB Drive from backup pool.',
-                      onPressed: () {
-                        log.d('Tapped settings');
-                      },
-                      icon: const Icon(Icons.eject),
-                    ),
-                  ],
-                ),
-              ),
-              FloatingActionButton.extended(
-                tooltip: 'Add USB Drive to the backup pool.',
-                icon: Icon(Icons.add),
-                onPressed: () {
-                  log.d('Button pressed');
-                },
-                label: const Text('Add USB Drive'),
-              ),
+              const UsbBackupDrivesSection(),
               ReusableLeftAlignedText(text: 'Paired PIT Readers'),
-              Container(
-                decoration: reusableBoxDecoration,
-                padding: reusablePadding,
-                child: Row(
-                  children: <Widget>[
-                    Icon(Icons.bluetooth_connected),
-                    const SizedBox(width: 8),
-                    Text('Biomark HPR Lite'),
-                    Spacer(),
-                    IconButton(
-                      tooltip: 'Disconnect \'Biomark HPR Lite\'.',
-                      onPressed: () {
-                        log.d('Tapped settings');
-                      },
-                      icon: const Icon(Icons.bluetooth_disabled),
-                    ),
-                  ],
-                ),
-              ),
+              const PitReadersSection(),
+              const ScannerTargetSection(),
               ReusableLeftAlignedText(text: 'Merge Data Files'),
               Container(
                 decoration: reusableBoxDecoration,
