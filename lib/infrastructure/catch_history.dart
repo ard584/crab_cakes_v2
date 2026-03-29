@@ -1,8 +1,9 @@
 import 'package:ui_prototype/application/table_repository.dart';
+import 'package:ui_prototype/domain/entities/row_identifier.dart';
 import 'package:ui_prototype/presentation/view_models/project_input.dart';
 
 class CatchHistoryViewModel {
-  final ActiveProjectRepository db;
+  final ActiveProjectRepository<RowIdentifier> db;
   final TableInput table;
 
   CatchHistoryViewModel({required this.db, required this.table});
