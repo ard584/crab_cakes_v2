@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 
-Future<bool> confirmUpdate(BuildContext context, String prompt) async {
+Future<bool> confirmUpdate(BuildContext context, String prompt, ) async {
 
   final result = await showDialog<bool>(
     context: context,
     builder: (context) {
       return AlertDialog(
-        title: Text("Confirm Delete"),
+        title: Text("Confirm Update"),
         content: Text(
           prompt
         ),

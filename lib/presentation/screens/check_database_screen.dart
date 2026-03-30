@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pluto_grid/pluto_grid.dart';
 import 'package:ui_prototype/domain/db_table.dart';
-import 'package:ui_prototype/domain/models/db_row.dart';
 import 'package:ui_prototype/infrastructure/project/active_project/pluto_grid_constructor.dart';
 import 'package:ui_prototype/infrastructure/providers/delete_rows_provider.dart';
 import 'package:ui_prototype/infrastructure/providers/flex_form_provider.dart';
@@ -10,7 +9,7 @@ import 'package:ui_prototype/infrastructure/providers/pluto_update_rows_provider
 import 'package:ui_prototype/infrastructure/providers/project_database_provider.dart';
 import 'package:ui_prototype/presentation/dialogs/confirm_delete.dart';
 import 'package:ui_prototype/presentation/adapters/pluto_grid_adapter.dart';
-import 'package:ui_prototype/presentation/dialogs/confirm_update.dart';
+import 'package:ui_prototype/presentation/dialogs/confirm_update_edit_grid.dart';
 
 Widget getTablesChoiceChips(WidgetRef ref) {
   final projectAsync = ref.watch(projectViewModelProvider);
@@ -59,29 +58,26 @@ class _CheckDatabaseScreenState extends ConsumerState<CheckDatabaseScreen> {
 
   // Create caches
   final Map<String, List<PlutoRow>> _tableRowsCache = {};
-  final Map<String, List<DbRow>> _originalRows = {};
   final Map<String, Set<Key>> _tableUpdatedKeysCache = {};
 
   // Pluto grid constructor
   PlutoGridConstructor constructor = PlutoGridConstructor();
 
-  void resetTable(String tableName, DbTable table) {
-    // Get rows from originalRows map
-    final originalRows = _originalRows[tableName];
-    if (originalRows == null) return;
+  void resetTable(DbTable table) {
 
-    final rows = originalRows.map((row) {
+    final repo = ref.read(projectDatabaseProvider);
+    final databaseRows = repo.getAllRows(table.name);
+
+    final rows = databaseRows.map((row) {
       PlutoRow currentRow = constructor.constructRow(table, row);
       final checkRow = PlutoCell(value: "");
       currentRow.cells['check_box'] = checkRow;
       return currentRow;
     }).toList();
 
-    print("ORIGINAL ROWS: $originalRows");
-
     setState(() {
-      _tableUpdatedKeysCache[tableName]?.clear();
-      _tableRowsCache[tableName] = rows;
+      _tableUpdatedKeysCache[table.name]?.clear();
+      _tableRowsCache[table.name] = rows;
     });
 
     final PlutoGridStateManager? currentStateManager = stateManager;
@@ -148,9 +144,6 @@ class _CheckDatabaseScreenState extends ConsumerState<CheckDatabaseScreen> {
       // Get rows from database
       final dbRows = repo.getAllRows(tableName);
 
-      // Store in original rows cache
-      _originalRows[tableName] = dbRows;
-
       // Convert db rows to pluto rows
       rows = dbRows.map((row) {
         PlutoRow currentRow = constructor.constructRow(table, row);
@@ -204,12 +197,12 @@ class _CheckDatabaseScreenState extends ConsumerState<CheckDatabaseScreen> {
                         promptRows = "row";
                       }
 
-                      final update = await confirmUpdate(
+                      final result = await confirmUpdateEditGrid(
                         context,
                         "Are you sure you want to update ${selectedRowKeys.length} $promptRows?",
                       );
 
-                      if (update) {
+                      if (result == EditGridAction.update) {
                         // Get state manager
                         final stateManager = currentStateManager;
 
@@ -230,8 +223,8 @@ class _CheckDatabaseScreenState extends ConsumerState<CheckDatabaseScreen> {
                         setState(() {
                           currentUpdatedKeys.clear();
                         });
-                      } else {
-                        resetTable(tableName, table);
+                      } else if (result == EditGridAction.abandon) {
+                        resetTable(table);
                       }
                     }
                   : null,
