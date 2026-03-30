@@ -10,7 +10,6 @@ import 'package:ui_prototype/presentation/services/flex_field/flex_field_factory
 import 'package:ui_prototype/presentation/view_models/project_input.dart';
 import 'package:ui_prototype/presentation/components/catch_table_widget.dart';
 import 'package:ui_prototype/presentation/shortcuts/data_entry_shortcuts.dart';
-import 'package:ui_prototype/presentation/components/battery_indicator.dart';
 import 'package:ui_prototype/presentation/components/status_panel.dart';
 
 import 'settings_screen.dart';
@@ -32,6 +31,7 @@ class DataEntryScreen extends ConsumerStatefulWidget {
 }
 
 class _DataEntryState extends ConsumerState<DataEntryScreen> {
+  final ScrollController scrollController = ScrollController();
 
   @override
   Widget build(BuildContext context) {
@@ -39,8 +39,7 @@ class _DataEntryState extends ConsumerState<DataEntryScreen> {
     final activeTableName = ref.watch(activeTableProvider);
 
     // Set activeProject state
-    projectAsync.whenData((project) {
-    });
+    projectAsync.whenData((project) {});
 
     // Snack bar updates
     ref.listen<AsyncValue<void>>(formSaveProvider, (previous, next) {
@@ -84,85 +83,90 @@ class _DataEntryState extends ConsumerState<DataEntryScreen> {
       );
     });
 
-  return DataEntryShortcuts(
-    onSave: () async {
-      final projectMap = ref.read(projectViewModelProvider).value;
-      if (projectMap == null) return;
-      final table = projectMap.tables[activeTableName];
-      if (table == null) return;
-      await ref.read(formSaveProvider.notifier).saveTable(table);
-    },
-    child: Scaffold(
-      appBar: AppBar(
-        title: projectAsync.when(
-          data: (project) => Text('Data Entry'),
-          error: (_, __) => const Text("Error"),
-          loading: () => const Text('Loading...'),
+    return DataEntryShortcuts(
+      onSave: () async {
+        final projectMap = ref.read(projectViewModelProvider).value;
+        if (projectMap == null) return;
+        final table = projectMap.tables[activeTableName];
+        if (table == null) return;
+        await ref.read(formSaveProvider.notifier).saveTable(table);
+        scrollController.animateTo(0, duration: Duration(milliseconds: 150), curve: Curves.fastOutSlowIn);
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: projectAsync.when(
+            data: (project) => Text('Data Entry'),
+            error: (_, __) => const Text("Error"),
+            loading: () => const Text('Loading...'),
+          ),
         ),
-      ),
-      drawer: ProjectDrawer(),
-      body: Padding(
-        padding: const EdgeInsets.all(28.0),
-        child: projectAsync.when(
-          error: (err, stack) => Center(child: Text("Error: $err")),
-          data: (project) {
-            if (project.tables.isEmpty) {
-              return Center(child: Text("No project selected"));
+        drawer: ProjectDrawer(),
+        body: Padding(
+          padding: const EdgeInsets.all(28.0),
+          child: projectAsync.when(
+            error: (err, stack) => Center(child: Text("Error: $err")),
+            data: (project) {
+              if (project.tables.isEmpty) {
+                return Center(child: Text("No project selected"));
+              }
+
+              if (activeTableName == null) {
+                return Center(child: const CircularProgressIndicator());
+              }
+
+              return Column(
+                children: [
+                  //made it a row to show status on the left followed by table on the
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const StatusPanel(),
+                      const SizedBox(width: 12),
+                      // push table to right
+                      const Spacer(),
+
+                      // CatchHistorySection(tableName: activeTableName),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  Expanded(
+                    child: TableFormSection(
+                      tableName: activeTableName,
+                      controller: scrollController,
+                    ),
+                  ),
+                ],
+              );
+            },
+
+            // Handle error and loading states
+            loading: () => const Center(child: CircularProgressIndicator()),
+          ),
+        ),
+        floatingActionButton: FloatingActionButton.extended(
+          focusNode: FocusNode(skipTraversal: true),
+          onPressed: () async {
+            final projectMap = ref.read(projectViewModelProvider).value;
+
+            if (projectMap == null) return;
+
+            final table = projectMap.tables[activeTableName];
+
+            // Table is returning null for some reason
+            if (table == null) {
+              return;
             }
 
-            if (activeTableName == null) {
-              return Center(child: const CircularProgressIndicator());
-            }
-
-            return Column(
-              children: [
-                //made it a row to show status on the left followed by table on the
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const StatusPanel(),
-                    const SizedBox(width: 12),
-                    // push table to right
-                    const Spacer(), 
-                    // CatchHistorySection(tableName: activeTableName),
-
-                  ]
-                ),
-                const SizedBox(height: 16),
-                Expanded(
-                  child: TableFormSection(tableName: activeTableName),
-                ),
-              ],
+            await ref.read(formSaveProvider.notifier).saveTable(table);
+            scrollController.animateTo(
+              0,
+              duration: Duration(milliseconds: 150),
+              curve: Curves.fastOutSlowIn,
             );
           },
-
-          // Handle error and loading states
-          loading: () => const Center(child: CircularProgressIndicator()),
-        ),
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        focusNode: FocusNode(skipTraversal: true),
-        onPressed: () async {
-          final projectMap = ref.read(projectViewModelProvider).value;
-
-          if (projectMap == null) return;
-
-          final table = projectMap.tables[activeTableName];
-          print("ACTIVE TABLE NAME: $activeTableName");
-
-          // Table is returning null for some reason
-          if (table == null) {
-            print("TABLE IS NULL");
-            return;
-          }
-
-          print("TABLE SAVED");
-
-          await ref.read(formSaveProvider.notifier).saveTable(table);
-        },
-        label: Padding(
-          padding: const EdgeInsets.all(20.0),
-          child: Text("Save Record (f12)"),
+          label: Padding(
+            padding: const EdgeInsets.all(20.0),
+            child: Text("Save Record (f12)"),
           ),
         ),
       ),
@@ -170,12 +174,19 @@ class _DataEntryState extends ConsumerState<DataEntryScreen> {
   }
 }
 
-class TableFormSection extends ConsumerWidget {
-  final String tableName;
-  const TableFormSection({super.key, required this.tableName});
+class _TableFormSectionState extends ConsumerState<TableFormSection> {
+  late final String tableName;
+  late final ScrollController? _scrollController;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  void initState() {
+    super.initState();
+    tableName = widget.tableName;
+    _scrollController = widget.controller;
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final project = ref.watch(projectViewModelProvider).value;
     final table = project?.tables[tableName];
 
@@ -192,8 +203,19 @@ class TableFormSection extends ConsumerWidget {
 
         return DynamicFlexField(tableName: tableName, attribute: attribute);
       },
+      controller: _scrollController,
     );
   }
+}
+
+class TableFormSection extends ConsumerStatefulWidget {
+  final String tableName;
+  final ScrollController? controller;
+  const TableFormSection({super.key, required this.tableName, this.controller});
+
+  @override
+  ConsumerState<ConsumerStatefulWidget> createState() =>
+      _TableFormSectionState();
 }
 
 class DynamicFlexField extends ConsumerWidget {
@@ -286,9 +308,7 @@ class DrawerSubmenu extends StatelessWidget {
             Navigator.pop(context);
             Navigator.push(
               context,
-              MaterialPageRoute(
-                builder: (context) => CheckDatabaseScreen(),
-              ),
+              MaterialPageRoute(builder: (context) => CheckDatabaseScreen()),
             );
           },
         ),

@@ -87,15 +87,13 @@ class _CheckDatabaseScreenState extends ConsumerState<CheckDatabaseScreen> {
     List<PlutoColumn> columns = constructor.constructColumns(table);
     final dbRows = repo.getAllRows(tableName);
     final rows = dbRows.map((row) {
-      PlutoRow current_row = constructor.constructRow(table, row);
-      final check_row = PlutoCell(value: "");
-      current_row.cells['check_box'] = check_row;
-      return current_row;
+      PlutoRow currentRow = constructor.constructRow(table, row);
+      final checkRow = PlutoCell(value: "");
+      currentRow.cells['check_box'] = checkRow;
+      return currentRow;
     }).toList();
 
-    print("ROW: ${rows.first.cells}");
-
-    final check_col = PlutoColumn(
+    final checkCol = PlutoColumn(
       title: '',
       field: 'check_box',
       type: PlutoColumnType.text(),
@@ -112,7 +110,7 @@ class _CheckDatabaseScreenState extends ConsumerState<CheckDatabaseScreen> {
         curve: Curves.easeInOutCubicEmphasized,
         clipBehavior: Clip.none,
         child: TweenAnimationBuilder<Color?>(
-          duration: Duration(milliseconds: 300),
+          duration: Duration(milliseconds: 500),
           tween: ColorTween(
             end: _rowCount > 0
                 ? scheme.primaryContainer
@@ -234,10 +232,12 @@ class _CheckDatabaseScreenState extends ConsumerState<CheckDatabaseScreen> {
                   ),
                 ],
               ),
+              // if (rows.isEmpty || columns.isEmpty) Center(child: Text("No rows or columns."))
+              // else 
               Expanded(
                 child: PlutoGrid(
                   key: ValueKey(tableName),
-                  columns: [check_col, ...columns],
+                  columns: [checkCol, ...columns],
                   rows: rows,
                   mode: PlutoGridMode.normal,
                   onLoaded: (PlutoGridOnLoadedEvent event) {
