@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pluto_grid/pluto_grid.dart';
+import 'package:ui_prototype/domain/db_table.dart';
+import 'package:ui_prototype/domain/models/db_row.dart';
 import 'package:ui_prototype/infrastructure/project/active_project/pluto_grid_constructor.dart';
 import 'package:ui_prototype/infrastructure/providers/delete_rows_provider.dart';
 import 'package:ui_prototype/infrastructure/providers/flex_form_provider.dart';
@@ -57,10 +59,37 @@ class _CheckDatabaseScreenState extends ConsumerState<CheckDatabaseScreen> {
 
   // Create caches
   final Map<String, List<PlutoRow>> _tableRowsCache = {};
+  final Map<String, List<DbRow>> _originalRows = {};
   final Map<String, Set<Key>> _tableUpdatedKeysCache = {};
 
   // Pluto grid constructor
   PlutoGridConstructor constructor = PlutoGridConstructor();
+
+  void resetTable(String tableName, DbTable table) {
+    // Get rows from originalRows map
+    final originalRows = _originalRows[tableName];
+    if (originalRows == null) return;
+
+    final rows = originalRows.map((row) {
+      PlutoRow currentRow = constructor.constructRow(table, row);
+      final checkRow = PlutoCell(value: "");
+      currentRow.cells['check_box'] = checkRow;
+      return currentRow;
+    }).toList();
+
+    print("ORIGINAL ROWS: $originalRows");
+
+    setState(() {
+      _tableUpdatedKeysCache[tableName]?.clear();
+      _tableRowsCache[tableName] = rows;
+    });
+
+    final PlutoGridStateManager? currentStateManager = stateManager;
+    if (currentStateManager != null) {
+      currentStateManager.removeAllRows();
+      currentStateManager.appendRows(rows);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -118,6 +147,9 @@ class _CheckDatabaseScreenState extends ConsumerState<CheckDatabaseScreen> {
     } else {
       // Get rows from database
       final dbRows = repo.getAllRows(tableName);
+
+      // Store in original rows cache
+      _originalRows[tableName] = dbRows;
 
       // Convert db rows to pluto rows
       rows = dbRows.map((row) {
@@ -198,6 +230,8 @@ class _CheckDatabaseScreenState extends ConsumerState<CheckDatabaseScreen> {
                         setState(() {
                           currentUpdatedKeys.clear();
                         });
+                      } else {
+                        resetTable(tableName, table);
                       }
                     }
                   : null,
