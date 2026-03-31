@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/legacy.dart';
 import 'package:sqlite3/sqlite3.dart';
 import 'package:ui_prototype/infrastructure/project/sqlite_database_connection.dart';
 
@@ -6,6 +7,9 @@ final databaseConnectionProvider = Provider<SqliteDatabaseConnection>((ref) {
   return SqliteDatabaseConnection();
 });
 
+
+final activeDatabasePathProvider = StateProvider<String?>((ref) => null);
+  
 final activeDatabaseConnectionProvider =
     NotifierProvider<ActiveDatabaseConnectionNotifier, Database?>(
       ActiveDatabaseConnectionNotifier.new,
@@ -14,12 +18,14 @@ final activeDatabaseConnectionProvider =
 class ActiveDatabaseConnectionNotifier extends Notifier<Database?> {
   @override
   Database? build() {
-    ref.onDispose(() => state?.dispose());
+    ref.onDispose(() {
+      state?.dispose();
+      ref.read(activeDatabasePathProvider.notifier).state = null;
+    });
     return null;
   }
 
   void setActiveProjectDatabase(String path) {
-    // Get database connection, open database using its open method
     final conn = ref.read(databaseConnectionProvider);
     final db = conn.open(path);
 
@@ -29,5 +35,12 @@ class ActiveDatabaseConnectionNotifier extends Notifier<Database?> {
     // Update state
     state?.dispose();
     state = db;
+
+    // ✅ store the path so WriteBackup can be called later
+    ref.read(activeDatabasePathProvider.notifier).state = path;
   }
 }
+
+
+
+
