@@ -207,7 +207,11 @@ class _ProjectCreationScreenState extends ConsumerState<ProjectCreationScreen> {
                     },
                   ),
                   FloatingActionButton.extended(
-                    onPressed: insertIntoDb,
+                    onPressed: () {
+                      insertIntoDb();
+                      Navigator.pop(context);
+                    },
+
                     label: Text('Create Project'),
                   ),
                 ],
