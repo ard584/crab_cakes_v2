@@ -64,7 +64,6 @@ class _CheckDatabaseScreenState extends ConsumerState<CheckDatabaseScreen> {
   PlutoGridConstructor constructor = PlutoGridConstructor();
 
   void resetTable(DbTable table) {
-
     final repo = ref.read(projectDatabaseProvider);
     final databaseRows = repo.getAllRows(table.name);
 
@@ -172,67 +171,71 @@ class _CheckDatabaseScreenState extends ConsumerState<CheckDatabaseScreen> {
 
     return Scaffold(
       appBar: AppBar(title: const Text('View Entries')),
-      floatingActionButton: AnimatedSize(
-        duration: Duration(milliseconds: 400),
-        curve: Curves.easeInOutCubicEmphasized,
-        clipBehavior: Clip.none,
-        child: TweenAnimationBuilder<Color?>(
-          duration: Duration(milliseconds: 500),
-          tween: ColorTween(
-            end: rowCount > 0
-                ? scheme.primaryContainer
-                : scheme.surfaceContainerHighest,
-          ),
-          builder: (context, color, child) {
-            return FloatingActionButton.extended(
-              onPressed: rowCount > 0
-                  ? () async {
-                      final currentStateManager = stateManager;
-                      if (currentStateManager == null) return;
+      floatingActionButton: TweenAnimationBuilder<Color?>(
+        duration: Duration(milliseconds: 500),
+        tween: ColorTween(
+          end: rowCount > 0
+              ? scheme.primaryContainer
+              : scheme.surfaceContainerHighest,
+        ),
+        builder: (context, color, child) {
+          String prompt = rowCount == 1
+              ? "Update $rowCount row"
+              : "Update $rowCount rows";
+          return FloatingActionButton.extended(
+            onPressed: rowCount > 0
+                ? () async {
+                    final currentStateManager = stateManager;
+                    if (currentStateManager == null) return;
 
-                      String promptRows = "rows";
-                      final selectedRowKeys = currentUpdatedKeys.toList();
+                    String promptRows = "rows";
+                    final selectedRowKeys = currentUpdatedKeys.toList();
 
-                      if (selectedRowKeys.length == 1) {
-                        promptRows = "row";
-                      }
+                    if (selectedRowKeys.length == 1) {
+                      promptRows = "row";
+                    }
 
-                      final result = await confirmUpdateEditGrid(
-                        context,
-                        "Are you sure you want to update ${selectedRowKeys.length} $promptRows?",
+                    final result = await confirmUpdateEditGrid(
+                      context,
+                      "Are you sure you want to update ${selectedRowKeys.length} $promptRows?",
+                    );
+
+                    if (result == EditGridAction.update) {
+                      // Get state manager
+                      final stateManager = currentStateManager;
+
+                      // Get all updated row identifiers
+                      final List<Key> editedRowIdentifiers = currentUpdatedKeys
+                          .toList();
+
+                      // Get edited rows
+                      final editedRows = extractPlutoRowsByKeys(
+                        editedRowIdentifiers,
+                        stateManager,
                       );
 
-                      if (result == EditGridAction.update) {
-                        // Get state manager
-                        final stateManager = currentStateManager;
+                      final updater = ref.read(plutoUpdateRowsProvider);
+                      updater.updateFromPluto(rows: editedRows, table: table);
 
-                        // Get all updated row identifiers
-                        final List<Key> editedRowIdentifiers =
-                            currentUpdatedKeys.toList();
-
-                        // Get edited rows
-                        final editedRows = extractPlutoRowsByKeys(
-                          editedRowIdentifiers,
-                          stateManager,
-                        );
-
-                        final updater = ref.read(plutoUpdateRowsProvider);
-                        updater.updateFromPluto(rows: editedRows, table: table);
-
-                        // Clear cached keys
-                        setState(() {
-                          currentUpdatedKeys.clear();
-                        });
-                      } else if (result == EditGridAction.abandon) {
-                        resetTable(table);
-                      }
+                      // Clear cached keys
+                      setState(() {
+                        currentUpdatedKeys.clear();
+                      });
+                    } else if (result == EditGridAction.abandon) {
+                      resetTable(table);
                     }
-                  : null,
-              label: Text("Update $rowCount rows"),
-              backgroundColor: color,
-            );
-          },
-        ),
+                  }
+                : null,
+            label: AnimatedSize(
+              duration: Duration(milliseconds: 1000),
+              curve: Curves.easeInOutCubicEmphasized,
+              clipBehavior: Clip.none,
+              child: Text(prompt),
+            ),
+
+            backgroundColor: color,
+          );
+        },
       ),
       body: Center(
         child: Padding(
