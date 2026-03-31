@@ -1,5 +1,7 @@
 import 'dart:convert';
 
+import 'dart:io' show Platform;
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 
@@ -30,8 +32,10 @@ import 'package:ui_prototype/domain/core/biomark_scan_parser.dart';
 
 //Wiring INFRASTRUCTURE providers
 final scannerDiscoveryProvider = Provider<ScannerDeviceDiscovery>((ref) {
+
   // Construct the concrete discovery implementation
   return LibserialportDeviceDiscovery(/* any constructor args */);
+
 });
 
 final scannerConnectorProvider = Provider<ScannerConnector>((ref) {
@@ -228,7 +232,5 @@ final selectedDeviceProvider = Provider<DiscoveredPort?>((ref) {
     orElse: () => null,
   );
 });
-
-
 
 

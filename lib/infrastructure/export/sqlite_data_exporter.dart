@@ -23,6 +23,9 @@ class SqliteDataExporter implements DataExporter {
   Future<void> export(String tableName, String filePath, String delimiter) async {
     DELIMITER = delimiter;
 
+    //add extension to the end of the file name
+    filePath = "$filePath.txt";
+
     final file = File(filePath);
     final sink = file.openWrite();
 
@@ -45,9 +48,13 @@ class SqliteDataExporter implements DataExporter {
       //build the select statement
       final selectStatement = _buildSelectStatement(orderedTableList, columnMap, 
                                                                   ancestorPath);
+      
+      print(selectStatement);
 
       //build the join clause
       final joinClause = _buildJoinClause(tableName, ancestorPath);
+      print("\n" + joinClause);
+
 
       //build the complete select and join statement
       final finalQuery = '$selectStatement\n$joinClause';
@@ -108,16 +115,36 @@ class SqliteDataExporter implements DataExporter {
   }
 
   //builds a JOIN clause using the relationships from ancestor path from the schema graph
-  String _buildJoinClause(String leafTable, List<TableRelationship> ancestorPath) {
-    final buffer = StringBuffer('FROM $leafTable\n');
+  String _buildJoinClause(String selectedTable, List<TableRelationship> ancestorPath) {
+    final buffer = StringBuffer('FROM $selectedTable\n');
 
-    for(final edge in ancestorPath) {
+    var index = 0;
+    var selectedIndex = ancestorPath.indexWhere((rel)=>rel.childTable == selectedTable);
+    
+
+    //generating all ancestor Joins (No special treatment needed)
+    for(index; index <= selectedIndex; index++) {
+      final edge = ancestorPath[index];    
       buffer.writeln(
         'JOIN ${edge.parentTable} '
         'ON ${edge.childTable}.${edge.childCol} = '
         '${edge.parentTable}.${edge.parentCol}'
       );
     }
+
+    //generating all descendent Joins (Some might be empty, left joining)
+    while(index <= ancestorPath.length - 1) {
+      final edge = ancestorPath[index];
+
+      buffer.writeln(
+        'LEFT JOIN ${edge.childTable} '
+        'ON ${edge.childTable}.${edge.childCol} = '
+        '${edge.parentTable}.${edge.parentCol}'
+      );
+
+      index++;
+    }
+
     return buffer.toString();
   }
 
@@ -271,6 +298,7 @@ class SchemaGraph {
   }
 
   List<String> leafTables() {
+    
     return tables.where((r)=>(childrenOf(r).isEmpty)).toList();
   }
 
