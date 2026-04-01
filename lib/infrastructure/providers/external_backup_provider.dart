@@ -1,12 +1,13 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-//importing access to the main database provider
-//import 'package:ui_prototype/presentation/providers/project_database_provider.dart';
-//import 'package:ui_prototype/presentation/providers/flex_form_provider.dart';
-import 'package:ui_prototype/infrastructure/providers/active_database_connection_provider.dart';
-// wherever currentFlexProjectProvider now lives after refactor:
-//import 'package:ui_prototype/infrastructure/providers/flex_form_provider.dart';
+import 'dart:io' show Platform;
 
+import 'package:ui_prototype/infrastructure/providers/active_database_connection_provider.dart';
+
+//importing dummy Infrastructure used when Platform is MAC-OS
+import 'package:ui_prototype/infrastructure/backup/dummies/dummy_backup_writer.dart';
+import 'package:ui_prototype/infrastructure/backup/dummies/dummy_drive_discovery.dart';
+import 'package:ui_prototype/infrastructure/backup/dummies/dummy_drive_selection_repo.dart';
 
 //importing use cases
 import 'package:ui_prototype/application/backup/usecases/discover_drives.dart';
@@ -39,20 +40,34 @@ final backupSettingsDbProvider = Provider<BackupSettingsDb>((ref) {
 
 final driveDiscoveryProvider = Provider<DriveDiscovery>((ref) {
   // Constructing the concrete discovery implementation
-  return Win32DriveDiscovery();
+  if(Platform.isWindows) {
+    return Win32DriveDiscovery();
+  }
+  else {
+    return DummyDriveDiscovery();
+  }
 });
 
 final driveSelectionRepoProvider = Provider<DriveSelectionRepository>((ref) {
   final db = ref.read(backupSettingsDbProvider);
   
   //constructing the concrete drive repo implementation
-  return DriftDriveSelectionRepository(db);
+  if(Platform.isWindows) {
+    return DriftDriveSelectionRepository(db);
+  } else {
+    return DummyDriveSelectionRepo();
+  }
 });
 
 final backupWriterProvider = Provider<BackupWriter>((ref) {
-  return DbBackupWriter(
-    getActiveDb: () => ref.read(activeDatabaseConnectionProvider),
-  );
+
+  if(Platform.isWindows) {
+    return DbBackupWriter(
+      getActiveDb: () => ref.read(activeDatabaseConnectionProvider),
+    );
+  } else {
+    return DummyBackupWriter();
+  }
 });
 
 

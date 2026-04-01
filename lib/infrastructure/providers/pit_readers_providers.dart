@@ -5,6 +5,10 @@ import 'dart:io' show Platform;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 
+//importing dummy infrastructure used when the active platform is MAC-OS
+import 'package:ui_prototype/infrastructure/scanner/dummies/dummy_scanner_connector.dart';
+import 'package:ui_prototype/infrastructure/scanner/dummies/dummy_scanner_discovery.dart';
+
 //importing use cases
 import 'package:ui_prototype/application/scanner/usecases/connect_scanner.dart';
 import 'package:ui_prototype/application/scanner/usecases/disconnect_scanner.dart';
@@ -34,13 +38,20 @@ import 'package:ui_prototype/domain/core/biomark_scan_parser.dart';
 final scannerDiscoveryProvider = Provider<ScannerDeviceDiscovery>((ref) {
 
   // Construct the concrete discovery implementation
-  return LibserialportDeviceDiscovery(/* any constructor args */);
-
+  if(Platform.isWindows) {
+    return LibserialportDeviceDiscovery();
+  } else {
+    return DummyScannerDiscovery();
+  }
 });
 
 final scannerConnectorProvider = Provider<ScannerConnector>((ref) {
   // Construct the concrete connector implementation
-  return LibserialportAdapter(/* any constructor args */);
+  if(Platform.isWindows) {
+    return LibserialportAdapter();
+  } else {
+    return DummyScannerConnector();
+  }
 });
 
 

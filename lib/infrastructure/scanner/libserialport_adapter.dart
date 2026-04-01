@@ -17,6 +17,7 @@ import 'dart:typed_data';
     bool connected = false; 
 
     //stream handoff point (just a getter)
+    @override
     Stream<Uint8List> get byteStream => _controller.stream;                       
 
 
