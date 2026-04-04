@@ -58,6 +58,7 @@ List<String> _readTableNames(Database db) {
   final tables = db.select('''SELECT name FROM sqlite_master 
   WHERE type='table' 
   AND name NOT LIKE 'sqlite%'
+  AND name NOT LIKE '\\_\\_%' ESCAPE '\\'
   ''');
 
   // Map to string

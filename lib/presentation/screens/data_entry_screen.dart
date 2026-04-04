@@ -12,6 +12,8 @@ import 'package:ui_prototype/infrastructure/providers/pit_readers_providers.dart
 import 'package:ui_prototype/infrastructure/providers/project_database_provider.dart';
 import 'package:ui_prototype/presentation/screens/check_database_screen.dart';
 import 'package:ui_prototype/presentation/screens/export_screen.dart';
+import 'package:ui_prototype/presentation/screens/field_config_screen.dart';
+
 import 'package:ui_prototype/presentation/screens/project_selection.dart';
 import 'package:ui_prototype/presentation/services/flex_field/flex_field_factory.dart';
 import 'package:ui_prototype/presentation/view_models/project_input.dart';
@@ -327,6 +329,19 @@ class DrawerSubmenu extends StatelessWidget {
               context,
               MaterialPageRoute(
                 builder: (context) => CheckDatabaseScreen(),
+              ),
+            );
+          },
+        ),
+        ListTile(
+          leading: const Icon(Icons.abc_outlined),
+          title: const Text("Field Config"),
+          onTap: () {
+            Navigator.pop(context);
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => FieldConfigScreen(),
               ),
             );
           },
