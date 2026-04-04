@@ -38,5 +38,5 @@ final exportBaseTablesProvider = FutureProvider<List<String>>((ref) async {
 
   if (exporter == null) return [];
 
-  return exporter.getBaseTables();
+  return exporter.getTables();
 });

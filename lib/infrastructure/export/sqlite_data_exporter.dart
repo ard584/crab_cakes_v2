@@ -1,7 +1,7 @@
-import 'dart:ffi';
 import 'dart:io';
 import 'package:sqlite3/sqlite3.dart';
 import 'package:ui_prototype/application/export/interfaces/data_exporter.dart';
+import 'package:ui_prototype/infrastructure/schema_discovery/schema_graph.dart';
 
 
 class SqliteDataExporter implements DataExporter {
@@ -12,14 +12,14 @@ class SqliteDataExporter implements DataExporter {
   SqliteDataExporter( this.db );  
 
   @override
-  Future<List<String>> getBaseTables() async {
-    final graph = _buildGraph();
+  Future<List<String>> getTables() async {
+    final graph = buildGraph(db);
 
-    return graph.leafTables();
+    return graph.allTables();
   }
 
 
-  @override //NOTE: EXPORTING ONY WORKS FOR TREE AND CHAIN SCHEMA STRUCTURES!
+  @override //NOTE: EXPORTING ONY WORKS FOR CHAIN SCHEMA STRUCTURES!
   Future<void> export(String tableName, String filePath, String delimiter) async {
     DELIMITER = delimiter;
 
@@ -30,16 +30,15 @@ class SqliteDataExporter implements DataExporter {
     final sink = file.openWrite();
 
     try {
-      // Get column names
-      // final columnInfo = db.select('PRAGMA table_info($tableName);');
-      // final columns = columnInfo.map((row) => row['name'] as String).toList();
 
       //create the schema graph
-      final graph = _buildGraph();
-      
-      final orderedTableList = graph.orderedTablesRootToLeaf(tableName);
+      final graph = buildGraph(db);
       final columnMap = _getColumnMap();
-      final ancestorPath = graph.ancestorPathFromLeaf(tableName);
+
+      //this ancestor path starts at the leaf table, ends at the root, and contains
+      //the specified table
+      final ancestorPath = graph.ancestorPathFromSelected(tableName);
+      final orderedTableList = graph.orderedTablesRootToLeaf(ancestorPath, tableName);
       final aliases = _buildExportAliases(orderedTableList, columnMap, ancestorPath);
 
       // Write CSV header
@@ -49,12 +48,8 @@ class SqliteDataExporter implements DataExporter {
       final selectStatement = _buildSelectStatement(orderedTableList, columnMap, 
                                                                   ancestorPath);
       
-      print(selectStatement);
-
       //build the join clause
       final joinClause = _buildJoinClause(tableName, ancestorPath);
-      print("\n" + joinClause);
-
 
       //build the complete select and join statement
       final finalQuery = '$selectStatement\n$joinClause';
@@ -62,11 +57,10 @@ class SqliteDataExporter implements DataExporter {
       // Query all rows
       final rows = db.select(finalQuery);
 
-      // Write each row
+      // Write each row to the CSV file
       for (final row in rows) {
         final values = aliases.map((alias)=> _escapeCsv(row[alias])).toList();
 
-        //No idea what to do here.
         sink.writeln(values.join(DELIMITER));
       }
     } finally {
@@ -78,30 +72,12 @@ class SqliteDataExporter implements DataExporter {
   List<String> _buildExportAliases(          List<String> orderedTables,
                                 Map<String, List<String>> columnsByTable,
                                 List<TableRelationship> ancestorPath) {
-    //extracting the foreign keys to exclude from the CSV file
-    final foreignKeys = <String>{};
 
-    for(final edge in ancestorPath) {
-      foreignKeys.add('${edge.childTable}.${edge.childCol}');
-    }
+    //building the specs by excluding the foreign key redundancies
+    final specs = _buildExportColumnSpecs(orderedTables, columnsByTable, ancestorPath);
 
-    final aliases = <String>[];
-
-    for(final table in orderedTables) {
-      final cols = columnsByTable[table] ?? [];
-
-      for(final col in cols) {
-      final selectedCol = "$table.$col";
-
-      //making sure the selected column is NOT a foreign key (so its not redundant)
-      if(!foreignKeys.contains(selectedCol)) {
-        aliases.add(
-          "${table}_$col"
-        );
-      }
-      }
-    }
-    return aliases;
+    //selecting only the list of aliases to return 
+    return specs.map((s)=>s.alias).toList();
   }
 
   
@@ -115,26 +91,52 @@ class SqliteDataExporter implements DataExporter {
   }
 
   //builds a JOIN clause using the relationships from ancestor path from the schema graph
-  String _buildJoinClause(String selectedTable, List<TableRelationship> ancestorPath) {
-    final buffer = StringBuffer('FROM $selectedTable\n');
+  String _buildJoinClause(String selectedTable, List<TableRelationship> ancestorPathFromLeaf) {
 
-    var index = 0;
-    var selectedIndex = ancestorPath.indexWhere((rel)=>rel.childTable == selectedTable);
-    
-
-    //generating all ancestor Joins (No special treatment needed)
-    for(index; index <= selectedIndex; index++) {
-      final edge = ancestorPath[index];    
-      buffer.writeln(
-        'JOIN ${edge.parentTable} '
-        'ON ${edge.childTable}.${edge.childCol} = '
-        '${edge.parentTable}.${edge.parentCol}'
-      );
+    //checking for edge case: single table, no relationships
+    if(ancestorPathFromLeaf.isEmpty) {
+      return 'FROM $selectedTable\n';
     }
 
+    final buffer = StringBuffer('FROM $selectedTable\n');
+
+    //checking for edge case: selected table IS the root table
+    final isRootSelected = ancestorPathFromLeaf.isNotEmpty &&
+                        ancestorPathFromLeaf.last.parentTable == selectedTable;
+
+    var index = 0;
+    var selectedIndex = ancestorPathFromLeaf.indexWhere((rel)=>rel.childTable == selectedTable);
+
+    //guarding against the selected table not being in the provided chain
+    if (!isRootSelected && selectedIndex == -1) {
+      throw Exception('Selected table $selectedTable is not on the export path.');
+    }
+    
+    //if the selected table is the root, there are NO ancestors, skip this part
+    if(!isRootSelected) {
+      //generating all ancestor Joins (No special treatment needed)
+      for(index = selectedIndex; index < ancestorPathFromLeaf.length; index++) {
+        final edge = ancestorPathFromLeaf[index];    
+        buffer.writeln(
+          'JOIN ${edge.parentTable} '
+          'ON ${edge.childTable}.${edge.childCol} = '
+          '${edge.parentTable}.${edge.parentCol}'
+        );
+      }
+    } else {
+      //setting the selected index to the end of the list
+      selectedIndex = ancestorPathFromLeaf.length;
+    }
+    
+
+    //resetting the index to the beginning of the list, now we iterate from the
+    //beginning (leaf) to the table right before the selected table. These are
+    //the descendents of the selected table (I.E. VIE marks is a descendent to Specimen)
+    index = 0;
+
     //generating all descendent Joins (Some might be empty, left joining)
-    while(index <= ancestorPath.length - 1) {
-      final edge = ancestorPath[index];
+    while(index < selectedIndex) {
+      final edge = ancestorPathFromLeaf[index];
 
       buffer.writeln(
         'LEFT JOIN ${edge.childTable} '
@@ -153,6 +155,22 @@ class SqliteDataExporter implements DataExporter {
                                 Map<String, List<String>> columnsByTable,
                                 List<TableRelationship> ancestorPath) {
 
+    //building the specs by excluding the foreign key redundancies
+    final specs = _buildExportColumnSpecs(orderedTables, columnsByTable, ancestorPath);
+
+    //using the aliases to create select statements for all cols
+    final selectParts = specs.map((s)=>'${s.table}.${s.column} AS ${s.alias}').toList();
+
+    return 'SELECT\n${selectParts.join(',\n')}';
+  }
+
+  //helper class to decide which columns to include and which to exclude.
+  // NOTE: This is the same logic used for both select and header builder
+  List<ExportColumnSpec> _buildExportColumnSpecs(
+    List<String> orderedTables,
+    Map<String, List<String>> colsByTable,
+    List<TableRelationship> ancestorPath
+  ) {
     //extracting the foreign keys to exclude from the CSV file
     final foreignKeys = <String>{};
 
@@ -160,25 +178,23 @@ class SqliteDataExporter implements DataExporter {
       foreignKeys.add('${edge.childTable}.${edge.childCol}');
     }
 
-    final selectParts = <String>[];
+    final specs = <ExportColumnSpec>[];
 
-    for(final table in orderedTables) {
-       final cols = columnsByTable[table] ?? [];
+    for (final table in orderedTables) {
+      final cols = colsByTable[table] ?? [];
 
-       for(final col in cols) {
-        final selectedCol = "$table.$col";
+      for(final col in cols) {
+        final selectedCol = '$table.$col';
 
-        //making sure the selected column is NOT a foreign key (so its not redundant)
+        //excluding redundant foreign key columns
         if(!foreignKeys.contains(selectedCol)) {
-          selectParts.add(
-            "$selectedCol AS ${table}_$col"
+          specs.add(
+            ExportColumnSpec(table: table, column: col, alias: '${table}_$col')
           );
         }
-        
-       }
+      }
     }
-
-    return 'SELECT\n${selectParts.join(',\n')}';
+    return specs;
   }
 
   String _escapeCsv(Object? value) {
@@ -191,40 +207,6 @@ class SqliteDataExporter implements DataExporter {
     }
 
     return str;
-  }
-
-
-  SchemaGraph _buildGraph() {
-
-    final tableList = db.select(''' 
-      SELECT name
-      FROM sqlite_master
-      WHERE type = 'table'
-      AND name NOT LIKE 'sqlite_%'
-      AND name != '__project_settings'
-      ORDER BY name;''');
-
-    final tables = <String>{};
-    final relationships = <TableRelationship>[];
-
-    for(final row in tableList) {
-      final tableName = row['name'] as String;
-      tables.add(tableName);
-
-      final fkRows = db.select('PRAGMA foreign_key_list($tableName);');
-
-      for(final fk in fkRows) {
-        relationships.add(
-          TableRelationship(
-            childTable: tableName,
-            childCol: fk['from'] as String,
-            parentTable: fk['table'] as String,
-            parentCol: fk['to'] as String,
-          ),
-        );
-      }
-    }
-    return SchemaGraph(relationships: relationships, tables: tables);
   }
 
   Map<String, List<String>> _getColumnMap() {
@@ -253,95 +235,18 @@ class SqliteDataExporter implements DataExporter {
 
 //----------------- HELPER CLASSES ----------------------------------
 
-class TableRelationship {
-  final String childTable;
-  final String childCol;
-  final String parentTable;
-  final String parentCol;
 
-  TableRelationship({
-    required this.childTable,
-    required this.childCol,
-    required this.parentTable,
-    required this.parentCol,
+
+//helper class that contains the specs for one column to be exported
+//I.E. the table and column it originates from + its alias
+class ExportColumnSpec {
+  final String table;
+  final String column;
+  final String alias;
+
+  ExportColumnSpec({
+    required this.table,
+    required this.column,
+    required this.alias
   });
-}
-
-
-class SchemaGraph {
-  final Set<String> tables;
-  final List<TableRelationship> relationships;
-
-  SchemaGraph({
-    required this.tables,
-    required this.relationships,
-  });
-
-  List<String> parentsOf(String table) {
-    return relationships
-      .where((r)=> r.childTable == table)
-      .map((r)=>r.parentTable)
-      .toSet()
-      .toList();
-  }
-
-  List<String> childrenOf(String table) {
-    return relationships
-      .where((r)=>r.parentTable == table)
-      .map((r)=>r.childTable)
-      .toSet()
-      .toList();
-  }
-
-  List<String> rootTables() {
-    return tables.where((r)=>(parentsOf(r).isEmpty)).toList();
-  }
-
-  List<String> leafTables() {
-    
-    return tables.where((r)=>(childrenOf(r).isEmpty)).toList();
-  }
-
-  TableRelationship? parentEdgeOf(String childTable) {
-    final matches = relationships
-        .where((r) => r.childTable == childTable)
-        .toList();
-
-    if (matches.isEmpty) return null;
-
-    if (matches.length > 1) {
-      throw Exception(
-        'Table $childTable has multiple parents. '
-        'This is outside current export support.',
-      );
-    }
-
-    return matches.first;
-  }
-
-  List<TableRelationship> ancestorPathFromLeaf(String leafTable) {
-    final path = <TableRelationship>[];
-    var current = leafTable;
-
-    while (true) {
-      final parentEdge = parentEdgeOf(current);
-      if (parentEdge == null) break;
-
-      path.add(parentEdge);
-      current = parentEdge.parentTable;
-    }
-
-    return path;
-  }
-
-  List<String> orderedTablesRootToLeaf(String leafTable) {
-    final path = ancestorPathFromLeaf(leafTable);
-
-    final tables = <String>[leafTable];
-    for(final edge in path) {
-      tables.add(edge.parentTable);
-    }
-
-    return tables.reversed.toList();
-  }
 }
