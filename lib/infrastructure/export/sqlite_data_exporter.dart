@@ -218,7 +218,7 @@ class SqliteDataExporter implements DataExporter {
       FROM sqlite_master
       WHERE type = 'table'
       AND name NOT LIKE 'sqlite_%'
-      AND name != '__project_settings'
+      AND name NOT LIKE '\\_\\_%' ESCAPE '\\'
       ORDER BY name;''');
 
     for(final row in tableList) {
