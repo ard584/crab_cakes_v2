@@ -127,10 +127,6 @@ class SqliteProjectDatabaseBuilder implements ProjectDatabaseBuilder {
         lastSchemaVersion = newSchemaVersion;
       }
 
-      //adding system tables (i.e. Settings)
-      createSystemTables(db);
-
-      //validating
       if (!validateDb(db)) {
         throw Exception(
           "Database validation failed: No tables created or illegal objects found.",
@@ -150,18 +146,5 @@ class SqliteProjectDatabaseBuilder implements ProjectDatabaseBuilder {
     }
 
     return dbTempPath;
-  }
-
-  void createSystemTables(Database db) {
-
-    //creating the Settings table (stores setting json), and inserting first row
-    db.execute("""
-    CREATE TABLE __project_settings (
-      id INT PRIMARY KEY,
-      settings_json TEXT NOT NULL
-    );
-    INSERT INTO __project_settings (id, settings_json)
-    VALUES (1, '{}');
-  """);
   }
 }
