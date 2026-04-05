@@ -1,14 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
-import 'package:ui_prototype/domain/value_objects/parse_result.dart';
-import 'package:ui_prototype/domain/entities/scan_event.dart';
-import 'package:ui_prototype/domain/entities/settings/project_settings.dart';
-
 import 'package:ui_prototype/infrastructure/providers/flex_form_provider.dart';
 import 'package:ui_prototype/infrastructure/providers/form_save_notifier.dart';
-import 'package:ui_prototype/infrastructure/providers/pit_readers_providers.dart';
-
 import 'package:ui_prototype/infrastructure/providers/project_database_provider.dart';
 import 'package:ui_prototype/presentation/screens/check_database_screen.dart';
 import 'package:ui_prototype/presentation/screens/export_screen.dart';
@@ -18,11 +11,6 @@ import 'package:ui_prototype/presentation/view_models/project_input.dart';
 import 'package:ui_prototype/presentation/components/catch_table_widget.dart';
 import 'package:ui_prototype/presentation/shortcuts/data_entry_shortcuts.dart';
 import 'package:ui_prototype/presentation/components/status_panel.dart';
-
-import 'package:ui_prototype/infrastructure/providers/external_backup_provider.dart';
-import 'package:ui_prototype/infrastructure/providers/active_database_connection_provider.dart';
-import 'package:ui_prototype/infrastructure/providers/settings_provider.dart';
-
 
 import 'settings_screen.dart';
 
@@ -47,36 +35,7 @@ class _DataEntryState extends ConsumerState<DataEntryScreen> {
   @override
   Widget build(BuildContext context) {
     final projectAsync = ref.watch(projectViewModelProvider);
-    final project = ref.watch(projectViewModelProvider).value;
-
     final activeTableName = ref.watch(activeTableProvider);
-    final activeTable = project?.tables[activeTableName];
-    final fieldList = activeTable?.attributes.values.toList();
-
-    
-    //setting up the stream subscription for scan detection
-    ref.listen(scanEventProvider, (prev, next) {
-      next.whenData((parseResult) {
-        if (parseResult is! ParseOk<ScanEvent>) return;
-
-        final scan = parseResult.value;
-
-        final settings = ref.read(projectSettingsProvider).value;
-        final targetTable = settings?.scanner.targetTable;
-        final targetCol = settings?.scanner.targetColumn;
-
-        if (targetTable == null || targetCol == null) return;
-        if (targetTable != activeTableName) return;
-        if (fieldList == null) return;
-
-        for (final field in fieldList) {
-          if (field.fields.name == targetCol) {
-            field.controller.text = scan.id ?? "";    
-            break;
-          }
-        }
-      });
-    });
 
     // Set activeProject state
     projectAsync.whenData((project) {
@@ -184,20 +143,21 @@ class _DataEntryState extends ConsumerState<DataEntryScreen> {
         focusNode: FocusNode(skipTraversal: true),
         onPressed: () async {
           final projectMap = ref.read(projectViewModelProvider).value;
+
           if (projectMap == null) return;
-          if (activeTableName == null) return;
 
           final table = projectMap.tables[activeTableName];
-          if (table == null) return;
+          print("ACTIVE TABLE NAME: $activeTableName");
 
-          // 1) Save record (this is where INSERT happens, inside saveTable)
-          await ref.read(formSaveProvider.notifier).saveTable(table);
-
-          // 2) Immediately run backup to selected drives
-          final dbPath = ref.read(activeDatabasePathProvider);
-          if (dbPath != null) {
-            await ref.read(writeBackupProvider).execute(sourceDbPath: dbPath);
+          // Table is returning null for some reason
+          if (table == null) {
+            print("TABLE IS NULL");
+            return;
           }
+
+          print("TABLE SAVED");
+
+          await ref.read(formSaveProvider.notifier).saveTable(table);
         },
         label: Padding(
           padding: const EdgeInsets.all(20.0),
