@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pluto_grid/pluto_grid.dart';
+import 'package:ui_prototype/domain/db_table.dart';
 import 'package:ui_prototype/infrastructure/project/active_project/pluto_grid_constructor.dart';
 import 'package:ui_prototype/infrastructure/providers/delete_rows_provider.dart';
 import 'package:ui_prototype/infrastructure/providers/flex_form_provider.dart';
@@ -8,7 +9,7 @@ import 'package:ui_prototype/infrastructure/providers/pluto_update_rows_provider
 import 'package:ui_prototype/infrastructure/providers/project_database_provider.dart';
 import 'package:ui_prototype/presentation/dialogs/confirm_delete.dart';
 import 'package:ui_prototype/presentation/adapters/pluto_grid_adapter.dart';
-import 'package:ui_prototype/presentation/dialogs/confirm_update.dart';
+import 'package:ui_prototype/presentation/dialogs/confirm_update_edit_grid.dart';
 
 Widget getTablesChoiceChips(WidgetRef ref) {
   final projectAsync = ref.watch(projectViewModelProvider);
@@ -61,6 +62,29 @@ class _CheckDatabaseScreenState extends ConsumerState<CheckDatabaseScreen> {
 
   // Pluto grid constructor
   PlutoGridConstructor constructor = PlutoGridConstructor();
+
+  void resetTable(DbTable table) {
+    final repo = ref.read(projectDatabaseProvider);
+    final databaseRows = repo.getAllRows(table.name);
+
+    final rows = databaseRows.map((row) {
+      PlutoRow currentRow = constructor.constructRow(table, row);
+      final checkRow = PlutoCell(value: "");
+      currentRow.cells['check_box'] = checkRow;
+      return currentRow;
+    }).toList();
+
+    setState(() {
+      _tableUpdatedKeysCache[table.name]?.clear();
+      _tableRowsCache[table.name] = rows;
+    });
+
+    final PlutoGridStateManager? currentStateManager = stateManager;
+    if (currentStateManager != null) {
+      currentStateManager.removeAllRows();
+      currentStateManager.appendRows(rows);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -147,6 +171,7 @@ class _CheckDatabaseScreenState extends ConsumerState<CheckDatabaseScreen> {
 
     return Scaffold(
       appBar: AppBar(title: const Text('View Entries')),
+<<<<<<< HEAD
       floatingActionButton: AnimatedSize(
         duration: Duration(milliseconds: 400),
         curve: Curves.easeInOutCubicEmphasized,
@@ -167,48 +192,82 @@ class _CheckDatabaseScreenState extends ConsumerState<CheckDatabaseScreen> {
                   ? () async {
                       final currentStateManager = stateManager;
                       if (currentStateManager == null) return;
+=======
+      floatingActionButton: TweenAnimationBuilder<Color?>(
+        duration: Duration(milliseconds: 500),
+        tween: ColorTween(
+          end: rowCount > 0
+              ? scheme.primaryContainer
+              : scheme.surfaceContainerHighest,
+        ),
+        builder: (context, color, child) {
+          String prompt = rowCount == 1
+              ? "Update $rowCount row"
+              : "Update $rowCount rows";
+          return FloatingActionButton.extended(
+            onPressed: rowCount > 0
+                ? () async {
+                    final currentStateManager = stateManager;
+                    if (currentStateManager == null) return;
+>>>>>>> parent of 957488b (Revert "Merge pull request #32 from ak2466/alex-dev-reset-rows-on-cancel")
 
-                      String promptRows = "rows";
-                      final selectedRowKeys = currentUpdatedKeys.toList();
+                    String promptRows = "rows";
+                    final selectedRowKeys = currentUpdatedKeys.toList();
 
-                      if (selectedRowKeys.length == 1) {
-                        promptRows = "row";
-                      }
+                    if (selectedRowKeys.length == 1) {
+                      promptRows = "row";
+                    }
 
-                      final update = await confirmUpdate(
-                        context,
-                        "Are you sure you want to update ${selectedRowKeys.length} $promptRows?",
+                    final result = await confirmUpdateEditGrid(
+                      context,
+                      "Are you sure you want to update ${selectedRowKeys.length} $promptRows?",
+                    );
+
+                    if (result == EditGridAction.update) {
+                      // Get state manager
+                      final stateManager = currentStateManager;
+
+                      // Get all updated row identifiers
+                      final List<Key> editedRowIdentifiers = currentUpdatedKeys
+                          .toList();
+
+                      // Get edited rows
+                      final editedRows = extractPlutoRowsByKeys(
+                        editedRowIdentifiers,
+                        stateManager,
                       );
 
-                      if (update) {
-                        // Get state manager
-                        final stateManager = currentStateManager;
+                      final updater = ref.read(plutoUpdateRowsProvider);
+                      updater.updateFromPluto(rows: editedRows, table: table);
 
-                        // Get all updated row identifiers
-                        final List<Key> editedRowIdentifiers =
-                            currentUpdatedKeys.toList();
-
-                        // Get edited rows
-                        final editedRows = extractPlutoRowsByKeys(
-                          editedRowIdentifiers,
-                          stateManager,
-                        );
-
-                        final updater = ref.read(plutoUpdateRowsProvider);
-                        updater.updateFromPluto(rows: editedRows, table: table);
-
-                        // Clear cached keys
-                        setState(() {
-                          currentUpdatedKeys.clear();
-                        });
-                      }
+                      // Clear cached keys
+                      setState(() {
+                        currentUpdatedKeys.clear();
+                      });
+                    } else if (result == EditGridAction.abandon) {
+                      resetTable(table);
                     }
+<<<<<<< HEAD
                   : null,
               label: Text(prompt),
               backgroundColor: color,
             );
           },
         ),
+=======
+                  }
+                : null,
+            label: AnimatedSize(
+              duration: Duration(milliseconds: 1000),
+              curve: Curves.easeInOutCubicEmphasized,
+              clipBehavior: Clip.none,
+              child: Text(prompt),
+            ),
+
+            backgroundColor: color,
+          );
+        },
+>>>>>>> parent of 957488b (Revert "Merge pull request #32 from ak2466/alex-dev-reset-rows-on-cancel")
       ),
       body: Center(
         child: Padding(
