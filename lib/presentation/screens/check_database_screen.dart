@@ -171,7 +171,6 @@ class _CheckDatabaseScreenState extends ConsumerState<CheckDatabaseScreen> {
 
     return Scaffold(
       appBar: AppBar(title: const Text('View Entries')),
-<<<<<<< HEAD
       floatingActionButton: AnimatedSize(
         duration: Duration(milliseconds: 400),
         curve: Curves.easeInOutCubicEmphasized,
@@ -192,24 +191,6 @@ class _CheckDatabaseScreenState extends ConsumerState<CheckDatabaseScreen> {
                   ? () async {
                       final currentStateManager = stateManager;
                       if (currentStateManager == null) return;
-=======
-      floatingActionButton: TweenAnimationBuilder<Color?>(
-        duration: Duration(milliseconds: 500),
-        tween: ColorTween(
-          end: rowCount > 0
-              ? scheme.primaryContainer
-              : scheme.surfaceContainerHighest,
-        ),
-        builder: (context, color, child) {
-          String prompt = rowCount == 1
-              ? "Update $rowCount row"
-              : "Update $rowCount rows";
-          return FloatingActionButton.extended(
-            onPressed: rowCount > 0
-                ? () async {
-                    final currentStateManager = stateManager;
-                    if (currentStateManager == null) return;
->>>>>>> parent of 957488b (Revert "Merge pull request #32 from ak2466/alex-dev-reset-rows-on-cancel")
 
                     String promptRows = "rows";
                     final selectedRowKeys = currentUpdatedKeys.toList();
@@ -247,27 +228,13 @@ class _CheckDatabaseScreenState extends ConsumerState<CheckDatabaseScreen> {
                     } else if (result == EditGridAction.abandon) {
                       resetTable(table);
                     }
-<<<<<<< HEAD
+                  }
                   : null,
               label: Text(prompt),
               backgroundColor: color,
             );
           },
         ),
-=======
-                  }
-                : null,
-            label: AnimatedSize(
-              duration: Duration(milliseconds: 1000),
-              curve: Curves.easeInOutCubicEmphasized,
-              clipBehavior: Clip.none,
-              child: Text(prompt),
-            ),
-
-            backgroundColor: color,
-          );
-        },
->>>>>>> parent of 957488b (Revert "Merge pull request #32 from ak2466/alex-dev-reset-rows-on-cancel")
       ),
       body: Center(
         child: Padding(
