@@ -171,26 +171,22 @@ class _CheckDatabaseScreenState extends ConsumerState<CheckDatabaseScreen> {
 
     return Scaffold(
       appBar: AppBar(title: const Text('View Entries')),
-      floatingActionButton: AnimatedSize(
-        duration: Duration(milliseconds: 400),
-        curve: Curves.easeInOutCubicEmphasized,
-        clipBehavior: Clip.none,
-        child: TweenAnimationBuilder<Color?>(
-          duration: Duration(milliseconds: 500),
-          tween: ColorTween(
-            end: rowCount > 0
-                ? scheme.primaryContainer
-                : scheme.surfaceContainerHighest,
-          ),
-          builder: (context, color, child) {
-
-            final rowString = (rowCount == 1) ? "row" : "rows";
-            final prompt = "Update $rowCount $rowString";
-            return FloatingActionButton.extended(
-              onPressed: rowCount > 0
-                  ? () async {
-                      final currentStateManager = stateManager;
-                      if (currentStateManager == null) return;
+      floatingActionButton: TweenAnimationBuilder<Color?>(
+        duration: Duration(milliseconds: 1000),
+        curve: Curves.easeOut,
+        tween: ColorTween(
+          end: rowCount > 0
+              ? scheme.primaryContainer
+              : scheme.surfaceContainerHighest,
+        ),
+        builder: (context, color, child) {
+          final rowString = (rowCount == 1) ? "row" : "rows";
+          final prompt = "Update $rowCount $rowString";
+          return FloatingActionButton.extended(
+            onPressed: rowCount > 0
+                ? () async {
+                    final currentStateManager = stateManager;
+                    if (currentStateManager == null) return;
 
                     String promptRows = "rows";
                     final selectedRowKeys = currentUpdatedKeys.toList();
@@ -229,12 +225,18 @@ class _CheckDatabaseScreenState extends ConsumerState<CheckDatabaseScreen> {
                       resetTable(table);
                     }
                   }
-                  : null,
-              label: Text(prompt),
-              backgroundColor: color,
-            );
-          },
-        ),
+                : null,
+
+            label: AnimatedSize(
+              duration: Duration(milliseconds: 500),
+              curve: Curves.fastEaseInToSlowEaseOut,
+              clipBehavior: Clip.none,
+              child: Text(prompt),
+            ),
+
+            backgroundColor: color,
+          );
+        },
       ),
       body: Center(
         child: Padding(
