@@ -1,6 +1,4 @@
 //import 'dart:async';
-import 'dart:async';
-
 import 'package:flutter_libserialport/flutter_libserialport.dart';
 import 'package:ui_prototype/application/scanner/interfaces/scanner_connector.dart';
 import 'dart:typed_data';
@@ -8,16 +6,12 @@ import 'dart:typed_data';
   class LibserialportAdapter implements ScannerConnector {
 
     SerialPort? _port;
-    SerialPortReader? _reader;
-    StreamSubscription<Uint8List>? _readerSub;
+    Stream<Uint8List>? _byteStream;
     
-    final StreamController<Uint8List> _controller = 
-      StreamController<Uint8List>.broadcast();
-    
-    bool connected = false; 
+    bool connected = false;
 
     //stream handoff point (just a getter)
-    Stream<Uint8List> get byteStream => _controller.stream;                       
+    Stream<Uint8List>? get byteStream => _byteStream;
 
 
     @override
@@ -58,17 +52,9 @@ import 'dart:typed_data';
 
         //setting a reader to get access to the byte stream
         final reader = SerialPortReader(port);
-        _reader = reader;
 
-        //setting up the subscription which feeds the stream controller
-        _readerSub = reader.stream.listen(
-          (data) {
-            _controller.add(data);
-          },
-          onError: (error, stackTrace) {
-            _controller.addError(error, stackTrace);
-          },
-        );
+        _byteStream = reader.stream;
+
         //return success
         return true;
 
@@ -85,11 +71,7 @@ import 'dart:typed_data';
     Future<bool> disconnect() async {
 
       try {
-        await _readerSub?.cancel();
-        _readerSub = null;
-
-        _reader?.close();
-        _reader = null;
+        _byteStream = null;
 
         final port = _port;
         _port = null;
@@ -102,6 +84,7 @@ import 'dart:typed_data';
         }
 
         connected = false;
+
         return true;
 
       } catch (error) {
