@@ -159,6 +159,9 @@ class _CheckDatabaseScreenState extends ConsumerState<CheckDatabaseScreen> {
                 : scheme.surfaceContainerHighest,
           ),
           builder: (context, color, child) {
+
+            final rowString = (rowCount == 1) ? "row" : "rows";
+            final prompt = "Update $rowCount $rowString";
             return FloatingActionButton.extended(
               onPressed: rowCount > 0
                   ? () async {
@@ -201,7 +204,7 @@ class _CheckDatabaseScreenState extends ConsumerState<CheckDatabaseScreen> {
                       }
                     }
                   : null,
-              label: Text("Update $rowCount rows"),
+              label: Text(prompt),
               backgroundColor: color,
             );
           },
