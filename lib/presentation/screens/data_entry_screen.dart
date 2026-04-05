@@ -334,7 +334,7 @@ class DrawerSubmenu extends StatelessWidget {
           },
         ),
         ListTile(
-          leading: const Icon(Icons.abc_outlined),
+          leading: const Icon(Icons.build),
           title: const Text("Field Config"),
           onTap: () {
             Navigator.pop(context);
