@@ -104,7 +104,6 @@ class _DataEntryState extends ConsumerState<DataEntryScreen> {
             loading: () => const Text('Loading...'),
           ),
         ),
-      ),
       drawer: ProjectDrawer(),
       body: Padding(
         padding: const EdgeInsets.all(28.0),
