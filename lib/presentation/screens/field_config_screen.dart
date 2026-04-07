@@ -2,22 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:ui_prototype/infrastructure/providers/flex_form_provider.dart';
+import 'package:ui_prototype/infrastructure/providers/settings_provider.dart';
 
-class FieldConfigScreen extends ConsumerStatefulWidget {
+import 'package:ui_prototype/domain/entities/settings/field_config.dart';
+import 'package:ui_prototype/domain/entities/settings/project_settings.dart';
+
+class FieldConfigScreen extends ConsumerWidget {
   const FieldConfigScreen({super.key});
 
   @override
-  ConsumerState<FieldConfigScreen> createState() => _FieldConfigScreenState();
-}
-
-class _FieldConfigScreenState extends ConsumerState<FieldConfigScreen> {
-  /// Local prototype-only storage.
-  /// Later this can be replaced with a provider/repository-backed config store.
-  final Map<String, Map<String, FieldConfigDraft>> _draftConfigs = {};
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final projectAsync = ref.watch(projectViewModelProvider);
+    final settingsAsync = ref.watch(projectSettingsProvider);
     final activeTableName = ref.watch(activeTableProvider);
 
     return Scaffold(
@@ -48,75 +44,136 @@ class _FieldConfigScreenState extends ConsumerState<FieldConfigScreen> {
 
             final attributes = table.attributes.values.toList();
 
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _TableChoiceChips(
-                  activeTableName: resolvedTableName,
-                  onTableSelected: (tableName) {
-                    ref
-                        .read(activeTableProvider.notifier)
-                        .setActiveTable(tableName);
-                  },
-                ),
-                const SizedBox(height: 18),
+            return settingsAsync.when(
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error: (e, st) => Center(child: Text("Error: $e")),
+              data: (settings) {
+                final resolvedSettings = settings ?? ProjectSettings.empty();
 
-                Text(
-                  "Configure dropdown options and simple constraints for each field.",
-                  style: Theme.of(context).textTheme.bodyMedium,
-                ),
-                const SizedBox(height: 14),
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _TableChoiceChips(
+                      activeTableName: resolvedTableName,
+                      onTableSelected: (tableName) {
+                        ref
+                            .read(activeTableProvider.notifier)
+                            .setActiveTable(tableName);
+                      },
+                    ),
+                    const SizedBox(height: 18),
+                    Text(
+                      "Configure dropdown options and simple constraints for each field.",
+                      style: Theme.of(context).textTheme.bodyMedium,
+                    ),
+                    const SizedBox(height: 14),
+                    const _FieldConfigHeader(),
+                    const SizedBox(height: 8),
+                    Expanded(
+                      child: attributes.isEmpty
+                          ? const _EmptyFieldConfigView()
+                          : ListView.separated(
+                              itemCount: attributes.length,
+                              separatorBuilder: (_, __) =>
+                                  const SizedBox(height: 8),
+                              itemBuilder: (context, index) {
+                                final attribute = attributes[index];
+                                final fieldName = attribute.fields.name;
+                                final dataType = attribute.fields.dataType;
+                                final schemaRequired =
+                                    attribute.fields.isNotNullable;
 
-                _FieldConfigHeader(),
-
-                const SizedBox(height: 8),
-
-                Expanded(
-                  child: attributes.isEmpty
-                      ? const _EmptyFieldConfigView()
-                      : ListView.separated(
-                          itemCount: attributes.length,
-                          separatorBuilder: (_, __) =>
-                              const SizedBox(height: 8),
-                          itemBuilder: (context, index) {
-                            final attribute = attributes[index];
-                            final fieldName = attribute.fields.name;
-
-                            final draft = _getOrCreateDraft(
-                              tableName: resolvedTableName,
-                              fieldName: fieldName,
-                              dataType: attribute.fields.dataType,
-                              isRequired: attribute.fields.isNotNullable,
-                            );
-
-                            return _FieldConfigRow(
-                              fieldName: fieldName,
-                              dataType: attribute.fields.dataType,
-                              draft: draft,
-                              onEditPressed: () async {
-                                final updated = await showDialog<FieldConfigDraft>(
-                                  context: context,
-                                  builder: (_) => FieldConfigDialog(
-                                    initialValue: draft.copy(),
-                                    fieldName: fieldName,
-                                    dataType: attribute.fields.dataType,
-                                  ),
+                                final savedConfig =
+                                    resolvedSettings.fieldConfig.getConfig(
+                                  table: resolvedTableName,
+                                  col: fieldName,
                                 );
 
-                                if (updated == null) return;
+                                final draft = savedConfig != null
+                                    ? _domainToDraft(savedConfig, dataType)
+                                    : FieldConfigDraft(
+                                        useDropdown: false,
+                                        allowCustomValues: true,
+                                        isRequired: schemaRequired,
+                                        options: const [],
+                                        minValue: null,
+                                        maxValue: null,
+                                        helpText: '',
+                                        dataType: dataType,
+                                      );
 
-                                setState(() {
-                                  _draftConfigs
-                                      .putIfAbsent(resolvedTableName, () => {});
-                                  _draftConfigs[resolvedTableName]![fieldName] =
-                                      updated;
-                                });
+                                return _FieldConfigRow(
+                                  fieldName: fieldName,
+                                  dataType: dataType,
+                                  draft: draft,
+                                  onEditPressed: () async {
+                                    final updated =
+                                        await showDialog<FieldConfigDraft>(
+                                      context: context,
+                                      builder: (_) => FieldConfigDialog(
+                                        initialValue: draft.copy(),
+                                        fieldName: fieldName,
+                                        dataType: dataType,
+                                      ),
+                                    );
+
+                                    if (updated == null) return;
+                                    if (!context.mounted) return;
+
+                                    final updateUsecase = ref.read(
+                                      updateFieldConfigUsecaseProvider,
+                                    );
+
+                                    if (updateUsecase == null) {
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(
+                                        const SnackBar(
+                                          content: Text(
+                                            'No active project settings repository.',
+                                          ),
+                                        ),
+                                      );
+                                      return;
+                                    }
+
+                                    try {
+                                      final domainConfig =
+                                          _draftToDomainConfig(updated);
+
+                                      await updateUsecase.execute(
+                                        table: resolvedTableName,
+                                        column: fieldName,
+                                        config: domainConfig,
+                                      );
+
+                                      ref.invalidate(projectSettingsProvider);
+
+                                      if (!context.mounted) return;
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(
+                                        const SnackBar(
+                                          content: Text('Field config saved.'),
+                                        ),
+                                      );
+                                    } catch (e) {
+                                      if (!context.mounted) return;
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(
+                                        SnackBar(
+                                          content: Text(
+                                            'Failed to save field config: $e',
+                                          ),
+                                        ),
+                                      );
+                                    }
+                                  },
+                                );
                               },
-                            );
-                          },
-                        ),
-                ),
-              ],
+                            ),
+                    ),
+                  ],
+                );
+              },
             );
           },
         ),
@@ -124,26 +181,28 @@ class _FieldConfigScreenState extends ConsumerState<FieldConfigScreen> {
     );
   }
 
-  FieldConfigDraft _getOrCreateDraft({
-    required String tableName,
-    required String fieldName,
-    required String dataType,
-    required bool isRequired,
-  }) {
-    _draftConfigs.putIfAbsent(tableName, () => {});
+  static FieldConfig _draftToDomainConfig(FieldConfigDraft draft) {
+    return FieldConfig(
+      useDropdown: draft.useDropdown,
+      allowCustomValues: draft.allowCustomValues,
+      isRequired: draft.isRequired,
+      options: List<String>.from(draft.options),
+      minValue: draft.minValue,
+      maxValue: draft.maxValue,
+      helpText: draft.helpText.trim().isEmpty ? null : draft.helpText.trim(),
+    );
+  }
 
-    return _draftConfigs[tableName]!.putIfAbsent(
-      fieldName,
-      () => FieldConfigDraft(
-        allowDropdown: false,
-        allowCustomValues: true,
-        isRequired: isRequired,
-        options: const [],
-        minValue: null,
-        maxValue: null,
-        notes: '',
-        dataType: dataType,
-      ),
+  static FieldConfigDraft _domainToDraft(FieldConfig config, String dataType) {
+    return FieldConfigDraft(
+      useDropdown: config.useDropdown,
+      allowCustomValues: config.allowCustomValues,
+      isRequired: config.isRequired,
+      options: List<String>.from(config.options),
+      minValue: config.minValue?.toDouble(),
+      maxValue: config.maxValue?.toDouble(),
+      helpText: config.helpText ?? '',
+      dataType: dataType,
     );
   }
 }
@@ -191,6 +250,8 @@ class _TableChoiceChips extends ConsumerWidget {
 }
 
 class _FieldConfigHeader extends StatelessWidget {
+  const _FieldConfigHeader();
+
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
@@ -299,7 +360,7 @@ class _ConfigSummary extends StatelessWidget {
   Widget build(BuildContext context) {
     final summaryLines = <String>[];
 
-    if (draft.allowDropdown) {
+    if (draft.useDropdown) {
       if (draft.options.isEmpty) {
         summaryLines.add("Dropdown enabled, no options yet");
       } else {
@@ -325,8 +386,8 @@ class _ConfigSummary extends StatelessWidget {
       summaryLines.add("Required");
     }
 
-    if (draft.notes.trim().isNotEmpty) {
-      summaryLines.add("Notes: ${draft.notes.trim()}");
+    if (draft.helpText.trim().isNotEmpty) {
+      summaryLines.add("Help: ${draft.helpText.trim()}");
     }
 
     return Column(
@@ -374,20 +435,20 @@ class FieldConfigDialog extends StatefulWidget {
 }
 
 class _FieldConfigDialogState extends State<FieldConfigDialog> {
-  late bool _allowDropdown;
+  late bool _useDropdown;
   late bool _allowCustomValues;
   late bool _isRequired;
 
   late TextEditingController _optionsController;
   late TextEditingController _minController;
   late TextEditingController _maxController;
-  late TextEditingController _notesController;
+  late TextEditingController _helpTextController;
 
   @override
   void initState() {
     super.initState();
 
-    _allowDropdown = widget.initialValue.allowDropdown;
+    _useDropdown = widget.initialValue.useDropdown;
     _allowCustomValues = widget.initialValue.allowCustomValues;
     _isRequired = widget.initialValue.isRequired;
 
@@ -400,8 +461,8 @@ class _FieldConfigDialogState extends State<FieldConfigDialog> {
     _maxController = TextEditingController(
       text: widget.initialValue.maxValue?.toString() ?? '',
     );
-    _notesController = TextEditingController(
-      text: widget.initialValue.notes,
+    _helpTextController = TextEditingController(
+      text: widget.initialValue.helpText,
     );
   }
 
@@ -410,7 +471,7 @@ class _FieldConfigDialogState extends State<FieldConfigDialog> {
     _optionsController.dispose();
     _minController.dispose();
     _maxController.dispose();
-    _notesController.dispose();
+    _helpTextController.dispose();
     super.dispose();
   }
 
@@ -428,10 +489,10 @@ class _FieldConfigDialogState extends State<FieldConfigDialog> {
               SwitchListTile(
                 contentPadding: EdgeInsets.zero,
                 title: const Text("Enable dropdown / autocomplete"),
-                value: _allowDropdown,
+                value: _useDropdown,
                 onChanged: (value) {
                   setState(() {
-                    _allowDropdown = value;
+                    _useDropdown = value;
                   });
                 },
               ),
@@ -466,7 +527,7 @@ class _FieldConfigDialogState extends State<FieldConfigDialog> {
                   labelText: "Dropdown options",
                   hintText: "Male, Female, Unknown",
                   border: OutlineInputBorder(),
-                  helperText: "Comma-separated prototype input",
+                  helperText: "Comma-separated input",
                 ),
               ),
               const SizedBox(height: 14),
@@ -511,10 +572,10 @@ class _FieldConfigDialogState extends State<FieldConfigDialog> {
                 ),
               const SizedBox(height: 14),
               TextField(
-                controller: _notesController,
+                controller: _helpTextController,
                 maxLines: 3,
                 decoration: const InputDecoration(
-                  labelText: "Notes / help text",
+                  labelText: "Help text",
                   border: OutlineInputBorder(),
                 ),
               ),
@@ -530,13 +591,13 @@ class _FieldConfigDialogState extends State<FieldConfigDialog> {
         FilledButton(
           onPressed: () {
             final updated = FieldConfigDraft(
-              allowDropdown: _allowDropdown,
+              useDropdown: _useDropdown,
               allowCustomValues: _allowCustomValues,
               isRequired: _isRequired,
               options: _parseOptions(_optionsController.text),
-              minValue: _parseNullableDouble(_minController.text),
-              maxValue: _parseNullableDouble(_maxController.text),
-              notes: _notesController.text.trim(),
+              minValue: _parseNullableNum(_minController.text),
+              maxValue: _parseNullableNum(_maxController.text),
+              helpText: _helpTextController.text.trim(),
               dataType: widget.dataType,
             );
 
@@ -556,10 +617,10 @@ class _FieldConfigDialogState extends State<FieldConfigDialog> {
         .toList();
   }
 
-  static double? _parseNullableDouble(String raw) {
+  static num? _parseNullableNum(String raw) {
     final trimmed = raw.trim();
     if (trimmed.isEmpty) return null;
-    return double.tryParse(trimmed);
+    return num.tryParse(trimmed);
   }
 
   static bool _looksNumeric(String dataType) {
@@ -575,35 +636,35 @@ class _FieldConfigDialogState extends State<FieldConfigDialog> {
 }
 
 class FieldConfigDraft {
-  final bool allowDropdown;
+  final bool useDropdown;
   final bool allowCustomValues;
   final bool isRequired;
   final List<String> options;
-  final double? minValue;
-  final double? maxValue;
-  final String notes;
+  final num? minValue;
+  final num? maxValue;
+  final String helpText;
   final String dataType;
 
   const FieldConfigDraft({
-    required this.allowDropdown,
+    required this.useDropdown,
     required this.allowCustomValues,
     required this.isRequired,
     required this.options,
     required this.minValue,
     required this.maxValue,
-    required this.notes,
+    required this.helpText,
     required this.dataType,
   });
 
   FieldConfigDraft copy() {
     return FieldConfigDraft(
-      allowDropdown: allowDropdown,
+      useDropdown: useDropdown,
       allowCustomValues: allowCustomValues,
       isRequired: isRequired,
       options: List<String>.from(options),
       minValue: minValue,
       maxValue: maxValue,
-      notes: notes,
+      helpText: helpText,
       dataType: dataType,
     );
   }

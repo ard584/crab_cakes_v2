@@ -7,6 +7,7 @@ import 'package:ui_prototype/infrastructure/providers/active_database_connection
 import 'package:ui_prototype/application/settings/usecases/get_settings.dart';
 import 'package:ui_prototype/application/settings/usecases/update_settings.dart';
 import 'package:ui_prototype/application/settings/usecases/update_scanner_target.dart';  
+import 'package:ui_prototype/application/settings/usecases/update_field_config.dart';
 
 //importing interfaces 
 import 'package:ui_prototype/application/settings/interfaces/project_settings_repo.dart';
@@ -52,6 +53,14 @@ final updateScannerTargetUsecaseProvider = Provider<UpdateScannerTarget?>((ref) 
   if(repo == null) return null;
 
   return UpdateScannerTarget(repo);
+});
+
+final updateFieldConfigUsecaseProvider = Provider<UpdateFieldConfig?>((ref) {
+  final repo = ref.watch(projectSettingsRepoProvider);
+
+  if(repo == null) return null;
+
+  return UpdateFieldConfig(repo);
 });
 
 // Wiring complete

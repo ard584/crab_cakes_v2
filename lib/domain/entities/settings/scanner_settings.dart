@@ -28,4 +28,8 @@ class ScannerSettings {
     );
   }
 
+  factory ScannerSettings.empty() {
+    return ScannerSettings(targetTable: null, targetColumn: null);
+  }
+
 }

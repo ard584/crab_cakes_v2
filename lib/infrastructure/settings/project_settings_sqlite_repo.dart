@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'package:sqlite3/sqlite3.dart';
 import 'package:ui_prototype/application/settings/interfaces/project_settings_repo.dart';
 import 'package:ui_prototype/domain/entities/settings/project_settings.dart';
-import 'package:ui_prototype/domain/entities/settings/scanner_settings.dart';
 
 
 class ProjectSettingsSqliteRepo implements ProjectSettingsRepo {
@@ -21,7 +20,7 @@ class ProjectSettingsSqliteRepo implements ProjectSettingsRepo {
 
     if(result.isEmpty) {
       //return an EMPTY project settings object
-      return ProjectSettings(scanner: ScannerSettings());
+      return ProjectSettings.empty();
     }
 
     final rawSettings = result.first;
