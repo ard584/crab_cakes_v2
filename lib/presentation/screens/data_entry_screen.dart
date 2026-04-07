@@ -31,6 +31,11 @@ class DataEntryScreen extends ConsumerStatefulWidget {
 }
 
 class _DataEntryState extends ConsumerState<DataEntryScreen> {
+  final ScrollController scrollController = ScrollController();
+
+  void jumpToTop() {
+    scrollController.animateTo(0, duration: Duration(milliseconds: 150), curve: Curves.fastOutSlowIn);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -38,8 +43,7 @@ class _DataEntryState extends ConsumerState<DataEntryScreen> {
     final activeTableName = ref.watch(activeTableProvider);
 
     // Set activeProject state
-    projectAsync.whenData((project) {
-    });
+    projectAsync.whenData((project) {});
 
     // Snack bar updates
     ref.listen<AsyncValue<void>>(formSaveProvider, (previous, next) {
@@ -83,22 +87,23 @@ class _DataEntryState extends ConsumerState<DataEntryScreen> {
       );
     });
 
-  return DataEntryShortcuts(
-    onSave: () async {
-      final projectMap = ref.read(projectViewModelProvider).value;
-      if (projectMap == null) return;
-      final table = projectMap.tables[activeTableName];
-      if (table == null) return;
-      await ref.read(formSaveProvider.notifier).saveTable(table);
-    },
-    child: Scaffold(
-      appBar: AppBar(
-        title: projectAsync.when(
-          data: (project) => Text('Data Entry'),
-          error: (_, __) => const Text("Error"),
-          loading: () => const Text('Loading...'),
+    return DataEntryShortcuts(
+      onSave: () async {
+        final projectMap = ref.read(projectViewModelProvider).value;
+        if (projectMap == null) return;
+        final table = projectMap.tables[activeTableName];
+        if (table == null) return;
+        await ref.read(formSaveProvider.notifier).saveTable(table);
+        jumpToTop();
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: projectAsync.when(
+            data: (project) => Text('Data Entry'),
+            error: (_, __) => const Text("Error"),
+            loading: () => const Text('Loading...'),
+          ),
         ),
-      ),
       drawer: ProjectDrawer(),
       body: Padding(
         padding: const EdgeInsets.all(28.0),
@@ -169,12 +174,19 @@ class _DataEntryState extends ConsumerState<DataEntryScreen> {
   }
 }
 
-class TableFormSection extends ConsumerWidget {
-  final String tableName;
-  const TableFormSection({super.key, required this.tableName});
+class _TableFormSectionState extends ConsumerState<TableFormSection> {
+  late final String tableName;
+  late final ScrollController? _scrollController;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  void initState() {
+    super.initState();
+    tableName = widget.tableName;
+    _scrollController = widget.controller;
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final project = ref.watch(projectViewModelProvider).value;
     final table = project?.tables[tableName];
 
@@ -191,8 +203,19 @@ class TableFormSection extends ConsumerWidget {
 
         return DynamicFlexField(tableName: tableName, attribute: attribute);
       },
+      controller: _scrollController,
     );
   }
+}
+
+class TableFormSection extends ConsumerStatefulWidget {
+  final String tableName;
+  final ScrollController? controller;
+  const TableFormSection({super.key, required this.tableName, this.controller});
+
+  @override
+  ConsumerState<ConsumerStatefulWidget> createState() =>
+      _TableFormSectionState();
 }
 
 class DynamicFlexField extends ConsumerWidget {
@@ -285,9 +308,7 @@ class DrawerSubmenu extends StatelessWidget {
             Navigator.pop(context);
             Navigator.push(
               context,
-              MaterialPageRoute(
-                builder: (context) => CheckDatabaseScreen(),
-              ),
+              MaterialPageRoute(builder: (context) => CheckDatabaseScreen()),
             );
           },
         ),
