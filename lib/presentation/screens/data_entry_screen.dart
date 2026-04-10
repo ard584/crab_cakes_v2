@@ -42,6 +42,8 @@ class _DataEntryState extends ConsumerState<DataEntryScreen> {
     final projectAsync = ref.watch(projectViewModelProvider);
     final activeTableName = ref.watch(activeTableProvider);
 
+    print("ACTIVE TABLE NAME: $activeTableName");
+
     // Set activeProject state
     projectAsync.whenData((project) {});
 
@@ -118,6 +120,8 @@ class _DataEntryState extends ConsumerState<DataEntryScreen> {
               return Center(child: const CircularProgressIndicator());
             }
 
+            print("TABLE FORM SECTION ACTIVE TABLE NAME: $activeTableName");
+
             return Column(
               children: [
                 //made it a row to show status on the left followed by table on the
@@ -133,6 +137,9 @@ class _DataEntryState extends ConsumerState<DataEntryScreen> {
                   ]
                 ),
                 const SizedBox(height: 16),
+
+                // Is this the issue?
+                
                 Expanded(
                   child: TableFormSection(tableName: activeTableName),
                 ),
@@ -175,19 +182,23 @@ class _DataEntryState extends ConsumerState<DataEntryScreen> {
 }
 
 class _TableFormSectionState extends ConsumerState<TableFormSection> {
-  late final String tableName;
   late final ScrollController? _scrollController;
 
   @override
   void initState() {
     super.initState();
-    tableName = widget.tableName;
     _scrollController = widget.controller;
   }
 
   @override
   Widget build(BuildContext context) {
     final project = ref.watch(projectViewModelProvider).value;
+    final tableName = ref.watch(activeTableProvider);
+
+    if (tableName == null) {
+      return Center(child: CircularProgressIndicator(),);
+    }
+    
     final table = project?.tables[tableName];
 
     if (table == null) {
