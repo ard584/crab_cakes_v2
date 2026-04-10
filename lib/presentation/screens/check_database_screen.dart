@@ -171,7 +171,11 @@ class _CheckDatabaseScreenState extends ConsumerState<CheckDatabaseScreen> {
 
     return Scaffold(
       appBar: AppBar(title: const Text('View Entries')),
-      floatingActionButton: TweenAnimationBuilder<Color?>(
+      floatingActionButton: AnimatedSize(
+        duration: Duration(milliseconds: 400),
+        curve: Curves.easeInOutCubicEmphasized,
+        clipBehavior: Clip.none,
+        child: TweenAnimationBuilder<Color?>(
         duration: Duration(milliseconds: 500),
         tween: ColorTween(
           end: rowCount > 0
@@ -179,9 +183,9 @@ class _CheckDatabaseScreenState extends ConsumerState<CheckDatabaseScreen> {
               : scheme.surfaceContainerHighest,
         ),
         builder: (context, color, child) {
-          String prompt = rowCount == 1
-              ? "Update $rowCount row"
-              : "Update $rowCount rows";
+
+            final rowString = (rowCount == 1) ? "row" : "rows";
+            final prompt = "Update $rowCount $rowString";
           return FloatingActionButton.extended(
             onPressed: rowCount > 0
                 ? () async {
@@ -226,16 +230,11 @@ class _CheckDatabaseScreenState extends ConsumerState<CheckDatabaseScreen> {
                     }
                   }
                 : null,
-            label: AnimatedSize(
-              duration: Duration(milliseconds: 1000),
-              curve: Curves.easeInOutCubicEmphasized,
-              clipBehavior: Clip.none,
-              child: Text(prompt),
-            ),
-
+              label: Text(prompt),
             backgroundColor: color,
           );
         },
+      ),
       ),
       body: Center(
         child: Padding(
