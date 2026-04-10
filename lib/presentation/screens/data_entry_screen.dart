@@ -141,7 +141,7 @@ class _DataEntryState extends ConsumerState<DataEntryScreen> {
                 // Is this the issue?
                 
                 Expanded(
-                  child: TableFormSection(tableName: activeTableName),
+                  child: TableFormSection(),
                 ),
               ],
             );
@@ -159,15 +159,11 @@ class _DataEntryState extends ConsumerState<DataEntryScreen> {
           if (projectMap == null) return;
 
           final table = projectMap.tables[activeTableName];
-          print("ACTIVE TABLE NAME: $activeTableName");
 
           // Table is returning null for some reason
           if (table == null) {
-            print("TABLE IS NULL");
             return;
           }
-
-          print("TABLE SAVED");
 
           await ref.read(formSaveProvider.notifier).saveTable(table);
         },
@@ -198,7 +194,7 @@ class _TableFormSectionState extends ConsumerState<TableFormSection> {
     if (tableName == null) {
       return Center(child: CircularProgressIndicator(),);
     }
-    
+
     final table = project?.tables[tableName];
 
     if (table == null) {
@@ -220,9 +216,8 @@ class _TableFormSectionState extends ConsumerState<TableFormSection> {
 }
 
 class TableFormSection extends ConsumerStatefulWidget {
-  final String tableName;
   final ScrollController? controller;
-  const TableFormSection({super.key, required this.tableName, this.controller});
+  const TableFormSection({super.key, this.controller});
 
   @override
   ConsumerState<ConsumerStatefulWidget> createState() =>
