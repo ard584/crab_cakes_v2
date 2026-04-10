@@ -177,10 +177,7 @@ class _DataEntryState extends ConsumerState<DataEntryScreen> {
                 const SizedBox(height: 16),
                 
                 Expanded(
-                    child: TableFormSection(
-                      tableName: activeTableName,
-                      controller: scrollController,
-                    ),
+                  child: TableFormSection(controller: scrollController,),
                 ),
               ],
             );
@@ -202,6 +199,7 @@ class _DataEntryState extends ConsumerState<DataEntryScreen> {
           if (table == null) return;
 
           // 1) Save record (this is where INSERT happens, inside saveTable)
+          jumpToTop();
           await ref.read(formSaveProvider.notifier).saveTable(table);
 
           // 2) Immediately run backup to selected drives
@@ -265,9 +263,8 @@ class _TableFormSectionState extends ConsumerState<TableFormSection> {
 }
 
 class TableFormSection extends ConsumerStatefulWidget {
-  final String tableName;
   final ScrollController? controller;
-  const TableFormSection({super.key, required this.tableName, this.controller});
+  const TableFormSection({super.key, this.controller});
 
   @override
   ConsumerState<ConsumerStatefulWidget> createState() =>
