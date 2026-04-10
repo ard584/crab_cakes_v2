@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:ui_prototype/domain/value_objects/parse_result.dart';
 import 'package:ui_prototype/domain/entities/scan_event.dart';
-import 'package:ui_prototype/domain/entities/settings/project_settings.dart';
 
 import 'package:ui_prototype/infrastructure/providers/flex_form_provider.dart';
 import 'package:ui_prototype/infrastructure/providers/form_save_notifier.dart';
@@ -45,6 +44,7 @@ class DataEntryScreen extends ConsumerStatefulWidget {
 }
 
 class _DataEntryState extends ConsumerState<DataEntryScreen> {
+  final ScrollController scrollController = ScrollController();
 
   @override
   Widget build(BuildContext context) {
@@ -81,8 +81,7 @@ class _DataEntryState extends ConsumerState<DataEntryScreen> {
     });
 
     // Set activeProject state
-    projectAsync.whenData((project) {
-    });
+    projectAsync.whenData((project) {});
 
     // Snack bar updates
     ref.listen<AsyncValue<void>>(formSaveProvider, (previous, next) {
@@ -133,6 +132,7 @@ class _DataEntryState extends ConsumerState<DataEntryScreen> {
       final table = projectMap.tables[activeTableName];
       if (table == null) return;
       await ref.read(formSaveProvider.notifier).saveTable(table);
+        scrollController.animateTo(0, duration: Duration(milliseconds: 150), curve: Curves.fastOutSlowIn);
     },
     child: Scaffold(
       appBar: AppBar(
@@ -172,7 +172,10 @@ class _DataEntryState extends ConsumerState<DataEntryScreen> {
                 ),
                 const SizedBox(height: 16),
                 Expanded(
-                  child: TableFormSection(tableName: activeTableName),
+                    child: TableFormSection(
+                      tableName: activeTableName,
+                      controller: scrollController,
+                    ),
                 ),
               ],
             );
@@ -186,6 +189,7 @@ class _DataEntryState extends ConsumerState<DataEntryScreen> {
         focusNode: FocusNode(skipTraversal: true),
         onPressed: () async {
           final projectMap = ref.read(projectViewModelProvider).value;
+
           if (projectMap == null) return;
           if (activeTableName == null) return;
 
@@ -200,6 +204,12 @@ class _DataEntryState extends ConsumerState<DataEntryScreen> {
           if (dbPath != null) {
             await ref.read(writeBackupProvider).execute(sourceDbPath: dbPath);
           }
+
+          scrollController.animateTo(
+              0,
+              duration: Duration(milliseconds: 150),
+              curve: Curves.fastOutSlowIn,
+            );
         },
         label: Padding(
           padding: const EdgeInsets.all(20.0),
@@ -211,12 +221,19 @@ class _DataEntryState extends ConsumerState<DataEntryScreen> {
   }
 }
 
-class TableFormSection extends ConsumerWidget {
-  final String tableName;
-  const TableFormSection({super.key, required this.tableName});
+class _TableFormSectionState extends ConsumerState<TableFormSection> {
+  late final String tableName;
+  late final ScrollController? _scrollController;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  void initState() {
+    super.initState();
+    tableName = widget.tableName;
+    _scrollController = widget.controller;
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final project = ref.watch(projectViewModelProvider).value;
     final table = project?.tables[tableName];
 
@@ -233,8 +250,19 @@ class TableFormSection extends ConsumerWidget {
 
         return DynamicFlexField(tableName: tableName, attribute: attribute);
       },
+      controller: _scrollController,
     );
   }
+}
+
+class TableFormSection extends ConsumerStatefulWidget {
+  final String tableName;
+  final ScrollController? controller;
+  const TableFormSection({super.key, required this.tableName, this.controller});
+
+  @override
+  ConsumerState<ConsumerStatefulWidget> createState() =>
+      _TableFormSectionState();
 }
 
 class DynamicFlexField extends ConsumerWidget {
