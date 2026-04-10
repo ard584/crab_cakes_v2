@@ -171,18 +171,25 @@ class _CheckDatabaseScreenState extends ConsumerState<CheckDatabaseScreen> {
 
     return Scaffold(
       appBar: AppBar(title: const Text('View Entries')),
+<<<<<<< HEAD
       floatingActionButton: AnimatedSize(
         duration: Duration(milliseconds: 400),
         curve: Curves.easeInOutCubicEmphasized,
         clipBehavior: Clip.none,
         child: TweenAnimationBuilder<Color?>(
         duration: Duration(milliseconds: 500),
+=======
+      floatingActionButton: TweenAnimationBuilder<Color?>(
+        duration: Duration(milliseconds: 1000),
+        curve: Curves.easeOut,
+>>>>>>> main
         tween: ColorTween(
           end: rowCount > 0
               ? scheme.primaryContainer
               : scheme.surfaceContainerHighest,
         ),
         builder: (context, color, child) {
+<<<<<<< HEAD
 
             final rowString = (rowCount == 1) ? "row" : "rows";
             final prompt = "Update $rowCount $rowString";
@@ -204,6 +211,28 @@ class _CheckDatabaseScreenState extends ConsumerState<CheckDatabaseScreen> {
                       "Are you sure you want to update ${selectedRowKeys.length} $promptRows?",
                     );
 
+=======
+          final rowString = (rowCount == 1) ? "row" : "rows";
+          final prompt = "Update $rowCount $rowString";
+          return FloatingActionButton.extended(
+            onPressed: rowCount > 0
+                ? () async {
+                    final currentStateManager = stateManager;
+                    if (currentStateManager == null) return;
+
+                    String promptRows = "rows";
+                    final selectedRowKeys = currentUpdatedKeys.toList();
+
+                    if (selectedRowKeys.length == 1) {
+                      promptRows = "row";
+                    }
+
+                    final result = await confirmUpdateEditGrid(
+                      context,
+                      "Are you sure you want to update ${selectedRowKeys.length} $promptRows?",
+                    );
+
+>>>>>>> main
                     if (result == EditGridAction.update) {
                       // Get state manager
                       final stateManager = currentStateManager;
@@ -230,11 +259,25 @@ class _CheckDatabaseScreenState extends ConsumerState<CheckDatabaseScreen> {
                     }
                   }
                 : null,
+<<<<<<< HEAD
               label: Text(prompt),
             backgroundColor: color,
           );
         },
       ),
+=======
+
+            label: AnimatedSize(
+              duration: Duration(milliseconds: 500),
+              curve: Curves.fastEaseInToSlowEaseOut,
+              clipBehavior: Clip.none,
+              child: Text(prompt),
+            ),
+
+            backgroundColor: color,
+          );
+        },
+>>>>>>> main
       ),
       body: Center(
         child: Padding(

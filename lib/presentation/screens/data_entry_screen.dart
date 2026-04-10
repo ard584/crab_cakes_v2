@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+<<<<<<< HEAD
 
 import 'package:ui_prototype/domain/value_objects/parse_result.dart';
 import 'package:ui_prototype/domain/entities/scan_event.dart';
 
+=======
+>>>>>>> main
 import 'package:ui_prototype/infrastructure/providers/flex_form_provider.dart';
 import 'package:ui_prototype/infrastructure/providers/form_save_notifier.dart';
-import 'package:ui_prototype/infrastructure/providers/pit_readers_providers.dart';
-
 import 'package:ui_prototype/infrastructure/providers/project_database_provider.dart';
 import 'package:ui_prototype/presentation/screens/check_database_screen.dart';
 import 'package:ui_prototype/presentation/screens/export_screen.dart';
@@ -19,11 +20,6 @@ import 'package:ui_prototype/presentation/view_models/project_input.dart';
 import 'package:ui_prototype/presentation/components/catch_table_widget.dart';
 import 'package:ui_prototype/presentation/shortcuts/data_entry_shortcuts.dart';
 import 'package:ui_prototype/presentation/components/status_panel.dart';
-
-import 'package:ui_prototype/infrastructure/providers/external_backup_provider.dart';
-import 'package:ui_prototype/infrastructure/providers/active_database_connection_provider.dart';
-import 'package:ui_prototype/infrastructure/providers/settings_provider.dart';
-
 
 import 'settings_screen.dart';
 
@@ -53,36 +49,7 @@ class _DataEntryState extends ConsumerState<DataEntryScreen> {
   @override
   Widget build(BuildContext context) {
     final projectAsync = ref.watch(projectViewModelProvider);
-    final project = ref.watch(projectViewModelProvider).value;
-
     final activeTableName = ref.watch(activeTableProvider);
-    final activeTable = project?.tables[activeTableName];
-    final fieldList = activeTable?.attributes.values.toList();
-
-    
-    //setting up the stream subscription for scan detection
-    ref.listen(scanEventProvider, (prev, next) {
-      next.whenData((parseResult) {
-        if (parseResult is! ParseOk<ScanEvent>) return;
-
-        final scan = parseResult.value;
-
-        final settings = ref.read(projectSettingsProvider).value;
-        final targetTable = settings?.scanner.targetTable;
-        final targetCol = settings?.scanner.targetColumn;
-
-        if (targetTable == null || targetCol == null) return;
-        if (targetTable != activeTableName) return;
-        if (fieldList == null) return;
-
-        for (final field in fieldList) {
-          if (field.fields.name == targetCol) {
-            field.controller.text = scan.id ?? "";    
-            break;
-          }
-        }
-      });
-    });
 
     // Set activeProject state
     projectAsync.whenData((project) {});
@@ -129,6 +96,7 @@ class _DataEntryState extends ConsumerState<DataEntryScreen> {
       );
     });
 
+<<<<<<< HEAD
   return DataEntryShortcuts(
     onSave: () async {
       final projectMap = ref.read(projectViewModelProvider).value;
@@ -144,8 +112,25 @@ class _DataEntryState extends ConsumerState<DataEntryScreen> {
           data: (project) => Text('Data Entry'),
           error: (_, __) => const Text("Error"),
           loading: () => const Text('Loading...'),
+=======
+    return DataEntryShortcuts(
+      onSave: () async {
+        final projectMap = ref.read(projectViewModelProvider).value;
+        if (projectMap == null) return;
+        final table = projectMap.tables[activeTableName];
+        if (table == null) return;
+        await ref.read(formSaveProvider.notifier).saveTable(table);
+        jumpToTop();
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: projectAsync.when(
+            data: (project) => Text('Data Entry'),
+            error: (_, __) => const Text("Error"),
+            loading: () => const Text('Loading...'),
+          ),
+>>>>>>> main
         ),
-      ),
       drawer: ProjectDrawer(),
       body: Padding(
         padding: const EdgeInsets.all(28.0),
@@ -193,11 +178,10 @@ class _DataEntryState extends ConsumerState<DataEntryScreen> {
           final projectMap = ref.read(projectViewModelProvider).value;
 
           if (projectMap == null) return;
-          if (activeTableName == null) return;
 
           final table = projectMap.tables[activeTableName];
-          if (table == null) return;
 
+<<<<<<< HEAD
           // 1) Save record (this is where INSERT happens, inside saveTable)
           jumpToTop();
           await ref.read(formSaveProvider.notifier).saveTable(table);
@@ -213,6 +197,18 @@ class _DataEntryState extends ConsumerState<DataEntryScreen> {
               duration: Duration(milliseconds: 150),
               curve: Curves.fastOutSlowIn,
             );
+=======
+          // Table is returning null for some reason
+          if (table == null) {
+            return;
+          }
+
+          jumpToTop();
+
+          await ref.read(formSaveProvider.notifier).saveTable(table);
+
+          
+>>>>>>> main
         },
         label: Padding(
           padding: const EdgeInsets.all(20.0),
@@ -361,9 +357,7 @@ class DrawerSubmenu extends StatelessWidget {
             Navigator.pop(context);
             Navigator.push(
               context,
-              MaterialPageRoute(
-                builder: (context) => CheckDatabaseScreen(),
-              ),
+              MaterialPageRoute(builder: (context) => CheckDatabaseScreen()),
             );
           },
         ),
