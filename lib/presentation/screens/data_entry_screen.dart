@@ -135,7 +135,7 @@ class _DataEntryState extends ConsumerState<DataEntryScreen> {
                 const SizedBox(height: 16),
                 
                 Expanded(
-                  child: TableFormSection(),
+                  child: TableFormSection(controller: scrollController,),
                 ),
               ],
             );
@@ -159,7 +159,11 @@ class _DataEntryState extends ConsumerState<DataEntryScreen> {
             return;
           }
 
+          jumpToTop();
+
           await ref.read(formSaveProvider.notifier).saveTable(table);
+
+          
         },
         label: Padding(
           padding: const EdgeInsets.all(20.0),
