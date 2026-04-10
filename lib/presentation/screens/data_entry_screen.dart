@@ -46,6 +46,10 @@ class DataEntryScreen extends ConsumerStatefulWidget {
 class _DataEntryState extends ConsumerState<DataEntryScreen> {
   final ScrollController scrollController = ScrollController();
 
+  void jumpToTop() {
+    scrollController.animateTo(0, duration: Duration(milliseconds: 150), curve: Curves.fastOutSlowIn);
+  }
+
   @override
   Widget build(BuildContext context) {
     final projectAsync = ref.watch(projectViewModelProvider);
@@ -132,7 +136,7 @@ class _DataEntryState extends ConsumerState<DataEntryScreen> {
       final table = projectMap.tables[activeTableName];
       if (table == null) return;
       await ref.read(formSaveProvider.notifier).saveTable(table);
-        scrollController.animateTo(0, duration: Duration(milliseconds: 150), curve: Curves.fastOutSlowIn);
+        jumpToTop();
     },
     child: Scaffold(
       appBar: AppBar(
