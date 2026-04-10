@@ -175,6 +175,7 @@ class _DataEntryState extends ConsumerState<DataEntryScreen> {
                   ]
                 ),
                 const SizedBox(height: 16),
+                
                 Expanded(
                     child: TableFormSection(
                       tableName: activeTableName,
@@ -226,19 +227,23 @@ class _DataEntryState extends ConsumerState<DataEntryScreen> {
 }
 
 class _TableFormSectionState extends ConsumerState<TableFormSection> {
-  late final String tableName;
   late final ScrollController? _scrollController;
 
   @override
   void initState() {
     super.initState();
-    tableName = widget.tableName;
     _scrollController = widget.controller;
   }
 
   @override
   Widget build(BuildContext context) {
     final project = ref.watch(projectViewModelProvider).value;
+    final tableName = ref.watch(activeTableProvider);
+
+    if (tableName == null) {
+      return Center(child: CircularProgressIndicator(),);
+    }
+
     final table = project?.tables[tableName];
 
     if (table == null) {
