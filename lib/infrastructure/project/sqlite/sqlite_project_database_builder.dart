@@ -109,6 +109,15 @@ class SqliteProjectDatabaseBuilder implements ProjectDatabaseBuilder {
 
         db.execute(statement);
 
+        // Add system columns to newly created table
+        final match = RegExp(r'CREATE\s+TABLE\s+(\w+)', caseSensitive: false).firstMatch(statement);
+        if (match != null) {
+          final tableName = match.group(1)!;
+          print('ADDING COLUMNS TO: $tableName');
+          db.execute("ALTER TABLE $tableName ADD COLUMN __created_at_time TEXT DEFAULT (datetime('now', 'localtime'));");
+          db.execute("ALTER TABLE $tableName ADD COLUMN __modified_in_program INTEGER DEFAULT 0;");
+        }
+
         // check security state
         final securityState = getSecurityState(db);
         if (securityState["foreign_keys"] == 0 ||
