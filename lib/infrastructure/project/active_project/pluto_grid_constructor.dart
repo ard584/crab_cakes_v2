@@ -21,6 +21,8 @@ class PlutoGridConstructor
 
     // Iterate through DbTable
     for (final column in table.columns) {
+      // skip if
+      if (column.name.startsWith('__')) continue;
       // Get type of current column
       final PlutoColumnType type;
 
@@ -83,6 +85,8 @@ class PlutoGridConstructor
 
     // Iterate through row
     for (final cell in row.values.entries) {
+      // skip if __
+      if (cell.key.startsWith('__')) continue;
       // Match pluto field name
       final String fieldName = _getFieldName(table.name, cell.key);
 

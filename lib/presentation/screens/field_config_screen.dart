@@ -42,7 +42,7 @@ class FieldConfigScreen extends ConsumerWidget {
               );
             }
 
-            final attributes = table.attributes.values.toList();
+            final attributes = table.attributes.values.where((a) => !a.fields.name.startsWith('__')).toList();
 
             return settingsAsync.when(
               loading: () => const Center(child: CircularProgressIndicator()),
