@@ -43,10 +43,10 @@ class CatchHistoryViewModel {
   List<Map<String, dynamic>> getCatches() {
     final schema = db.getTableSchema(table.name);
     final hasCreatedAt = schema.columns.any(
-      (col) => col.name.toLowerCase() == 'created_at_time'
+      (col) => col.name.toLowerCase() == '__created_at_time'
     );
 
-  final orderColumn = hasCreatedAt ? 'created_at_time' : 'rowid';
+  final orderColumn = hasCreatedAt ? '__created_at_time' : 'rowid';
   final rows = db.getRowsOrderedBy(table.name, 5, 0, orderColumn);
 
     return rows.map((row) => row.values).toList();

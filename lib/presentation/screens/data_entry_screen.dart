@@ -141,7 +141,7 @@ class _DataEntryState extends ConsumerState<DataEntryScreen> {
     child: Scaffold(
       appBar: AppBar(
         title: projectAsync.when(
-          data: (project) => Text('Data Entry'),
+          data: (project) => Text(activeTableName ?? 'Data Entry'),
           error: (_, __) => const Text("Error"),
           loading: () => const Text('Loading...'),
         ),
@@ -248,7 +248,8 @@ class _TableFormSectionState extends ConsumerState<TableFormSection> {
       return Center(child: Text("Table is null"));
     }
 
-    final attrbutes = table.attributes.values.toList();
+    // hides fields with __ infront
+    final attrbutes = table.attributes.values.where((a) => !a.fields.name.startsWith('__')).toList();
 
     return ListView.builder(
       itemCount: attrbutes.length,
