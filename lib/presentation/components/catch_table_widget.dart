@@ -64,24 +64,27 @@ class CatchHistoryTable extends StatelessWidget {
 
                 const Divider(color: Colors.black45, height: 8),
 
-                // Data rows
-                ...List.generate(5, (i) => Row(
-                  children: List.generate(columnCount, (j) => [
-                    SizedBox(
-                      width: viewModel.getColumnWidth(j),
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 8),
-                        child: Text(
-                          catchHistory.getValue(i, j).toString(),
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(fontSize: 14),
-                          softWrap: false,
+                // Data rows — most recent at bottom, oldest at top
+                ...List.generate(5, (i) {
+                  final reversedI = 4 - i;
+                  return Row(
+                    children: List.generate(columnCount, (j) => [
+                      SizedBox(
+                        width: viewModel.getColumnWidth(j),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 8),
+                          child: Text(
+                            catchHistory.getValue(reversedI, j).toString(),
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(fontSize: 14),
+                            softWrap: false,
+                          ),
                         ),
                       ),
-                    ),
-                    if (j < columnCount - 1) const VerticalDivider(color: Colors.black45, width: 1, thickness: 1),
-                  ]).expand((e) => e).toList(),
-                )),
+                      if (j < columnCount - 1) const VerticalDivider(color: Colors.black45, width: 1, thickness: 1),
+                    ]).expand((e) => e).toList(),
+                  );
+                }),
               ],
             ),
           ),
