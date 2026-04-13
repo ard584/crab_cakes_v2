@@ -12,7 +12,6 @@ class FlexFieldFactory {
       keyboardType = TextInputType.number;
     }
 
-    // TODO: Allow for injectable styling other than hint and label text
     return TextFormField(
       controller: controller,
       keyboardType: keyboardType,
@@ -29,7 +28,6 @@ class FlexFieldFactory {
 class FlexFieldConfig {
   final String label;
 
-  // TODO: make dataType into an enum
   final String dataType;
   final bool isRequired;
   final String? defaultValue;
