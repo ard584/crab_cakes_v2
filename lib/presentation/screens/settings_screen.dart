@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:ui_prototype/presentation/utils/logger.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:ui_prototype/domain/enums/app_sound.dart';
+import 'package:ui_prototype/presentation/components/sound_setting_row.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -124,6 +127,46 @@ class SettingsScreen extends StatelessWidget {
                   ],
                 ),
               ),
+
+
+              //SOUND SETTIGS
+              const SizedBox(height: 24),
+              ReusableLeftAlignedText(text: 'Sound Settings'),
+              const SizedBox(height: 8),
+
+              const SoundSettingRow(
+                sound: AppSound.readerDiscovered,
+                label: 'Reader Discovered',
+              ),
+              const SoundSettingRow(
+                sound: AppSound.tagAccepted,
+                label: 'Tag Accepted',
+              ),
+              const SoundSettingRow(
+                sound: AppSound.tagHistoryFound,
+                label: 'Tag History Found',
+              ),
+              const SoundSettingRow(
+                sound: AppSound.tagHistoryDiff,
+                label: 'Tag History Diff',
+              ),
+              const SoundSettingRow(
+                sound: AppSound.tagIgnored,
+                label: 'Tag Ignored',
+              ),
+              const SoundSettingRow(
+                sound: AppSound.tagDuplicate,
+                label: 'Tag Duplicate',
+              ),
+              const SoundSettingRow(
+                sound: AppSound.recordSavedOk,
+                label: 'Record Saved OK',
+              ),
+              const SoundSettingRow(
+                sound: AppSound.recordSaveFailed,
+                label: 'Record Save Failed',
+              ),
+
             ],
           ),
         ),
@@ -149,6 +192,15 @@ class ReusableLeftAlignedText extends StatelessWidget {
 
   @override
   Widget build(BuildContext build) {
-    return (Align(alignment: Alignment.centerLeft, child: Text(text)));
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: Text(
+        text,
+        style: const TextStyle(
+          fontSize: 18,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+    );
   }
 }
