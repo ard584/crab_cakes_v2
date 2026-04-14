@@ -2,26 +2,16 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:ui_prototype/application/project/use_cases/save_table.dart';
 import 'package:ui_prototype/application/active_project_repository.dart';
-import 'package:ui_prototype/domain/entities/row_identifier.dart';
 import 'package:ui_prototype/domain/models/attribute.dart';
 import 'package:ui_prototype/domain/models/db_row.dart';
 import 'package:ui_prototype/presentation/view_models/project_input.dart';
+
+import '../../fakes/test_row_identifier.dart';
 
 class MockActiveProjectRepository extends Mock
     implements ActiveProjectRepository {}
 
 class MockTableInput extends Mock implements TableInput {}
-
-class TestRowIdentifier extends RowIdentifier {
-
-  final int id;
-
-  TestRowIdentifier(this.id);
-
-  @override
-  get identifier => id;
-  
-}
 
 void main() {
   late MockActiveProjectRepository mockRepo;

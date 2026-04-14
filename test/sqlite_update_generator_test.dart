@@ -1,5 +1,3 @@
-import 'dart:nativewrappers/_internal/vm/lib/math_patch.dart';
-
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ui_prototype/infrastructure/project/sqlite/sqlite_update_generator.dart';
 
