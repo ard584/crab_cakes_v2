@@ -5,11 +5,11 @@ class NativeSaveLocationPicker implements SaveLocationPicker {
   @override
   Future<String?> getLocation() async {
     final location = await getSaveLocation(
-    suggestedName: 'data.csv',
+    suggestedName: 'data',
     acceptedTypeGroups: [
       XTypeGroup(
-        label: 'CSV Files',
-        extensions: ['csv'],
+        label: 'Text File',
+        extensions: ['txt'],
       )
     ],
   );
