@@ -8,16 +8,20 @@ import 'package:ui_prototype/infrastructure/project/sqlite/sql_statement_parser.
 import 'package:ui_prototype/infrastructure/project/sqlite/sqlite_project_database_builder.dart';
 import 'package:ui_prototype/infrastructure/providers/active_database_connection_provider.dart';
 import 'package:ui_prototype/domain/models/project.dart';
+import 'package:ui_prototype/infrastructure/providers/device_id_use_case_provider.dart';
+import 'package:ui_prototype/infrastructure/providers/device_storage_provider.dart';
 import 'package:ui_prototype/infrastructure/providers/generate_uuid_provider.dart';
 import 'package:ui_prototype/presentation/services/projects/database/projects_database.dart';
-import 'package:ui_prototype/presentation/services/device_uuid_helper.dart';
+import 'package:ui_prototype/application/device_storage/device_id_use_case.dart';
 import 'package:ui_prototype/presentation/services/projects/projects_repository.dart';
 import 'package:ui_prototype/presentation/services/projects/project_service.dart';
 
 final _deviceIdProvider = FutureProvider<Uint8List>((ref) async {
   // Get the UUID function
   final uuidFunc = ref.watch(generateUuidProvider);
-  return await getOrCreateDeviceID(uuidGen: uuidFunc);
+  final storage = ref.watch(deviceStorageProvider);
+  final DeviceIDUseCase deviceIDUseCase = ref.watch(deviceIDUseCaseProvider);
+  return await deviceIDUseCase.getOrCreateDeviceID(uuidGen: uuidFunc, storage: storage);
 });
 
 // App database provider (holds all the projects)

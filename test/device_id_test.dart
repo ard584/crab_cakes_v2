@@ -1,7 +1,7 @@
 import 'fakes/fake_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'dart:typed_data';
-import 'package:ui_prototype/presentation/services/device_uuid_helper.dart';
+import 'package:ui_prototype/application/device_storage/device_id_use_case.dart';
 
 void main() {
   test('getOrCreateDeviceID generates and persists a device ID', () async {
