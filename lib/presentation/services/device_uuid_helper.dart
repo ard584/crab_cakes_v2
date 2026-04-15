@@ -1,13 +1,16 @@
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'uuid_helpers.dart';
+import 'package:ui_prototype/application/uuid/generate_uuid.dart';
 import 'dart:typed_data';
 
 const _deviceIdKey = 'device_id';
-const FlutterSecureStorage _storage = FlutterSecureStorage();
-const Uint8List Function() _uuidGen = newUuidV4;
 
+// Make the storage method injectable
+// Needs two methods: write, and store
+const FlutterSecureStorage _storage = FlutterSecureStorage();
+
+// Make this a method in an interface class
 Future<Uint8List> getOrCreateDeviceID({ 
-  Uint8List Function() uuidGen = _uuidGen,
+  required GenerateUuid uuidGen,
   FlutterSecureStorage storage = _storage
   }) async {
 
@@ -22,7 +25,7 @@ Future<Uint8List> getOrCreateDeviceID({
   }
 
   // Otherwise, generate a new Uuid from the passed-in function
-  final id = uuidGen();
+  final id = uuidGen.generate();
 
   // Write to secure storage
   await storage.write(key: _deviceIdKey, value: String.fromCharCodes(id));
