@@ -1,8 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:ui_prototype/presentation/components/usb_backups_section.dart';
 import 'package:ui_prototype/presentation/utils/logger.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ui_prototype/domain/enums/app_sound.dart';
 import 'package:ui_prototype/presentation/components/sound_setting_row.dart';
+import 'package:ui_prototype/presentation/components/scanner_target_section.dart';
+import 'package:ui_prototype/infrastructure/providers/sound_provider.dart';
+import 'package:ui_prototype/presentation/components/master_sound_toggle_row.dart';
+import 'package:ui_prototype/domain/enums/app_sound.dart';
+
+//importing the specific scanner connection component
+import 'package:ui_prototype/presentation/components/pit_reader_section.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -21,92 +29,10 @@ class SettingsScreen extends StatelessWidget {
           child: Column(
             spacing: 16.0,
             children: <Widget>[
-              ReusableLeftAlignedText(text: 'USB Backup Locations'),
-              Container(
-                decoration: reusableBoxDecoration,
-                padding: reusablePadding,
-                child: Row(
-                  children: <Widget>[
-                    Icon(Icons.usb),
-                    const SizedBox(width: 8),
-                    Text('USB Drive 1'),
-                    Spacer(),
-                    IconButton(
-                      tooltip: 'Eject USB Drive from backup pool.',
-                      onPressed: () {
-                        log.d('Tapped settings');
-                      },
-                      icon: const Icon(Icons.eject),
-                    ),
-                  ],
-                ),
-              ),
-              Container(
-                decoration: reusableBoxDecoration,
-                padding: reusablePadding,
-                child: Row(
-                  children: <Widget>[
-                    Icon(Icons.usb),
-                    const SizedBox(width: 8),
-                    Text('USB Drive 1'),
-                    Spacer(),
-                    IconButton(
-                      tooltip: 'Eject USB Drive from backup pool.',
-                      onPressed: () {
-                        log.d('Tapped settings');
-                      },
-                      icon: const Icon(Icons.eject),
-                    ),
-                  ],
-                ),
-              ),
-              Container(
-                decoration: reusableBoxDecoration,
-                padding: reusablePadding,
-                child: Row(
-                  children: <Widget>[
-                    Icon(Icons.usb),
-                    const SizedBox(width: 8),
-                    Text('USB Drive 1'),
-                    Spacer(),
-                    IconButton(
-                      tooltip: 'Eject USB Drive from backup pool.',
-                      onPressed: () {
-                        log.d('Tapped settings');
-                      },
-                      icon: const Icon(Icons.eject),
-                    ),
-                  ],
-                ),
-              ),
-              FloatingActionButton.extended(
-                tooltip: 'Add USB Drive to the backup pool.',
-                icon: Icon(Icons.add),
-                onPressed: () {
-                  log.d('Button pressed');
-                },
-                label: const Text('Add USB Drive'),
-              ),
+              const UsbBackupDrivesSection(),
               ReusableLeftAlignedText(text: 'Paired PIT Readers'),
-              Container(
-                decoration: reusableBoxDecoration,
-                padding: reusablePadding,
-                child: Row(
-                  children: <Widget>[
-                    Icon(Icons.bluetooth_connected),
-                    const SizedBox(width: 8),
-                    Text('Biomark HPR Lite'),
-                    Spacer(),
-                    IconButton(
-                      tooltip: 'Disconnect \'Biomark HPR Lite\'.',
-                      onPressed: () {
-                        log.d('Tapped settings');
-                      },
-                      icon: const Icon(Icons.bluetooth_disabled),
-                    ),
-                  ],
-                ),
-              ),
+              const PitReadersSection(),
+              const ScannerTargetSection(),
               ReusableLeftAlignedText(text: 'Merge Data Files'),
               Container(
                 decoration: reusableBoxDecoration,
@@ -128,43 +54,21 @@ class SettingsScreen extends StatelessWidget {
                 ),
               ),
 
-
-              //SOUND SETTIGS
-              const SizedBox(height: 24),
+              //START OF SOUND SYSTEM
               ReusableLeftAlignedText(text: 'Sound Settings'),
               const SizedBox(height: 8),
+              const MasterSoundToggleRow(),
+              const SizedBox(height: 8),
 
-              const SoundSettingRow(
-                sound: AppSound.readerDiscovered,
-                label: 'Reader Discovered',
-              ),
-              const SoundSettingRow(
-                sound: AppSound.tagAccepted,
-                label: 'Tag Accepted',
-              ),
-              const SoundSettingRow(
-                sound: AppSound.tagHistoryFound,
-                label: 'Tag History Found',
-              ),
-              const SoundSettingRow(
-                sound: AppSound.tagHistoryDiff,
-                label: 'Tag History Diff',
-              ),
-              const SoundSettingRow(
-                sound: AppSound.tagIgnored,
-                label: 'Tag Ignored',
-              ),
-              const SoundSettingRow(
-                sound: AppSound.tagDuplicate,
-                label: 'Tag Duplicate',
-              ),
-              const SoundSettingRow(
-                sound: AppSound.recordSavedOk,
-                label: 'Record Saved OK',
-              ),
-              const SoundSettingRow(
-                sound: AppSound.recordSaveFailed,
-                label: 'Record Save Failed',
+              //print the sounds
+              ...AppSound.values.map(
+                (sound) => Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: SoundSettingRow(
+                    sound: sound,
+                    label: sound.label,
+                  ),
+                ),
               ),
 
             ],

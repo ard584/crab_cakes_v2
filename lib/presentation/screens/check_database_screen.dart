@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pluto_grid/pluto_grid.dart';
+import 'package:ui_prototype/domain/db_table.dart';
 import 'package:ui_prototype/infrastructure/project/active_project/pluto_grid_constructor.dart';
 import 'package:ui_prototype/infrastructure/providers/delete_rows_provider.dart';
 import 'package:ui_prototype/infrastructure/providers/flex_form_provider.dart';
@@ -8,7 +9,7 @@ import 'package:ui_prototype/infrastructure/providers/pluto_update_rows_provider
 import 'package:ui_prototype/infrastructure/providers/project_database_provider.dart';
 import 'package:ui_prototype/presentation/dialogs/confirm_delete.dart';
 import 'package:ui_prototype/presentation/adapters/pluto_grid_adapter.dart';
-import 'package:ui_prototype/presentation/dialogs/confirm_update.dart';
+import 'package:ui_prototype/presentation/dialogs/confirm_update_edit_grid.dart';
 
 Widget getTablesChoiceChips(WidgetRef ref) {
   final projectAsync = ref.watch(projectViewModelProvider);
@@ -51,26 +52,53 @@ class CheckDatabaseScreen extends ConsumerStatefulWidget {
 
 class _CheckDatabaseScreenState extends ConsumerState<CheckDatabaseScreen> {
   PlutoGridStateManager? stateManager;
+  String? _lastTableName;
 
-  bool _showDeleteButton = false;
-  final Set<Key> _updatedRowKeys = {};
+  bool showDeleteButton = false;
+
+  // Create caches
+  final Map<String, List<PlutoRow>> _tableRowsCache = {};
+  final Map<String, Set<Key>> _tableUpdatedKeysCache = {};
+
+  // Pluto grid constructor
+  PlutoGridConstructor constructor = PlutoGridConstructor();
+
+  void resetTable(DbTable table) {
+    final repo = ref.read(projectDatabaseProvider);
+    final databaseRows = repo.getAllRows(table.name);
+
+    final rows = databaseRows.map((row) {
+      PlutoRow currentRow = constructor.constructRow(table, row);
+      final checkRow = PlutoCell(value: "");
+      currentRow.cells['check_box'] = checkRow;
+      return currentRow;
+    }).toList();
+
+    setState(() {
+      _tableUpdatedKeysCache[table.name]?.clear();
+      _tableRowsCache[table.name] = rows;
+    });
+
+    final PlutoGridStateManager? currentStateManager = stateManager;
+    if (currentStateManager != null) {
+      currentStateManager.removeAllRows();
+      currentStateManager.appendRows(rows);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final tableName = ref.watch(activeTableProvider);
-    int _rowCount = _updatedRowKeys.length;
 
-    void _updateShowDeleteButton() {
+    void updateShowDeleteButton() {
       if (stateManager != null && stateManager!.checkedRows.isNotEmpty) {
-        print("ENABLING SHOW DELETE BUTTON");
-
         setState(() {
-          _showDeleteButton = true;
+          showDeleteButton = true;
         });
       } else {
         setState(() {
-          _showDeleteButton = false;
+          showDeleteButton = false;
         });
       }
     }
@@ -79,23 +107,56 @@ class _CheckDatabaseScreenState extends ConsumerState<CheckDatabaseScreen> {
       return Center(child: Text("TableName is null."));
     }
 
+    // Update lastTableName if it changed
+    if (tableName != _lastTableName) {
+      stateManager = null;
+      _lastTableName = tableName;
+    }
+
+    // Initialize and get keys specific to active table
+    _tableUpdatedKeysCache.putIfAbsent(tableName, () => {});
+    final currentUpdatedKeys = _tableUpdatedKeysCache[tableName];
+
+    // If current updated keys is empty (should never be)
+    if (currentUpdatedKeys == null) {
+      // Return error message
+      return Center(child: Text("Current updated keys is null."));
+    }
+
+    int rowCount = currentUpdatedKeys.length;
+
     final repo = ref.watch(projectDatabaseProvider);
     final table = repo.getTableSchema(tableName);
-    print("TABLE SCHEMA: $table");
 
-    final constructor = PlutoGridConstructor();
-    List<PlutoColumn> columns = constructor.constructColumns(table);
-    final dbRows = repo.getAllRows(tableName);
-    final rows = dbRows.map((row) {
-      PlutoRow current_row = constructor.constructRow(table, row);
-      final check_row = PlutoCell(value: "");
-      current_row.cells['check_box'] = check_row;
-      return current_row;
-    }).toList();
+    // Create rows and columns
+    List<PlutoRow> rows;
+    List<PlutoColumn> columns;
 
-    print("ROW: ${rows.first.cells}");
+    // Extract cached rows map result
+    final List<PlutoRow>? cachedRows = _tableRowsCache[tableName];
 
-    final check_col = PlutoColumn(
+    // Check if cached table exists
+    if (cachedRows != null) {
+      // Set rows to cached rows
+      rows = cachedRows;
+    } else {
+      // Get rows from database
+      final dbRows = repo.getAllRows(tableName);
+
+      // Convert db rows to pluto rows
+      rows = dbRows.map((row) {
+        PlutoRow currentRow = constructor.constructRow(table, row);
+        final checkRow = PlutoCell(value: "");
+        currentRow.cells['check_box'] = checkRow;
+        return currentRow;
+      }).toList();
+
+      // Update rows cache
+      _tableRowsCache[tableName] = rows;
+    }
+
+    // Create column for checkbox (used with delete button)
+    final checkCol = PlutoColumn(
       title: '',
       field: 'check_box',
       type: PlutoColumnType.text(),
@@ -105,6 +166,9 @@ class _CheckDatabaseScreenState extends ConsumerState<CheckDatabaseScreen> {
       width: 80,
     );
 
+    // Create columns
+    columns = constructor.constructColumns(table);
+
     return Scaffold(
       appBar: AppBar(title: const Text('View Entries')),
       floatingActionButton: AnimatedSize(
@@ -112,58 +176,65 @@ class _CheckDatabaseScreenState extends ConsumerState<CheckDatabaseScreen> {
         curve: Curves.easeInOutCubicEmphasized,
         clipBehavior: Clip.none,
         child: TweenAnimationBuilder<Color?>(
-          duration: Duration(milliseconds: 300),
-          tween: ColorTween(
-            end: _rowCount > 0
-                ? scheme.primaryContainer
-                : scheme.surfaceContainerHighest,
-          ),
-          builder: (context, color, child) {
-            return FloatingActionButton.extended(
-              onPressed: _rowCount > 0
-                  ? () async {
-                      print("TEST");
+        duration: Duration(milliseconds: 500),
+        tween: ColorTween(
+          end: rowCount > 0
+              ? scheme.primaryContainer
+              : scheme.surfaceContainerHighest,
+        ),
+        builder: (context, color, child) {
 
-                      final currentStateManager = stateManager;
-                      if (currentStateManager == null) return;
+            final rowString = (rowCount == 1) ? "row" : "rows";
+            final prompt = "Update $rowCount $rowString";
+          return FloatingActionButton.extended(
+            onPressed: rowCount > 0
+                ? () async {
+                    final currentStateManager = stateManager;
+                    if (currentStateManager == null) return;
 
-                      String promptRows = "rows";
-                      final selectedRowKeys = _updatedRowKeys.toList();
+                    String promptRows = "rows";
+                    final selectedRowKeys = currentUpdatedKeys.toList();
 
-                      if (selectedRowKeys.length == 1) {
-                        promptRows = "row";
-                      }
+                    if (selectedRowKeys.length == 1) {
+                      promptRows = "row";
+                    }
 
-                      final update = await confirmUpdate(
-                        context,
-                        "Are you sure you want to update ${selectedRowKeys.length} $promptRows?",
+                    final result = await confirmUpdateEditGrid(
+                      context,
+                      "Are you sure you want to update ${selectedRowKeys.length} $promptRows?",
+                    );
+
+                    if (result == EditGridAction.update) {
+                      // Get state manager
+                      final stateManager = currentStateManager;
+
+                      // Get all updated row identifiers
+                      final List<Key> editedRowIdentifiers = currentUpdatedKeys
+                          .toList();
+
+                      // Get edited rows
+                      final editedRows = extractPlutoRowsByKeys(
+                        editedRowIdentifiers,
+                        stateManager,
                       );
 
-                      if (update) {
-                        // Get state manager
-                        final stateManager = currentStateManager;
+                      final updater = ref.read(plutoUpdateRowsProvider);
+                      updater.updateFromPluto(rows: editedRows, table: table);
 
-                        // Get all updated row identifiers
-                        final List<Key> editedRowIdentifiers = _updatedRowKeys
-                            .toList();
-
-                        // Get edited rows
-                        final editedRows = extractPlutoRowsByKeys(
-                          editedRowIdentifiers,
-                          stateManager,
-                        );
-
-                        final updater = ref.read(plutoUpdateRowsProvider);
-                        updater.updateFromPluto(rows: editedRows, table: table);
-                        
-                      }
+                      // Clear cached keys
+                      setState(() {
+                        currentUpdatedKeys.clear();
+                      });
+                    } else if (result == EditGridAction.abandon) {
+                      resetTable(table);
                     }
-                  : null,
-              label: Text("Update $_rowCount rows"),
-              backgroundColor: color,
-            );
-          },
-        ),
+                  }
+                : null,
+              label: Text(prompt),
+            backgroundColor: color,
+          );
+        },
+      ),
       ),
       body: Center(
         child: Padding(
@@ -184,7 +255,7 @@ class _CheckDatabaseScreenState extends ConsumerState<CheckDatabaseScreen> {
               Row(
                 children: [
                   TextButton.icon(
-                    onPressed: _showDeleteButton
+                    onPressed: showDeleteButton
                         ? () async {
                             final currentStateManager = stateManager;
                             if (currentStateManager == null) return;
@@ -222,9 +293,20 @@ class _CheckDatabaseScreenState extends ConsumerState<CheckDatabaseScreen> {
                               // Remove rows from stateManager
                               currentStateManager.removeRows(selectedRows);
 
+                              // Remove rows from cache
+                              _tableRowsCache[tableName]?.removeWhere(
+                                (row) => selectedRows.contains(row),
+                              );
+
+                              // Remove keys from updated cache
+                              currentUpdatedKeys.removeWhere(
+                                (key) =>
+                                    selectedRows.any((row) => row.key == key),
+                              );
+
                               // Reset delete button
                               setState(() {
-                                _showDeleteButton = false;
+                                showDeleteButton = false;
                               });
                             }
                           }
@@ -237,7 +319,7 @@ class _CheckDatabaseScreenState extends ConsumerState<CheckDatabaseScreen> {
               Expanded(
                 child: PlutoGrid(
                   key: ValueKey(tableName),
-                  columns: [check_col, ...columns],
+                  columns: [checkCol, ...columns],
                   rows: rows,
                   mode: PlutoGridMode.normal,
                   onLoaded: (PlutoGridOnLoadedEvent event) {
@@ -248,12 +330,12 @@ class _CheckDatabaseScreenState extends ConsumerState<CheckDatabaseScreen> {
                       if (!mounted) return;
 
                       setState(() {
-                        _updatedRowKeys.add(event.row.key);
+                        currentUpdatedKeys.add(event.row.key);
                       });
                     });
                   },
                   onRowChecked: (event) {
-                    _updateShowDeleteButton();
+                    updateShowDeleteButton();
                   },
                 ),
               ),

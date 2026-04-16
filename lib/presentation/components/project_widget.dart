@@ -22,8 +22,12 @@ class ProjectWidget extends StatelessWidget {
 
     final colorScheme = Theme.of(context).colorScheme;
 
+    
 
-    Widget child = Container(
+
+    Widget child = InkWell(
+      onTap: onPressed,
+      child: Ink(
       decoration: BoxDecoration(
         color: colorScheme.surfaceContainerHighest, // Light background color
         borderRadius: BorderRadius.circular(10.0),
@@ -57,7 +61,7 @@ class ProjectWidget extends StatelessWidget {
           ),
         ],
       ),
-    );
+    ));
 
     if (contextMenu == null) return child;
 

@@ -45,9 +45,7 @@ dependencies:
   battery_plus: ^5.0.3
   
 
-  #flutter_soloud works best but for windows it has harmless MSVC compiler
-  #warnings from the SoLoud C++ library. they dont affect runtime and do works
-  # its just annoying
+  #flutter_soloud works best for the sound
   flutter_soloud: ^3.5.4
 
 
@@ -57,6 +55,9 @@ dependencies:
   cupertino_icons: ^1.0.8
   logger: ^2.6.2
   flutter_libserialport: ^0.6.0
+  win32: ^5.15.0
+  ffi: ^2.1.5
+  file_selector: ^1.1.0
 
 dev_dependencies:
   flutter_test:

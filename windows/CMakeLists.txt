@@ -2,6 +2,14 @@
 cmake_minimum_required(VERSION 3.14)
 project(ui_prototype LANGUAGES CXX)
 
+#get rid of compilation warnings for flutter soloud
+add_compile_options(/wd4244 /wd4267 /wd4456 /wd4457 /wd4996 /wd4458 /wd4018 
+        /wd4701 /wd4760 /wd4702 /wd4189 /wd4459 /wd4245 /wd4305 /wd4389)
+set(CMAKE_EXE_LINKER_FLAGS_RELEASE "${CMAKE_EXE_LINKER_FLAGS_RELEASE} /INCREMENTAL:NO")
+set(CMAKE_SHARED_LINKER_FLAGS_RELEASE "${CMAKE_SHARED_LINKER_FLAGS_RELEASE} /INCREMENTAL:NO")
+set(CMAKE_EXE_LINKER_FLAGS_PROFILE "${CMAKE_EXE_LINKER_FLAGS_PROFILE} /INCREMENTAL:NO")
+set(CMAKE_SHARED_LINKER_FLAGS_PROFILE "${CMAKE_SHARED_LINKER_FLAGS_PROFILE} /INCREMENTAL:NO")
+
 # The name of the executable created for the application. Change this to change
 # the on-disk name of your application.
 set(BINARY_NAME "ui_prototype")

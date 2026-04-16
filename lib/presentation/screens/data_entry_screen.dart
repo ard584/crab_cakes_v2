@@ -1,16 +1,31 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import 'package:ui_prototype/domain/value_objects/parse_result.dart';
+import 'package:ui_prototype/domain/entities/scan_event.dart';
+
 import 'package:ui_prototype/infrastructure/providers/flex_form_provider.dart';
 import 'package:ui_prototype/infrastructure/providers/form_save_notifier.dart';
+import 'package:ui_prototype/infrastructure/providers/pit_readers_providers.dart';
+
 import 'package:ui_prototype/infrastructure/providers/project_database_provider.dart';
 import 'package:ui_prototype/presentation/screens/check_database_screen.dart';
 import 'package:ui_prototype/presentation/screens/export_screen.dart';
+import 'package:ui_prototype/presentation/screens/field_config_screen.dart';
+
 import 'package:ui_prototype/presentation/screens/project_selection.dart';
 import 'package:ui_prototype/presentation/services/flex_field/flex_field_factory.dart';
 import 'package:ui_prototype/presentation/view_models/project_input.dart';
 import 'package:ui_prototype/presentation/components/catch_table_widget.dart';
 import 'package:ui_prototype/presentation/shortcuts/data_entry_shortcuts.dart';
 import 'package:ui_prototype/presentation/components/status_panel.dart';
+
+import 'package:ui_prototype/infrastructure/providers/external_backup_provider.dart';
+import 'package:ui_prototype/infrastructure/providers/active_database_connection_provider.dart';
+import 'package:ui_prototype/infrastructure/providers/settings_provider.dart';
+
+import 'package:ui_prototype/infrastructure/providers/sound_provider.dart';
+import 'package:ui_prototype/domain/enums/app_sound.dart';
 
 import 'settings_screen.dart';
 
@@ -31,20 +46,73 @@ class DataEntryScreen extends ConsumerStatefulWidget {
 }
 
 class _DataEntryState extends ConsumerState<DataEntryScreen> {
+  final ScrollController scrollController = ScrollController();
+  //used to track if save was used by the user
+  //needed this because the sound would trigger due to existing provider state
+  bool _saveTriggeredByUser = false;
+
+  void jumpToTop() {
+    scrollController.animateTo(0, duration: Duration(milliseconds: 150), curve: Curves.fastOutSlowIn);
+  }
 
   @override
   Widget build(BuildContext context) {
     final projectAsync = ref.watch(projectViewModelProvider);
+    final project = ref.watch(projectViewModelProvider).value;
+
     final activeTableName = ref.watch(activeTableProvider);
+    final activeTable = project?.tables[activeTableName];
+    final fieldList = activeTable?.attributes.values.toList();
+
+    
+    //setting up the stream subscription for scan detection
+    ref.listen(scanEventProvider, (prev, next) {
+      next.whenData((parseResult) {
+        if (parseResult is! ParseOk<ScanEvent>) return;
+
+        final scan = parseResult.value;
+
+        final settings = ref.read(projectSettingsProvider).value;
+        final targetTable = settings?.scanner.targetTable;
+        final targetCol = settings?.scanner.targetColumn;
+
+        if (targetTable == null || targetCol == null) return;
+        if (targetTable != activeTableName) return;
+        if (fieldList == null) return;
+
+        for (final field in fieldList) {
+          if (field.fields.name == targetCol) {
+            //local variable to hold pit tag
+            final scannedId = scan.id ?? "";
+            field.controller.text = scan.id ?? ""; 
+               
+            //if there is a valid scan play the tag accepted sound
+            //Needs to be tested with pit tag reader
+            if (scannedId.isNotEmpty) 
+            {
+              ref.read(soundServiceProvider).play(AppSound.tagAccepted);
+            }
+
+            break;
+          }
+        }
+      });
+    });
 
     // Set activeProject state
-    projectAsync.whenData((project) {
-    });
+    projectAsync.whenData((project) {});
 
     // Snack bar updates
     ref.listen<AsyncValue<void>>(formSaveProvider, (previous, next) {
+      //ignore events not triggered b user
+      if (!_saveTriggeredByUser) return;
+
       next.whenOrNull(
-        data: (_) {
+        data: (_){
+          //reset flag
+          _saveTriggeredByUser = false;
+          //success alert
+          ref.read(soundServiceProvider).play(AppSound.recordSavedOk);
           if (context.mounted) {
             ScaffoldMessenger.of(
               context,
@@ -52,6 +120,10 @@ class _DataEntryState extends ConsumerState<DataEntryScreen> {
           }
         },
         error: (e, st) {
+          //reset flag
+          _saveTriggeredByUser = false;
+          //failure alert
+          ref.read(soundServiceProvider).play(AppSound.recordSaveFailed);
           if (context.mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
@@ -89,7 +161,11 @@ class _DataEntryState extends ConsumerState<DataEntryScreen> {
       if (projectMap == null) return;
       final table = projectMap.tables[activeTableName];
       if (table == null) return;
+
+      //mark the save as user initiated
+      _saveTriggeredByUser = true;
       await ref.read(formSaveProvider.notifier).saveTable(table);
+        jumpToTop();
     },
     child: Scaffold(
       appBar: AppBar(
@@ -123,13 +199,14 @@ class _DataEntryState extends ConsumerState<DataEntryScreen> {
                     const SizedBox(width: 12),
                     // push table to right
                     const Spacer(), 
-                    // CatchHistorySection(tableName: activeTableName),
+                    CatchHistorySection(tableName: activeTableName),
 
                   ]
                 ),
                 const SizedBox(height: 16),
+                
                 Expanded(
-                  child: TableFormSection(tableName: activeTableName),
+                  child: TableFormSection(controller: scrollController,),
                 ),
               ],
             );
@@ -145,19 +222,28 @@ class _DataEntryState extends ConsumerState<DataEntryScreen> {
           final projectMap = ref.read(projectViewModelProvider).value;
 
           if (projectMap == null) return;
+          if (activeTableName == null) return;
 
           final table = projectMap.tables[activeTableName];
-          print("ACTIVE TABLE NAME: $activeTableName");
+          if (table == null) return;
 
-          // Table is returning null for some reason
-          if (table == null) {
-            print("TABLE IS NULL");
-            return;
+          // 1) Save record (this is where INSERT happens, inside saveTable)
+          jumpToTop();
+          //mark as user initiated save
+          _saveTriggeredByUser = true;
+          await ref.read(formSaveProvider.notifier).saveTable(table);
+
+          // 2) Immediately run backup to selected drives
+          final dbPath = ref.read(activeDatabasePathProvider);
+          if (dbPath != null) {
+            await ref.read(writeBackupProvider).execute(sourceDbPath: dbPath);
           }
 
-          print("TABLE SAVED");
-
-          await ref.read(formSaveProvider.notifier).saveTable(table);
+          scrollController.animateTo(
+              0,
+              duration: Duration(milliseconds: 150),
+              curve: Curves.fastOutSlowIn,
+            );
         },
         label: Padding(
           padding: const EdgeInsets.all(20.0),
@@ -169,13 +255,24 @@ class _DataEntryState extends ConsumerState<DataEntryScreen> {
   }
 }
 
-class TableFormSection extends ConsumerWidget {
-  final String tableName;
-  const TableFormSection({super.key, required this.tableName});
+class _TableFormSectionState extends ConsumerState<TableFormSection> {
+  late final ScrollController? _scrollController;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  void initState() {
+    super.initState();
+    _scrollController = widget.controller;
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final project = ref.watch(projectViewModelProvider).value;
+    final tableName = ref.watch(activeTableProvider);
+
+    if (tableName == null) {
+      return Center(child: CircularProgressIndicator(),);
+    }
+
     final table = project?.tables[tableName];
 
     if (table == null) {
@@ -191,8 +288,18 @@ class TableFormSection extends ConsumerWidget {
 
         return DynamicFlexField(tableName: tableName, attribute: attribute);
       },
+      controller: _scrollController,
     );
   }
+}
+
+class TableFormSection extends ConsumerStatefulWidget {
+  final ScrollController? controller;
+  const TableFormSection({super.key, this.controller});
+
+  @override
+  ConsumerState<ConsumerStatefulWidget> createState() =>
+      _TableFormSectionState();
 }
 
 class DynamicFlexField extends ConsumerWidget {
@@ -287,6 +394,19 @@ class DrawerSubmenu extends StatelessWidget {
               context,
               MaterialPageRoute(
                 builder: (context) => CheckDatabaseScreen(),
+              ),
+            );
+          },
+        ),
+        ListTile(
+          leading: const Icon(Icons.build),
+          title: const Text("Field Config"),
+          onTap: () {
+            Navigator.pop(context);
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => FieldConfigScreen(),
               ),
             );
           },

@@ -1,6 +1,6 @@
 import 'package:ui_prototype/domain/enums/app_sound.dart';
 
-//an abstract class fo playing the sounds
+//an abstract class for playing the sounds
 abstract class SoundService 
 {
   Future<void> play(AppSound sound);

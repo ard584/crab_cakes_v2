@@ -6,13 +6,14 @@ import 'package:ui_prototype/infrastructure/providers/sound_provider.dart';
 import 'package:ui_prototype/infrastructure/sound/sound_mapper.dart';
 
 //class that is used to play the applications sounds
-//the rest of the app does not need to knoe how sounds are played 
+//the rest of the app does not need to know how sounds are played 
 //so its clean
 class AudioPlayerService implements SoundService {
   AudioPlayerService(this.ref);
 
   final Ref ref;
   final SoLoud _soloud = SoLoud.instance;
+  final Map<AppSound, AudioSource> _loadedSources = {};
   bool _isInitialized = false;
 
   //audio engine is only initialized once
@@ -21,6 +22,15 @@ class AudioPlayerService implements SoundService {
     if (_isInitialized) return;
     await _soloud.init();
     _isInitialized = true;
+  }
+  Future<AudioSource> _getSource(AppSound sound) async {
+    final existing = _loadedSources[sound];
+    if (existing != null) return existing;
+
+    final assetPath = mapSoundToAsset(sound);
+    final source = await _soloud.loadAsset('assets/$assetPath');
+    _loadedSources[sound] = source;
+    return source;
   }
 
   @override
@@ -45,9 +55,7 @@ class AudioPlayerService implements SoundService {
   {
     try {
       await _ensureInitialized();
-
-      final assetPath = mapSoundToAsset(sound);
-      final source = await _soloud.loadAsset('assets/$assetPath');
+      final source = await _getSource(sound);
       await _soloud.play(source);
     } 
     catch (_) 
