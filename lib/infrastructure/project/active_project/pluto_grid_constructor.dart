@@ -5,6 +5,8 @@ import 'package:ui_prototype/domain/db_table.dart';
 import 'package:ui_prototype/domain/entities/row_identifier.dart';
 import 'package:ui_prototype/domain/models/db_row.dart';
 
+import 'package:ui_prototype/infrastructure/providers/column_filter_provider.dart';
+
 class PlutoGridConstructor
     implements
         GridConstructor<
@@ -21,8 +23,8 @@ class PlutoGridConstructor
 
     // Iterate through DbTable
     for (final column in table.columns) {
-      // skip if
-      if (column.name.startsWith('__')) continue;
+      // Skip system columns not needed for user (columns starting with __)
+      if (column.name.startsWith(kColumnPrefixToHide)) continue;
       // Get type of current column
       final PlutoColumnType type;
 
@@ -85,8 +87,8 @@ class PlutoGridConstructor
 
     // Iterate through row
     for (final cell in row.values.entries) {
-      // skip if __
-      if (cell.key.startsWith('__')) continue;
+      // Skip system columns not needed for user (columns starting with __)
+      if (cell.key.startsWith(kColumnPrefixToHide)) continue;
       // Match pluto field name
       final String fieldName = _getFieldName(table.name, cell.key);
 

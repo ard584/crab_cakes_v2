@@ -1,15 +1,15 @@
 import 'package:ui_prototype/application/table_repository.dart';
-import 'package:ui_prototype/domain/entities/row_identifier.dart';
 import 'package:ui_prototype/presentation/view_models/project_input.dart';
+import 'package:ui_prototype/infrastructure/providers/column_filter_provider.dart';
 
 class CatchHistoryViewModel {
-  final ActiveProjectRepository<RowIdentifier> db;
+  final ActiveProjectRepository db;
   final TableInput table;
 
   CatchHistoryViewModel({required this.db, required this.table});
 
   // Column names derived from the table definition
-  List<String> get _tableColumns => table.attributes.keys.toList();
+  List<String> get _tableColumns => table.attributes.keys.where((col) => !col.startsWith(kColumnPrefixToHide)).toList();
 
 // get the map of the recent saves, fill with empty if less than 5 entries
   List<Map<String, dynamic>> getCatchMap() {
@@ -28,7 +28,7 @@ class CatchHistoryViewModel {
     return catches;
   }
 
-// get column names to be dispalyed
+// get column names to be displayed
   String getColumnName(int index) {
     final catches = getCatches();
     final keys = catches.isNotEmpty
@@ -43,13 +43,18 @@ class CatchHistoryViewModel {
   List<Map<String, dynamic>> getCatches() {
     final schema = db.getTableSchema(table.name);
     final hasCreatedAt = schema.columns.any(
-      (col) => col.name.toLowerCase() == '__created_at_time'
+      (col) => col.name.toLowerCase() == '${kColumnPrefixToHide}created_at_time'
     );
 
-  final orderColumn = hasCreatedAt ? '__created_at_time' : 'rowid';
-  final rows = db.getRowsOrderedBy(table.name, 5, 0, orderColumn);
+    final orderColumn = hasCreatedAt ? '${kColumnPrefixToHide}created_at_time' : 'rowid';
+    final rows = db.getRowsOrderedBy(table.name, 5, 0, orderColumn);
 
-    return rows.map((row) => row.values).toList();
+  // Filter out columns starting with __
+    return rows.map((row) {
+      final filteredValues = Map<String, dynamic>.from(row.values);
+      filteredValues.removeWhere((key, value) => key.startsWith(kColumnPrefixToHide));
+      return filteredValues;
+    }).toList();
   }
   
 // Get number of columns max of 8

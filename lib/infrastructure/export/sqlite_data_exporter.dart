@@ -3,6 +3,8 @@ import 'package:sqlite3/sqlite3.dart';
 import 'package:ui_prototype/application/export/interfaces/data_exporter.dart';
 import 'package:ui_prototype/infrastructure/schema_discovery/schema_graph.dart';
 
+import 'package:ui_prototype/infrastructure/providers/column_filter_provider.dart';
+
 
 class SqliteDataExporter implements DataExporter {
   final Database db;
@@ -224,7 +226,7 @@ class SqliteDataExporter implements DataExporter {
     for(final row in tableList) {
       final tableName = row['name'] as String;
       final rows = db.select("PRAGMA table_info($tableName);");
-      final cols = rows.map((r) => r['name'] as String).where((col) => !col.startsWith('__')).toList();
+      final cols = rows.map((r) => r['name'] as String).where((col) => !col.startsWith(kColumnPrefixToHide)).toList();
 
       colMap[tableName] = cols;
     }

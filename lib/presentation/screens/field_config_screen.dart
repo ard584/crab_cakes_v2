@@ -7,6 +7,8 @@ import 'package:ui_prototype/infrastructure/providers/settings_provider.dart';
 import 'package:ui_prototype/domain/entities/settings/field_config.dart';
 import 'package:ui_prototype/domain/entities/settings/project_settings.dart';
 
+import 'package:ui_prototype/infrastructure/providers/column_filter_provider.dart';
+
 class FieldConfigScreen extends ConsumerWidget {
   const FieldConfigScreen({super.key});
 
@@ -42,7 +44,13 @@ class FieldConfigScreen extends ConsumerWidget {
               );
             }
 
-            final attributes = table.attributes.values.where((a) => !a.fields.name.startsWith('__')).toList();
+            // Get filter setting from provider
+            final hideDoubleUnderscore = ref.watch(hideDoubleUnderscoreColumnsProvider);
+
+            // Apply filter based on provider setting
+            final attributes = hideDoubleUnderscore
+                ? table.attributes.values.where((a) => !a.fields.name.startsWith(kColumnPrefixToHide)).toList()
+                : table.attributes.values.toList();
 
             return settingsAsync.when(
               loading: () => const Center(child: CircularProgressIndicator()),

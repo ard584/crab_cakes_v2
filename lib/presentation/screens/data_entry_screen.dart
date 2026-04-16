@@ -23,6 +23,7 @@ import 'package:ui_prototype/presentation/components/status_panel.dart';
 import 'package:ui_prototype/infrastructure/providers/external_backup_provider.dart';
 import 'package:ui_prototype/infrastructure/providers/active_database_connection_provider.dart';
 import 'package:ui_prototype/infrastructure/providers/settings_provider.dart';
+import 'package:ui_prototype/infrastructure/providers/column_filter_provider.dart';
 
 
 import 'settings_screen.dart';
@@ -248,8 +249,13 @@ class _TableFormSectionState extends ConsumerState<TableFormSection> {
       return Center(child: Text("Table is null"));
     }
 
-    // hides fields with __ infront
-    final attrbutes = table.attributes.values.where((a) => !a.fields.name.startsWith('__')).toList();
+    // Get filter setting from provider
+    final hideDoubleUnderscore = ref.watch(hideDoubleUnderscoreColumnsProvider);
+
+    // Apply filter based on provider setting
+    final attrbutes = hideDoubleUnderscore
+        ? table.attributes.values.where((a) => !a.fields.name.startsWith(kColumnPrefixToHide)).toList()
+        : table.attributes.values.toList();
 
     return ListView.builder(
       itemCount: attrbutes.length,
