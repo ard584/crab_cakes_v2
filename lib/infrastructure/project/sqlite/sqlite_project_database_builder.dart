@@ -10,6 +10,8 @@ import 'package:path/path.dart' as path;
 import 'package:uuid/uuid.dart';
 import 'package:ui_prototype/presentation/utils/logger.dart';
 
+import 'package:ui_prototype/infrastructure/providers/column_filter_provider.dart';
+
 class SqliteProjectDatabaseBuilder implements ProjectDatabaseBuilder {
 
 
@@ -109,13 +111,23 @@ class SqliteProjectDatabaseBuilder implements ProjectDatabaseBuilder {
 
         db.execute(statement);
 
-        // Add system columns to newly created table
-        final match = RegExp(r'CREATE\s+TABLE\s+(\w+)', caseSensitive: false).firstMatch(statement);
-        if (match != null) {
-          final tableName = match.group(1)!;
-          print('ADDING COLUMNS TO: $tableName');
-          db.execute("ALTER TABLE $tableName ADD COLUMN __created_at_time TEXT DEFAULT (datetime('now', 'localtime'));");
-          db.execute("ALTER TABLE $tableName ADD COLUMN __modified_in_program INTEGER DEFAULT 0;");
+        // Get all tables in the database
+        final tables = db.select("SELECT name FROM sqlite_master WHERE type='table';");
+
+        for (final table in tables) {
+          final tableName = table['name'] as String;
+          if (tableName.startsWith('sqlite_')) continue;
+          // Get existing columns
+          final tableInfo = db.select("PRAGMA table_info($tableName);");
+          final existingColumns = tableInfo.map((row) => row['name'] as String).toSet();
+          
+          // Add system columns if missing
+          if (!existingColumns.contains('${kColumnPrefixToHide}created_at_time')) {
+            db.execute("ALTER TABLE $tableName ADD COLUMN ${kColumnPrefixToHide}created_at_time TEXT DEFAULT (datetime('now', 'localtime'));");
+          }
+          if (!existingColumns.contains('${kColumnPrefixToHide}modified_in_program')) {
+            db.execute("ALTER TABLE $tableName ADD COLUMN ${kColumnPrefixToHide}modified_in_program INTEGER DEFAULT 0;");
+          }
         }
 
         // check security state

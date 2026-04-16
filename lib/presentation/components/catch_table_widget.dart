@@ -9,6 +9,8 @@ class CatchHistoryTable extends StatelessWidget {
   final ActiveProjectRepository<RowIdentifier> db;
   final TableInput table;
 
+  static const int kHistoryRowCount = 5;
+
   const CatchHistoryTable({super.key, required this.db, required this.table});
 
   @override
@@ -65,7 +67,7 @@ class CatchHistoryTable extends StatelessWidget {
                 const Divider(color: Colors.black45, height: 8),
 
                 // Data rows — most recent at bottom, oldest at top
-                ...List.generate(5, (i) {
+                ...List.generate(kHistoryRowCount, (i) {
                   final reversedI = 4 - i;
                   return Row(
                     children: List.generate(columnCount, (j) => [
