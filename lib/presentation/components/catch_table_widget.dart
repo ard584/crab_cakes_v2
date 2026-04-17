@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ui_prototype/application/table_repository.dart';
 import 'package:ui_prototype/domain/catch_history.dart';
 import 'package:ui_prototype/application/catch_history/catch_history.dart';
 import 'package:ui_prototype/presentation/view_models/project_input.dart';
 import 'package:ui_prototype/domain/entities/row_identifier.dart';
+import 'package:ui_prototype/infrastructure/providers/settings_provider.dart';
 
-class CatchHistoryTable extends StatelessWidget {
+class CatchHistoryTable extends ConsumerWidget {
   final ActiveProjectRepository<RowIdentifier> db;
   final TableInput table;
 
@@ -14,10 +16,19 @@ class CatchHistoryTable extends StatelessWidget {
   const CatchHistoryTable({super.key, required this.db, required this.table});
 
   @override
-  Widget build(BuildContext context) {
-    final viewModel = CatchHistoryViewModel(db: db, table: table);
-    final catchHistory = HistoryCatch(viewModel: viewModel);
-    final columnCount = viewModel.getColumnCount();
+  Widget build(BuildContext context, WidgetRef ref) {
+
+    final settingsAsync = ref.watch(projectSettingsProvider);
+    
+    return settingsAsync.when(
+      data: (settings) {
+        final viewModel = CatchHistoryViewModel(
+          db: db, 
+          table: table,
+          settings: settings,
+        );
+        final catchHistory = HistoryCatch(viewModel: viewModel);
+        final columnCount = viewModel.getColumnCount();
 
     return SizedBox(
       width: MediaQuery.of(context).size.width * 0.5,
@@ -92,6 +103,14 @@ class CatchHistoryTable extends StatelessWidget {
           ),
         ),
       ),
+    );
+    },  
+      loading: () => const SizedBox(
+        width: 100,
+        height: 150,
+        child: Center(child: CircularProgressIndicator()),
+      ),
+      error: (_, __) => const SizedBox.shrink(),
     );
   }
 }

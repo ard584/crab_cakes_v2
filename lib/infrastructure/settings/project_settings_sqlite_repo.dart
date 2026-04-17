@@ -16,6 +16,7 @@ class ProjectSettingsSqliteRepo implements ProjectSettingsRepo {
 
   @override
   Future<ProjectSettings> getSettings() async {
+    try{
     final result = db.select("SELECT settings_json FROM $settingsTableName WHERE id=1 ",);
 
     if(result.isEmpty) {
@@ -29,6 +30,11 @@ class ProjectSettingsSqliteRepo implements ProjectSettingsRepo {
     final settings = ProjectSettings.fromJson(decoded);
 
     return settings;
+  } catch (e) {
+      // table doesnt exists or other error
+      // print('Error loading settings: $e');
+      return ProjectSettings.empty();
+    }
   }
  
   @override

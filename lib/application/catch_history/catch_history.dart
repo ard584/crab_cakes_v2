@@ -1,26 +1,68 @@
 import 'package:ui_prototype/application/table_repository.dart';
 import 'package:ui_prototype/presentation/view_models/project_input.dart';
 import 'package:ui_prototype/infrastructure/providers/column_filter_provider.dart';
+import 'package:ui_prototype/domain/entities/settings/project_settings.dart';
 
 class CatchHistoryViewModel {
   final ActiveProjectRepository db;
   final TableInput table;
+  final ProjectSettings? settings;
+  static const int kMaxHistoryColumns = 8;
 
-  CatchHistoryViewModel({required this.db, required this.table});
+  CatchHistoryViewModel({required this.db, required this.table, this.settings,});
 
-  // Column names derived from the table definition
-  List<String> get _tableColumns => table.attributes.keys.where((col) => !col.startsWith(kColumnPrefixToHide)).toList();
+  List<String> get _allAvailableColumns {
+    return table.attributes.keys.where((col) => !col.startsWith(kColumnPrefixToHide)).toList();
+  }
+
+  // Get columns selected for catch history from settings
+  List<String> get _selectedColumnsForCatchHistory {
+    // Default to first 8 columns
+    final defaultColumns = _allAvailableColumns.take(kMaxHistoryColumns).toList();
+    
+    // If no settings, use default
+    if (settings == null) {
+      return defaultColumns;
+    }
+    
+    try {
+      final selected = <String>[];
+      
+      for (final columnName in _allAvailableColumns) {
+        final config = settings!.fieldConfig.getConfig(
+          table: table.name,
+          col: columnName,
+        );
+        
+        // Add if showInCatchHistory is true
+        if (config?.showInCatchHistory == true) {
+          selected.add(columnName);
+        }
+      }
+      
+      // If nothing selected, return default
+      if (selected.isEmpty) {
+        return defaultColumns;
+      }
+      
+      // Return selected columns
+      return selected.take(kMaxHistoryColumns).toList();
+      
+    } catch (e) {
+      return defaultColumns;
+    }
+  }
+
+  List<String> get _tableColumns => _selectedColumnsForCatchHistory;
 
 // get the map of the recent saves, fill with empty if less than 5 entries
   List<Map<String, dynamic>> getCatchMap() {
     List<Map<String, dynamic>> catches = getCatches();
-    final int columnCount = catches.isNotEmpty
-        ? catches[0].keys.length
-        : _tableColumns.length;
+    final displayColumns = _tableColumns;
 
     while (catches.length < 5) {
       final Map<String, dynamic> emptyMap = {
-        for (int i = 0; i < columnCount; i++) getColumnName(i): '',
+        for (final col in displayColumns) col: '',
       };
       catches.add(emptyMap);
     }
@@ -30,13 +72,10 @@ class CatchHistoryViewModel {
 
 // get column names to be displayed
   String getColumnName(int index) {
-    final catches = getCatches();
-    final keys = catches.isNotEmpty
-        ? catches[0].keys.toList()
-        : _tableColumns;
+    final displayColumns = _tableColumns;
 
-    if (index < 0 || index >= keys.length) return 'unknown';
-    return keys[index];
+    if (index < 0 || index >= displayColumns.length) return 'unknown';
+    return displayColumns[index];
   }
 
 // get most recent 5 catches
@@ -49,29 +88,34 @@ class CatchHistoryViewModel {
     final orderColumn = hasCreatedAt ? '${kColumnPrefixToHide}created_at_time' : 'rowid';
     final rows = db.getRowsOrderedBy(table.name, 5, 0, orderColumn);
 
-  // Filter out columns starting with __
+    final displayColumns = _tableColumns.toSet();
+
+  // Filter rows to only include selected columns
     return rows.map((row) {
-      final filteredValues = Map<String, dynamic>.from(row.values);
-      filteredValues.removeWhere((key, value) => key.startsWith(kColumnPrefixToHide));
+      final filteredValues = <String, dynamic>{};
+      for (final col in displayColumns) {
+        filteredValues[col] = row.values[col];
+      }
       return filteredValues;
     }).toList();
   }
-  
-// Get number of columns max of 8
+
   int getColumnCount() {
-    final catches = getCatches();
-    final count = catches.isNotEmpty ? catches[0].keys.length : _tableColumns.length;
-    return count > 8 ? 8 : count;
+    return _tableColumns.length;
   }
 
 // get character width of column data to ensure they fit
   double getColumnWidth(int columnIndex) {
     final catches = getCatchMap();
+    final displayColumns = _tableColumns;
 
-    double maxWidth = getColumnName(columnIndex).length.toDouble();
+    if (columnIndex >= displayColumns.length) return 100.0;
+    
+    final columnName = displayColumns[columnIndex];
+    double maxWidth = columnName.length.toDouble();
 
     for (final row in catches) {
-      final value = row[row.keys.elementAt(columnIndex)].toString();
+      final value = row[columnName]?.toString() ?? '';
       final width = value.length.toDouble();
       if (width > maxWidth) maxWidth = width;
     }
