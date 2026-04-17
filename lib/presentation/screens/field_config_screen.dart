@@ -103,6 +103,7 @@ class FieldConfigScreen extends ConsumerWidget {
                                         useDropdown: false,
                                         allowCustomValues: true,
                                         isRequired: schemaRequired,
+                                        showInCatchHistory: false,
                                         options: const [],
                                         minValue: null,
                                         maxValue: null,
@@ -194,6 +195,7 @@ class FieldConfigScreen extends ConsumerWidget {
       useDropdown: draft.useDropdown,
       allowCustomValues: draft.allowCustomValues,
       isRequired: draft.isRequired,
+      showInCatchHistory: draft.showInCatchHistory,
       options: List<String>.from(draft.options),
       minValue: draft.minValue,
       maxValue: draft.maxValue,
@@ -206,6 +208,7 @@ class FieldConfigScreen extends ConsumerWidget {
       useDropdown: config.useDropdown,
       allowCustomValues: config.allowCustomValues,
       isRequired: config.isRequired,
+      showInCatchHistory: config.showInCatchHistory,
       options: List<String>.from(config.options),
       minValue: config.minValue?.toDouble(),
       maxValue: config.maxValue?.toDouble(),
@@ -446,6 +449,7 @@ class _FieldConfigDialogState extends State<FieldConfigDialog> {
   late bool _useDropdown;
   late bool _allowCustomValues;
   late bool _isRequired;
+  late bool _showInCatchHistory;
 
   late TextEditingController _optionsController;
   late TextEditingController _minController;
@@ -459,6 +463,7 @@ class _FieldConfigDialogState extends State<FieldConfigDialog> {
     _useDropdown = widget.initialValue.useDropdown;
     _allowCustomValues = widget.initialValue.allowCustomValues;
     _isRequired = widget.initialValue.isRequired;
+    _showInCatchHistory = widget.initialValue.showInCatchHistory;
 
     _optionsController = TextEditingController(
       text: widget.initialValue.options.join(', '),
@@ -524,6 +529,19 @@ class _FieldConfigDialogState extends State<FieldConfigDialog> {
                 onChanged: (value) {
                   setState(() {
                     _isRequired = value;
+                  });
+                },
+              ),
+              SwitchListTile(
+                contentPadding: EdgeInsets.zero,
+                title: const Text("Show in Catch History Table."),
+                subtitle: const Text(
+                  "Display this field in the catch history table.",
+                ),
+                value: _showInCatchHistory,
+                onChanged: (value) {
+                  setState(() {
+                    _showInCatchHistory = value;
                   });
                 },
               ),
@@ -602,6 +620,7 @@ class _FieldConfigDialogState extends State<FieldConfigDialog> {
               useDropdown: _useDropdown,
               allowCustomValues: _allowCustomValues,
               isRequired: _isRequired,
+              showInCatchHistory: _showInCatchHistory,
               options: _parseOptions(_optionsController.text),
               minValue: _parseNullableNum(_minController.text),
               maxValue: _parseNullableNum(_maxController.text),
@@ -647,6 +666,7 @@ class FieldConfigDraft {
   final bool useDropdown;
   final bool allowCustomValues;
   final bool isRequired;
+  final bool showInCatchHistory;
   final List<String> options;
   final num? minValue;
   final num? maxValue;
@@ -657,6 +677,7 @@ class FieldConfigDraft {
     required this.useDropdown,
     required this.allowCustomValues,
     required this.isRequired,
+    this.showInCatchHistory = false,
     required this.options,
     required this.minValue,
     required this.maxValue,
@@ -669,6 +690,7 @@ class FieldConfigDraft {
       useDropdown: useDropdown,
       allowCustomValues: allowCustomValues,
       isRequired: isRequired,
+      showInCatchHistory: showInCatchHistory,
       options: List<String>.from(options),
       minValue: minValue,
       maxValue: maxValue,
