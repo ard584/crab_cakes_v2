@@ -12,7 +12,7 @@ class NativeSaveLocationPicker implements SaveLocationPicker {
     final typeGroup = _typeGroupFor(type);
 
     final location = await getSaveLocation(
-    suggestedName: 'data.csv',
+    suggestedName: suggestedName,
     acceptedTypeGroups: [
       typeGroup
     ],
