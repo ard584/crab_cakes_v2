@@ -7,7 +7,6 @@ import 'package:ui_prototype/infrastructure/providers/active_database_connection
 import 'package:ui_prototype/application/settings/usecases/get_settings.dart';
 import 'package:ui_prototype/application/settings/usecases/update_settings.dart';
 import 'package:ui_prototype/application/settings/usecases/update_scanner_target.dart';  
-import 'package:ui_prototype/application/settings/usecases/update_field_config.dart';
 
 //importing interfaces 
 import 'package:ui_prototype/application/settings/interfaces/project_settings_repo.dart';
@@ -55,22 +54,16 @@ final updateScannerTargetUsecaseProvider = Provider<UpdateScannerTarget?>((ref) 
   return UpdateScannerTarget(repo);
 });
 
-final updateFieldConfigUsecaseProvider = Provider<UpdateFieldConfig?>((ref) {
-  final repo = ref.watch(projectSettingsRepoProvider);
 
-  if(repo == null) return null;
-
-  return UpdateFieldConfig(repo);
-});
 
 // Wiring complete
 
 
 //exposing the settings
-final projectSettingsProvider = FutureProvider<ProjectSettings?>((ref) async {
+final projectSettingsProvider = FutureProvider<ProjectSettings>((ref) async {
   final getSettingsUsecase = ref.watch(getSettingsUsecaseProvider);
 
-  if(getSettingsUsecase == null) return null;
+  if(getSettingsUsecase == null) return ProjectSettings.empty();
 
   return await getSettingsUsecase.execute();
 });

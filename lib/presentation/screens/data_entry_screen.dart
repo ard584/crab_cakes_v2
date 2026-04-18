@@ -2,13 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:ui_prototype/domain/value_objects/parse_result.dart';
+
 import 'package:ui_prototype/domain/entities/scan_event.dart';
+import 'package:ui_prototype/domain/entities/settings/field_config.dart';
 
 import 'package:ui_prototype/infrastructure/providers/flex_form_provider.dart';
 import 'package:ui_prototype/infrastructure/providers/form_save_notifier.dart';
 import 'package:ui_prototype/infrastructure/providers/pit_readers_providers.dart';
-
 import 'package:ui_prototype/infrastructure/providers/project_database_provider.dart';
+import 'package:ui_prototype/infrastructure/providers/field_config_providers.dart';
+
 import 'package:ui_prototype/presentation/screens/check_database_screen.dart';
 import 'package:ui_prototype/presentation/screens/export_screen.dart';
 import 'package:ui_prototype/presentation/screens/field_config_screen.dart';
@@ -45,6 +48,7 @@ class DataEntryScreen extends ConsumerStatefulWidget {
 
 class _DataEntryState extends ConsumerState<DataEntryScreen> {
   final ScrollController scrollController = ScrollController();
+  final _formKey = GlobalKey<FormState>();
 
   void jumpToTop() {
     scrollController.animateTo(0, duration: Duration(milliseconds: 150), curve: Curves.fastOutSlowIn);
@@ -135,8 +139,20 @@ class _DataEntryState extends ConsumerState<DataEntryScreen> {
       if (projectMap == null) return;
       final table = projectMap.tables[activeTableName];
       if (table == null) return;
+
+      //validate: ensure no required or incorrect fields are present
+      final isValid = _formKey.currentState?.validate() ?? false;
+      if (!isValid) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Please correct the highlighted fields before saving.'),
+          ),
+        );
+        return;
+      }
+
       await ref.read(formSaveProvider.notifier).saveTable(table);
-        jumpToTop();
+      jumpToTop();
     },
     child: Scaffold(
       appBar: AppBar(
@@ -177,7 +193,10 @@ class _DataEntryState extends ConsumerState<DataEntryScreen> {
                 const SizedBox(height: 16),
                 
                 Expanded(
-                  child: TableFormSection(controller: scrollController,),
+                  child: Form(
+                    key: _formKey,
+                    child: TableFormSection(controller: scrollController,),
+                  ),
                 ),
               ],
             );
@@ -190,6 +209,19 @@ class _DataEntryState extends ConsumerState<DataEntryScreen> {
       floatingActionButton: FloatingActionButton.extended(
         focusNode: FocusNode(skipTraversal: true),
         onPressed: () async {
+
+          //validating the form before submission. Invalid should already be 
+          //marked in read 
+          final isValid = _formKey.currentState?.validate() ?? false;
+          if (!isValid) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Please correct the highlighted fields before saving.'),
+              ),
+            );
+            return;
+          }
+
           final projectMap = ref.read(projectViewModelProvider).value;
 
           if (projectMap == null) return;
@@ -285,6 +317,29 @@ class DynamicFlexField extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     // final controllers = ref.watch(flexTableControllersProvider(tableName));
 
+    //Fetch the domain-level configuration for this specific field
+    final fieldConfigAsync =  ref.watch(
+      effectiveFieldConfigProvider(
+        FieldConfigKey(
+          tableName: tableName,
+          colName: attribute.fields.name,
+        ),
+      ),
+    );
+
+    final fieldConfig = fieldConfigAsync.when(
+      data: (config) => config,
+      loading: () => FieldConfig.defaultInstance(),
+      error: (_, __) => FieldConfig.defaultInstance(),
+    );
+
+    //defining the FlexFieldConfig object with the domain-level config added 
+    final config = FlexFieldConfig(
+      label: attribute.fields.name,
+      dataType: attribute.fields.dataType,
+      settings: fieldConfig,
+    );
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12.0),
       margin: const EdgeInsets.only(bottom: 16.0, top: 4.0),
@@ -297,11 +352,7 @@ class DynamicFlexField extends ConsumerWidget {
       ),
 
       child: FlexFieldFactory.createField(
-        config: FlexFieldConfig(
-          label: attribute.fields.name,
-          dataType: attribute.fields.dataType,
-          isRequired: attribute.fields.isNotNullable,
-        ),
+        config: config,
 
         // Placeholder for now, doesn't do anything
         controller: attribute.controller,
