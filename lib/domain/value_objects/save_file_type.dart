@@ -1,0 +1,4 @@
+enum SaveFileType {
+  csv,
+  json,
+}
