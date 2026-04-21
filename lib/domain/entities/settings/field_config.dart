@@ -24,6 +24,7 @@ class FieldConfig {
     'useDropdown':useDropdown,
     'allowCustomValues':allowCustomValues,
     'isRequired':isRequired,
+    'isSticky':isSticky,
     'options':options,
     'minValue':minValue,
     'maxValue':maxValue,

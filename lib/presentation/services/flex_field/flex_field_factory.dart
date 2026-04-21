@@ -147,6 +147,14 @@ class _FlexAutocompleteFieldState extends State<_FlexAutocompleteField> {
   void initState() {
     super.initState();
     _focusNode = FocusNode(debugLabel: 'Autocomplete(${widget.config.label})');
+
+    _focusNode.addListener(() {
+      if (!_focusNode.hasFocus && _suppressOptions) {
+        setState(() {
+          _suppressOptions = false;
+        });
+      }
+    });
   }
 
   @override
