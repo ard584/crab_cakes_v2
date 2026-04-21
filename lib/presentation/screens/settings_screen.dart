@@ -3,8 +3,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:ui_prototype/presentation/components/usb_backups_section.dart';
 import 'package:ui_prototype/presentation/components/scanner_target_section.dart';
-import 'package:ui_prototype/presentation/components/pit_reader_section.dart';
 import 'package:ui_prototype/presentation/utils/logger.dart';
+import 'package:ui_prototype/domain/enums/app_sound.dart';
+import 'package:ui_prototype/presentation/components/sound_setting_row.dart';
+import 'package:ui_prototype/presentation/components/master_sound_toggle_row.dart';
+
+//importing the specific scanner connection component
+import 'package:ui_prototype/presentation/components/pit_reader_section.dart';
 
 // import your settings providers file
 import 'package:ui_prototype/infrastructure/providers/settings_provider.dart';
@@ -51,10 +56,8 @@ class SettingsScreen extends ConsumerWidget {
                   ],
                 ),
               ),
-
               const ReusableLeftAlignedText(text: 'Project Configuration Export'),
               Container(
-                decoration: reusableBoxDecoration,
                 padding: reusablePadding,
                 child: Row(
                   children: <Widget>[
@@ -110,11 +113,26 @@ class SettingsScreen extends ConsumerWidget {
                   ],
                 ),
               ),
+              //START OF SOUND SYSTEM
+              ReusableLeftAlignedText(text: 'Sound Settings'),
+              const MasterSoundToggleRow(),
+              const SizedBox(height: 8),
+
+              //print the sounds
+              ...AppSound.values.map(
+                (sound) => Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: SoundSettingRow(
+                    sound: sound,
+                    label: sound.label,
+                  ),
+                ),
+              ),
+
             ],
           ),
-        ),
       ),
-    );
+    ));
   }
 }
 
@@ -134,10 +152,16 @@ class ReusableLeftAlignedText extends StatelessWidget {
   const ReusableLeftAlignedText({super.key, required this.text});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext build) {
     return Align(
       alignment: Alignment.centerLeft,
-      child: Text(text),
+      child: Text(
+        text,
+        style: const TextStyle(
+          fontSize: 18,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
     );
   }
 }
