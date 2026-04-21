@@ -1,9 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:ui_prototype/presentation/components/usb_backups_section.dart';
 import 'package:ui_prototype/presentation/utils/logger.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:ui_prototype/domain/enums/app_sound.dart';
+import 'package:ui_prototype/presentation/components/sound_setting_row.dart';
 import 'package:ui_prototype/presentation/components/scanner_target_section.dart';
+import 'package:ui_prototype/infrastructure/providers/sound_provider.dart';
+import 'package:ui_prototype/presentation/components/master_sound_toggle_row.dart';
+import 'package:ui_prototype/domain/enums/app_sound.dart';
 
-//importing the specific sccanner connection component
+//importing the specific scanner connection component
 import 'package:ui_prototype/presentation/components/pit_reader_section.dart';
 
 class SettingsScreen extends StatelessWidget {
@@ -47,6 +53,24 @@ class SettingsScreen extends StatelessWidget {
                   ],
                 ),
               ),
+
+              //START OF SOUND SYSTEM
+              ReusableLeftAlignedText(text: 'Sound Settings'),
+              const SizedBox(height: 8),
+              const MasterSoundToggleRow(),
+              const SizedBox(height: 8),
+
+              //print the sounds
+              ...AppSound.values.map(
+                (sound) => Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: SoundSettingRow(
+                    sound: sound,
+                    label: sound.label,
+                  ),
+                ),
+              ),
+
             ],
           ),
         ),
@@ -72,6 +96,15 @@ class ReusableLeftAlignedText extends StatelessWidget {
 
   @override
   Widget build(BuildContext build) {
-    return (Align(alignment: Alignment.centerLeft, child: Text(text)));
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: Text(
+        text,
+        style: const TextStyle(
+          fontSize: 18,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+    );
   }
 }

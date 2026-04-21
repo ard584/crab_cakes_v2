@@ -24,6 +24,8 @@ import 'package:ui_prototype/infrastructure/providers/external_backup_provider.d
 import 'package:ui_prototype/infrastructure/providers/active_database_connection_provider.dart';
 import 'package:ui_prototype/infrastructure/providers/settings_provider.dart';
 
+import 'package:ui_prototype/infrastructure/providers/sound_provider.dart';
+import 'package:ui_prototype/domain/enums/app_sound.dart';
 
 import 'settings_screen.dart';
 
@@ -45,6 +47,9 @@ class DataEntryScreen extends ConsumerStatefulWidget {
 
 class _DataEntryState extends ConsumerState<DataEntryScreen> {
   final ScrollController scrollController = ScrollController();
+  //used to track if save was used by the user
+  //needed this because the sound would trigger due to existing provider state
+  bool _saveTriggeredByUser = false;
 
   void jumpToTop() {
     scrollController.animateTo(0, duration: Duration(milliseconds: 150), curve: Curves.fastOutSlowIn);
@@ -77,7 +82,17 @@ class _DataEntryState extends ConsumerState<DataEntryScreen> {
 
         for (final field in fieldList) {
           if (field.fields.name == targetCol) {
-            field.controller.text = scan.id ?? "";    
+            //local variable to hold pit tag
+            final scannedId = scan.id ?? "";
+            field.controller.text = scan.id ?? ""; 
+               
+            //if there is a valid scan play the tag accepted sound
+            //Needs to be tested with pit tag reader
+            if (scannedId.isNotEmpty) 
+            {
+              ref.read(soundServiceProvider).play(AppSound.tagAccepted);
+            }
+
             break;
           }
         }
@@ -89,8 +104,15 @@ class _DataEntryState extends ConsumerState<DataEntryScreen> {
 
     // Snack bar updates
     ref.listen<AsyncValue<void>>(formSaveProvider, (previous, next) {
+      //ignore events not triggered b user
+      if (!_saveTriggeredByUser) return;
+
       next.whenOrNull(
-        data: (_) {
+        data: (_){
+          //reset flag
+          _saveTriggeredByUser = false;
+          //success alert
+          ref.read(soundServiceProvider).play(AppSound.recordSavedOk);
           if (context.mounted) {
             ScaffoldMessenger.of(
               context,
@@ -98,6 +120,10 @@ class _DataEntryState extends ConsumerState<DataEntryScreen> {
           }
         },
         error: (e, st) {
+          //reset flag
+          _saveTriggeredByUser = false;
+          //failure alert
+          ref.read(soundServiceProvider).play(AppSound.recordSaveFailed);
           if (context.mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
@@ -135,6 +161,9 @@ class _DataEntryState extends ConsumerState<DataEntryScreen> {
       if (projectMap == null) return;
       final table = projectMap.tables[activeTableName];
       if (table == null) return;
+
+      //mark the save as user initiated
+      _saveTriggeredByUser = true;
       await ref.read(formSaveProvider.notifier).saveTable(table);
         jumpToTop();
     },
@@ -200,6 +229,8 @@ class _DataEntryState extends ConsumerState<DataEntryScreen> {
 
           // 1) Save record (this is where INSERT happens, inside saveTable)
           jumpToTop();
+          //mark as user initiated save
+          _saveTriggeredByUser = true;
           await ref.read(formSaveProvider.notifier).saveTable(table);
 
           // 2) Immediately run backup to selected drives
