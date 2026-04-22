@@ -11,8 +11,8 @@ class ExportData {
   
   Future<void> execute(String tableName, String delimiter) async {
     final filePath = await picker.getLocation(
-      suggestedName: "data.csv",
-      type: SaveFileType.csv,
+      suggestedName: "data",
+      type: SaveFileType.txt,
     );
 
     if(filePath == null) return;
