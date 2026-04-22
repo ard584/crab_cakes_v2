@@ -18,19 +18,23 @@ class ColumnOrderDialog extends ConsumerStatefulWidget {
 
 class _ColumnOrderDialogState extends ConsumerState<ColumnOrderDialog> {
   List<String> _orderedColumns = [];
+  bool _isInitialized = false;
 
   @override
   void initState() {
     super.initState();
-    _loadCurrentOrder();
+    // Initialize with the provided columns as fallback
+    _orderedColumns = List.from(widget.allColumns);
   }
 
   void _loadCurrentOrder() {
-    final settingsAsync = ref.read(projectSettingsProvider);
+    if (_isInitialized) return;
+
+    final settingsAsync = ref.watch(projectSettingsProvider);
 
     settingsAsync.whenData((settings) {
-      if (settings != null) {
-        // First, get columns that should be shown
+      if (!_isInitialized && mounted) {
+        // Get columns that should be shown
         final selectedForDisplay = <String>[];
 
         // Check which columns have showInCatchHistory = true
@@ -70,19 +74,11 @@ class _ColumnOrderDialogState extends ConsumerState<ColumnOrderDialog> {
           } else {
             _orderedColumns = List.from(columnsToOrder);
           }
-        });
-      } else {
-        setState(() {
-          _orderedColumns = List.from(widget.allColumns);
+
+          _isInitialized = true;
         });
       }
     });
-
-    if (_orderedColumns.isEmpty) {
-      setState(() {
-        _orderedColumns = List.from(widget.allColumns);
-      });
-    }
   }
 
   Future<void> _saveOrder() async {
@@ -99,13 +95,15 @@ class _ColumnOrderDialogState extends ConsumerState<ColumnOrderDialog> {
     if (!mounted) return;
     Navigator.of(context).pop();
 
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(const SnackBar(content: Text('Column order saved')));
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Column order saved')),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
+    _loadCurrentOrder();
+    
     return Dialog(
       child: Container(
         width: 500,
@@ -192,19 +190,14 @@ class _ColumnOrderDialogState extends ConsumerState<ColumnOrderDialog> {
                                 vertical: 4,
                               ),
                               decoration: BoxDecoration(
-                                color: Theme.of(
-                                  context,
-                                ).colorScheme.secondaryContainer,
+                                color: Theme.of(context).colorScheme.secondaryContainer,
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               child: Text(
                                 '${index + 1}',
-                                style: Theme.of(context).textTheme.bodySmall
-                                    ?.copyWith(
-                                      color: Theme.of(
-                                        context,
-                                      ).colorScheme.onSecondaryContainer,
-                                    ),
+                                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                  color: Theme.of(context).colorScheme.onSecondaryContainer,
+                                ),
                               ),
                             ),
                           ),

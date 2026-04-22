@@ -223,6 +223,26 @@ class FieldConfigScreen extends ConsumerWidget {
                                         column: fieldName,
                                         config: updated,
                                       );
+                                      if (effectiveConfig.showInCatchHistory != updated.showInCatchHistory) {
+                                        final currentOrder = resolvedSettings.columnOrder[resolvedTableName] ?? [];
+                                        List<String> newOrder;
+                                        if (updated.showInCatchHistory) {
+                                          if (!currentOrder.contains(fieldName)) {
+                                            newOrder = [...currentOrder, fieldName];
+                                          } else {
+                                            newOrder = currentOrder;
+                                          }
+                                        } else {
+                                          newOrder = currentOrder.where((col) => col != fieldName).toList();
+                                        }
+                                        final updateColumnOrderUsecase = ref.read(updateColumnOrderUsecaseProvider);
+                                        if (updateColumnOrderUsecase != null) {
+                                          await updateColumnOrderUsecase.execute(
+                                            tableName: resolvedTableName,
+                                            columnOrder: newOrder,
+                                          );
+                                        }
+                                      }
 
                                       ref.invalidate(projectSettingsProvider);
 

@@ -32,7 +32,7 @@ class ProjectSettings {
         fieldConfigJson is Map ? Map<String, dynamic>.from(fieldConfigJson) : {},
       ),
       columnOrder: columnOrderJson is Map
-          ? (columnOrderJson as Map<String, dynamic>).map((key, value) => MapEntry(
+          ? Map<String, dynamic>.from(columnOrderJson).map((key, value) => MapEntry(
                 key,
                 value is List ? List<String>.from(value) : <String>[],
               ))
