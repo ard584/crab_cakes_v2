@@ -21,10 +21,13 @@ class PlutoGridConstructor
     // Define list of pluto columns
     List<PlutoColumn> columns = [];
 
+    // Filter to exclude columns starting with __
+    final visibleColumns = table.columns
+    .where((col) => !col.name.startsWith(kColumnPrefixToHide))
+    .toList();
+
     // Iterate through DbTable
-    for (final column in table.columns) {
-      // Skip system columns not needed for user (columns starting with __)
-      if (column.name.startsWith(kColumnPrefixToHide)) continue;
+    for (final column in visibleColumns) {
       // Get type of current column
       final PlutoColumnType type;
 
@@ -85,10 +88,14 @@ class PlutoGridConstructor
       key: ValueKey(id),
     );
 
+
+    // Filter to exclude columns starting with __
+    final visibleEntries = row.values.entries.where(
+      (entry) => !entry.key.startsWith(kColumnPrefixToHide)
+    ).toList();
+
     // Iterate through row
-    for (final cell in row.values.entries) {
-      // Skip system columns not needed for user (columns starting with __)
-      if (cell.key.startsWith(kColumnPrefixToHide)) continue;
+    for (final cell in visibleEntries) {
       // Match pluto field name
       final String fieldName = _getFieldName(table.name, cell.key);
 

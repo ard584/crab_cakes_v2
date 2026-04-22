@@ -12,7 +12,7 @@ class CatchHistoryViewModel {
   CatchHistoryViewModel({required this.db, required this.table, this.settings,});
 
   List<String> get _allAvailableColumns {
-    return table.attributes.keys.where((col) => !col.startsWith(kColumnPrefixToHide)).toList();
+    return filterColumnsByPrefix(table.attributes.keys.toList(), true);
   }
 
   // Get columns selected for catch history from settings
@@ -26,6 +26,15 @@ class CatchHistoryViewModel {
     }
     
     try {
+      // Check for saved order
+      final savedOrder = settings!.columnOrder[table.name];
+      if (savedOrder != null && savedOrder.isNotEmpty) {
+        // Filter to only columns that exist in the table
+        final validColumns = savedOrder.where((col) => _allAvailableColumns.contains(col)).toList();
+        return validColumns.take(kMaxHistoryColumns).toList();
+      }
+      
+      // Then check for showInCatchHistory columns
       final selected = <String>[];
       
       for (final columnName in _allAvailableColumns) {
@@ -40,13 +49,11 @@ class CatchHistoryViewModel {
         }
       }
       
-      // If nothing selected, return default
-      if (selected.isEmpty) {
-        return defaultColumns;
+      if (selected.isNotEmpty) {
+        return selected.take(kMaxHistoryColumns).toList();
       }
       
-      // Return selected columns
-      return selected.take(kMaxHistoryColumns).toList();
+      return defaultColumns;
       
     } catch (e) {
       return defaultColumns;

@@ -226,7 +226,7 @@ class SqliteDataExporter implements DataExporter {
     for(final row in tableList) {
       final tableName = row['name'] as String;
       final rows = db.select("PRAGMA table_info($tableName);");
-      final cols = rows.map((r) => r['name'] as String).where((col) => !col.startsWith(kColumnPrefixToHide)).toList();
+      final cols = filterColumnsByPrefix(rows.map((r) => r['name'] as String).toList(), true);
 
       colMap[tableName] = cols;
     }
