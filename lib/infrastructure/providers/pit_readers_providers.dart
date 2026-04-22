@@ -30,6 +30,10 @@ import 'package:ui_prototype/infrastructure/scanner/libserialport_device_discove
 import 'package:ui_prototype/domain/entities/scan_event.dart';
 import 'package:ui_prototype/domain/core/biomark_scan_parser.dart';
 
+//importing sound pieces for when connection occurs 
+import 'package:ui_prototype/infrastructure/providers/sound_provider.dart';
+import 'package:ui_prototype/domain/enums/app_sound.dart';
+
 //------------------------------------------------------------------------------
 
 
@@ -187,11 +191,22 @@ class PitConnectionController extends StateNotifier<PitConnectionState> {
       // await connect(deviceId: selectedId);
       await connect.execute(selectedId);
 
+      final wasConnected = state.isConnected;
+
       state = PitConnectionState(
         isConnecting: false,
         connectedDeviceId: selectedId,
         error: null,
       );
+
+      //play the sound after reader has been successfully connected
+      //a guard that makes sure it does not replay on redundant reconnects
+      //NOTE: I dont have the pittag scanner to test if it works
+      if(!wasConnected){
+        _ref.read(soundServiceProvider).play(AppSound.readerDiscovered);
+      }
+
+
     } catch (e) {
       state = PitConnectionState(
         isConnecting: false,

@@ -11,6 +11,7 @@ import 'package:uuid/uuid.dart';
 import 'package:ui_prototype/presentation/utils/logger.dart';
 
 import 'package:ui_prototype/infrastructure/providers/column_filter_provider.dart';
+import 'dart:convert';
 
 class SqliteProjectDatabaseBuilder implements ProjectDatabaseBuilder {
 
@@ -149,7 +150,7 @@ class SqliteProjectDatabaseBuilder implements ProjectDatabaseBuilder {
       }
 
       //adding system tables (i.e. Settings)
-      createSystemTables(db);
+      createSystemTables(db, statements);
 
       //validating
       if (!validateDb(db)) {
@@ -173,16 +174,25 @@ class SqliteProjectDatabaseBuilder implements ProjectDatabaseBuilder {
     return dbTempPath;
   }
 
-  void createSystemTables(Database db) {
+  void createSystemTables(Database db, List<String> statements) {
+
+    final initialJson = jsonEncode({
+    'formatVersion': 1,
+    'schemaSql': statements,
+    'settings': {}
+    });
 
     //creating the Settings table (stores setting json), and inserting first row
-    db.execute("""
-    CREATE TABLE __project_settings (
-      id INT PRIMARY KEY,
-      settings_json TEXT NOT NULL
-    );
-    INSERT INTO __project_settings (id, settings_json)
-    VALUES (1, '{}');
-  """);
+    db.execute('''
+      CREATE TABLE __project_settings (
+        id INTEGER PRIMARY KEY,
+        settings_json TEXT NOT NULL
+      );
+    ''');
+
+    db.execute('''
+      INSERT INTO __project_settings (id, settings_json)
+      VALUES (1, ?);
+    ''', [initialJson]);
   }
 }

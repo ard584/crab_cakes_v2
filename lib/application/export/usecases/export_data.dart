@@ -1,5 +1,6 @@
 import 'package:ui_prototype/application/export/interfaces/data_exporter.dart';
 import 'package:ui_prototype/application/export/interfaces/save_location_picker.dart';
+import 'package:ui_prototype/domain/value_objects/save_file_type.dart';
 
 class ExportData {
   final DataExporter exporter;
@@ -9,7 +10,10 @@ class ExportData {
 
   
   Future<void> execute(String tableName, String delimiter) async {
-    final filePath = await picker.getLocation();
+    final filePath = await picker.getLocation(
+      suggestedName: "data.csv",
+      type: SaveFileType.csv,
+    );
 
     if(filePath == null) return;
 

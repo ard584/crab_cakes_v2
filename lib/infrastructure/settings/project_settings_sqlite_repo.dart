@@ -16,7 +16,6 @@ class ProjectSettingsSqliteRepo implements ProjectSettingsRepo {
 
   @override
   Future<ProjectSettings> getSettings() async {
-    try{
     final result = db.select("SELECT settings_json FROM $settingsTableName WHERE id=1 ",);
 
     if(result.isEmpty) {
@@ -26,20 +25,30 @@ class ProjectSettingsSqliteRepo implements ProjectSettingsRepo {
 
     final rawSettings = result.first;
     final jsonString = rawSettings['settings_json'] as String;
-    final decoded = jsonDecode(jsonString) as Map<String, dynamic>;    
-    final settings = ProjectSettings.fromJson(decoded);
+    final decoded = jsonDecode(jsonString) as Map<String, dynamic>;
+    final settingsMap =
+      (decoded['settings'] as Map?)?.cast<String, dynamic>() ?? {};
 
-    return settings;
-  } catch (e) {
-      // table doesnt exists or other error
-      // print('Error loading settings: $e');
-      return ProjectSettings.empty();
-    }
+    return ProjectSettings.fromJson(settingsMap);
   }
  
   @override
   Future<void> updateSettings(ProjectSettings newSettings) async {
-    final settingsString = jsonEncode(newSettings.toJson());
+
+    final result = db.select(
+      "SELECT settings_json FROM $settingsTableName WHERE id=1",
+    );
+
+    Map<String, dynamic> decoded = {};
+
+    if (result.isNotEmpty) {
+      final jsonString = result.first['settings_json'] as String;
+      decoded = jsonDecode(jsonString) as Map<String, dynamic>;
+    }
+
+    decoded['settings'] = newSettings.toJson();
+
+    final settingsString = jsonEncode(decoded);
 
     //insert the new row, but also handle if the row doesn't exist (for some reason)
     db.execute('''

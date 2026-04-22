@@ -3,6 +3,7 @@ class FieldConfig {
   final bool allowCustomValues;
   final bool isRequired;
   final bool showInCatchHistory;
+  final bool isSticky;
   final List<String> options; //these are the values added by the user to be selected from in the field
   final num? minValue;
   final num? maxValue;
@@ -13,6 +14,7 @@ class FieldConfig {
     required this.allowCustomValues,
     required this.isRequired,
     this.showInCatchHistory = false,
+    required this.isSticky,
     List<String>? options,
     required this.minValue,
     required this.maxValue,
@@ -25,6 +27,7 @@ class FieldConfig {
     'allowCustomValues':allowCustomValues,
     'isRequired':isRequired,
     'showInCatchHistory':showInCatchHistory,
+    'isSticky':isSticky,
     'options':options,
     'minValue':minValue,
     'maxValue':maxValue,
@@ -39,6 +42,7 @@ class FieldConfig {
       allowCustomValues: json['allowCustomValues'] ?? true,
       isRequired: json['isRequired'] ?? false,
       showInCatchHistory: json['showInCatchHistory'] as bool? ?? false,
+      isSticky: json['isSticky'] ?? false,
       options: List<String>.from(json['options'] ?? []),
       minValue: json['minValue'],
       maxValue: json['maxValue'],
@@ -52,6 +56,7 @@ class FieldConfig {
      bool? allowCustomValues,
      bool? isRequired,
      bool? showInCatchHistory,
+     bool? isSticky,
     List<String>? options,
     num? minValue,
     num? maxValue,
@@ -66,6 +71,7 @@ class FieldConfig {
       allowCustomValues: allowCustomValues ?? this.allowCustomValues,
       isRequired: isRequired ?? this.isRequired,
       showInCatchHistory: showInCatchHistory ?? this.showInCatchHistory,
+      isSticky: isSticky ?? this.isSticky,
       options: clearOptions ? null : (options ?? this.options),
       minValue: clearMinMax ? null : (minValue ?? this.minValue),
       maxValue: clearMinMax ? null : (maxValue ?? this.maxValue),
@@ -79,6 +85,7 @@ class FieldConfig {
     allowCustomValues: true,
     isRequired: false,
     showInCatchHistory: false,
+    isSticky: false,
     options: const [],
     minValue: null,
     maxValue: null,

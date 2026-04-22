@@ -3,9 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:ui_prototype/infrastructure/providers/flex_form_provider.dart';
 import 'package:ui_prototype/infrastructure/providers/settings_provider.dart';
+import 'package:ui_prototype/infrastructure/providers/field_config_providers.dart';
 
 import 'package:ui_prototype/domain/entities/settings/field_config.dart';
-import 'package:ui_prototype/domain/entities/settings/project_settings.dart';
 
 import 'package:ui_prototype/infrastructure/providers/column_filter_provider.dart';
 
@@ -58,7 +58,7 @@ class FieldConfigScreen extends ConsumerWidget {
               loading: () => const Center(child: CircularProgressIndicator()),
               error: (e, st) => Center(child: Text("Error: $e")),
               data: (settings) {
-                final resolvedSettings = settings ?? ProjectSettings.empty();
+                final resolvedSettings = settings;
 
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -166,24 +166,16 @@ class FieldConfigScreen extends ConsumerWidget {
                                   col: fieldName,
                                 );
 
-                                final draft = savedConfig != null
-                                    ? _domainToDraft(savedConfig, dataType)
-                                    : FieldConfigDraft(
-                                        useDropdown: false,
-                                        allowCustomValues: true,
-                                        isRequired: schemaRequired,
-                                        showInCatchHistory: false,
-                                        options: const [],
-                                        minValue: null,
-                                        maxValue: null,
-                                        helpText: '',
-                                        dataType: dataType,
-                                      );
+                                final effectiveConfig = savedConfig ??
+                                    FieldConfig.defaultInstance().copyWith(
+                                      isRequired: schemaRequired,
+                                    );
 
                                 return _FieldConfigRow(
                                   fieldName: fieldName,
                                   dataType: dataType,
-                                  draft: draft,
+                                  config: effectiveConfig,
+                                  schemaRequired: schemaRequired,
                                   onEditPressed: () async {
                                     final shownCount = attributes.where((attr) {
                                       final fn = attr.fields.name;
@@ -195,13 +187,14 @@ class FieldConfigScreen extends ConsumerWidget {
                                     }).length;
 
                                     final updated =
-                                        await showDialog<FieldConfigDraft>(
+                                        await showDialog<FieldConfig>(
                                       context: context,
                                       builder: (_) => FieldConfigDialog(
-                                        initialValue: draft.copy(),
+                                        initialValue: effectiveConfig,
                                         fieldName: fieldName,
                                         dataType: dataType,
                                         currentShownCount: shownCount,
+                                        schemaRequired: schemaRequired,
                                       ),
                                     );
 
@@ -225,13 +218,10 @@ class FieldConfigScreen extends ConsumerWidget {
                                     }
 
                                     try {
-                                      final domainConfig =
-                                          _draftToDomainConfig(updated);
-
                                       await updateUsecase.execute(
                                         table: resolvedTableName,
                                         column: fieldName,
-                                        config: domainConfig,
+                                        config: updated,
                                       );
 
                                       ref.invalidate(projectSettingsProvider);
@@ -266,33 +256,6 @@ class FieldConfigScreen extends ConsumerWidget {
           },
         ),
       ),
-    );
-  }
-
-  static FieldConfig _draftToDomainConfig(FieldConfigDraft draft) {
-    return FieldConfig(
-      useDropdown: draft.useDropdown,
-      allowCustomValues: draft.allowCustomValues,
-      isRequired: draft.isRequired,
-      showInCatchHistory: draft.showInCatchHistory,
-      options: List<String>.from(draft.options),
-      minValue: draft.minValue,
-      maxValue: draft.maxValue,
-      helpText: draft.helpText.trim().isEmpty ? null : draft.helpText.trim(),
-    );
-  }
-
-  static FieldConfigDraft _domainToDraft(FieldConfig config, String dataType) {
-    return FieldConfigDraft(
-      useDropdown: config.useDropdown,
-      allowCustomValues: config.allowCustomValues,
-      isRequired: config.isRequired,
-      showInCatchHistory: config.showInCatchHistory,
-      options: List<String>.from(config.options),
-      minValue: config.minValue?.toDouble(),
-      maxValue: config.maxValue?.toDouble(),
-      helpText: config.helpText ?? '',
-      dataType: dataType,
     );
   }
 }
@@ -385,13 +348,15 @@ class _FieldConfigHeader extends StatelessWidget {
 class _FieldConfigRow extends ConsumerWidget {
   final String fieldName;
   final String dataType;
-  final FieldConfigDraft draft;
+  final FieldConfig config;
+  final bool schemaRequired;
   final VoidCallback onEditPressed;
 
   const _FieldConfigRow({
     required this.fieldName,
     required this.dataType,
-    required this.draft,
+    required this.config,
+    required this.schemaRequired,
     required this.onEditPressed,
   });
 
@@ -431,13 +396,16 @@ class _FieldConfigRow extends ConsumerWidget {
           ),
           Expanded(
             flex: 4,
-            child: _ConfigSummary(draft: draft),
+            child: _ConfigSummary(
+              config: config,
+              schemaRequired: schemaRequired,
+            ),
           ),
           Expanded(
             flex: 3,
             child: Row(
               children: [
-                if (draft.showInCatchHistory)
+                if (config.showInCatchHistory)
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
@@ -471,42 +439,50 @@ class _FieldConfigRow extends ConsumerWidget {
 }
 
 class _ConfigSummary extends StatelessWidget {
-  final FieldConfigDraft draft;
+  final FieldConfig config;
+  final bool schemaRequired;
 
-  const _ConfigSummary({required this.draft});
+  const _ConfigSummary({
+    required this.config,
+    required this.schemaRequired,
+  });
 
   @override
   Widget build(BuildContext context) {
     final summaryLines = <String>[];
 
-    if (draft.useDropdown) {
-      if (draft.options.isEmpty) {
+    if (config.useDropdown) {
+      if (config.options.isEmpty) {
         summaryLines.add("Dropdown enabled, no options yet");
       } else {
-        summaryLines.add("Options: ${draft.options.join(', ')}");
+        summaryLines.add("Options: ${config.options.join(', ')}");
       }
     } else {
       summaryLines.add("Free text entry");
     }
 
     summaryLines.add(
-      draft.allowCustomValues
+      config.allowCustomValues
           ? "Custom values allowed"
           : "Restricted to listed options",
     );
 
-    if (draft.minValue != null || draft.maxValue != null) {
+    if (config.minValue != null || config.maxValue != null) {
       summaryLines.add(
-        "Range: ${draft.minValue?.toString() ?? '-∞'} to ${draft.maxValue?.toString() ?? '∞'}",
+        "Range: ${config.minValue?.toString() ?? '-∞'} to ${config.maxValue?.toString() ?? '∞'}",
       );
     }
 
-    if (draft.isRequired) {
+    if (schemaRequired || config.isRequired) {
       summaryLines.add("Required");
     }
 
-    if (draft.helpText.trim().isNotEmpty) {
-      summaryLines.add("Help: ${draft.helpText.trim()}");
+    if (config.isSticky) {
+      summaryLines.add("Sticky field");
+    }
+
+    if ((config.helpText ?? '').trim().isNotEmpty) {
+      summaryLines.add("Help: ${(config.helpText ?? '').trim()}");
     }
 
     return Column(
@@ -538,10 +514,11 @@ class _EmptyFieldConfigView extends StatelessWidget {
 }
 
 class FieldConfigDialog extends StatefulWidget {
-  final FieldConfigDraft initialValue;
+  final FieldConfig initialValue;
   final String fieldName;
   final String dataType;
   final int currentShownCount;
+  final bool schemaRequired;
 
   const FieldConfigDialog({
     super.key,
@@ -549,6 +526,7 @@ class FieldConfigDialog extends StatefulWidget {
     required this.fieldName,
     required this.dataType,
     required this.currentShownCount,
+    required this.schemaRequired,
   });
 
   @override
@@ -560,6 +538,7 @@ class _FieldConfigDialogState extends State<FieldConfigDialog> {
   late bool _allowCustomValues;
   late bool _isRequired;
   late bool _showInCatchHistory;
+  late bool _isSticky;
 
   late TextEditingController _optionsController;
   late TextEditingController _minController;
@@ -574,6 +553,7 @@ class _FieldConfigDialogState extends State<FieldConfigDialog> {
     _allowCustomValues = widget.initialValue.allowCustomValues;
     _isRequired = widget.initialValue.isRequired;
     _showInCatchHistory = widget.initialValue.showInCatchHistory;
+    _isSticky = widget.initialValue.isSticky;
 
     _optionsController = TextEditingController(
       text: widget.initialValue.options.join(', '),
@@ -585,7 +565,7 @@ class _FieldConfigDialogState extends State<FieldConfigDialog> {
       text: widget.initialValue.maxValue?.toString() ?? '',
     );
     _helpTextController = TextEditingController(
-      text: widget.initialValue.helpText,
+      text: widget.initialValue.helpText ?? '',
     );
   }
 
@@ -636,10 +616,30 @@ class _FieldConfigDialogState extends State<FieldConfigDialog> {
               SwitchListTile(
                 contentPadding: EdgeInsets.zero,
                 title: const Text("Required field"),
-                value: _isRequired,
+                subtitle: widget.schemaRequired
+                    ? const Text(
+                        "This column is already required by the schema.",
+                      )
+                    : null,
+                value: _isRequired || widget.schemaRequired,
+                onChanged: widget.schemaRequired
+                    ? null
+                    : (value) {
+                        setState(() {
+                          _isRequired = value;
+                        });
+                      },
+              ),
+              SwitchListTile(
+                contentPadding: EdgeInsets.zero,
+                title: const Text("Sticky field"),
+                subtitle: const Text(
+                  "Keeps its value after a record is saved.",
+                ),
+                value: _isSticky,
                 onChanged: (value) {
                   setState(() {
-                    _isRequired = value;
+                    _isSticky = value;
                   });
                 },
               ),
@@ -736,16 +736,18 @@ class _FieldConfigDialogState extends State<FieldConfigDialog> {
         ),
         FilledButton(
           onPressed: () {
-            final updated = FieldConfigDraft(
+            final updated = FieldConfig(
               useDropdown: _useDropdown,
               allowCustomValues: _allowCustomValues,
-              isRequired: _isRequired,
+              isRequired: widget.schemaRequired ? true : _isRequired,
               showInCatchHistory: _showInCatchHistory,
+              isSticky: _isSticky,
               options: _parseOptions(_optionsController.text),
               minValue: _parseNullableNum(_minController.text),
               maxValue: _parseNullableNum(_maxController.text),
-              helpText: _helpTextController.text.trim(),
-              dataType: widget.dataType,
+              helpText: _helpTextController.text.trim().isEmpty
+                  ? null
+                  : _helpTextController.text.trim(),
             );
 
             Navigator.pop(context, updated);
@@ -779,43 +781,5 @@ class _FieldConfigDialogState extends State<FieldConfigDialog> {
         normalized.contains('float') ||
         normalized.contains('decimal') ||
         normalized.contains('num');
-  }
-}
-
-class FieldConfigDraft {
-  final bool useDropdown;
-  final bool allowCustomValues;
-  final bool isRequired;
-  final bool showInCatchHistory;
-  final List<String> options;
-  final num? minValue;
-  final num? maxValue;
-  final String helpText;
-  final String dataType;
-
-  const FieldConfigDraft({
-    required this.useDropdown,
-    required this.allowCustomValues,
-    required this.isRequired,
-    this.showInCatchHistory = false,
-    required this.options,
-    required this.minValue,
-    required this.maxValue,
-    required this.helpText,
-    required this.dataType,
-  });
-
-  FieldConfigDraft copy() {
-    return FieldConfigDraft(
-      useDropdown: useDropdown,
-      allowCustomValues: allowCustomValues,
-      isRequired: isRequired,
-      showInCatchHistory: showInCatchHistory,
-      options: List<String>.from(options),
-      minValue: minValue,
-      maxValue: maxValue,
-      helpText: helpText,
-      dataType: dataType,
-    );
   }
 }
