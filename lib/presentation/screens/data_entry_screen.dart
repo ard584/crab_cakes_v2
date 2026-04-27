@@ -347,6 +347,7 @@ class DynamicFlexField extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     // final controllers = ref.watch(flexTableControllersProvider(tableName));
 
+
     //Fetch the domain-level configuration for this specific field
     final fieldConfigAsync =  ref.watch(
       effectiveFieldConfigProvider(
@@ -357,11 +358,38 @@ class DynamicFlexField extends ConsumerWidget {
       ),
     );
 
-    final fieldConfig = fieldConfigAsync.when(
+    var fieldConfig = fieldConfigAsync.when(
       data: (config) => config,
       loading: () => FieldConfig.defaultInstance(),
       error: (_, __) => FieldConfig.defaultInstance(),
     );
+
+    //checking if this field is meant to be hidden
+    if (fieldConfig.isHidden) {
+      return const SizedBox.shrink();
+    }
+
+    //gathering reference table options only if the specific field is a Foreign Key (FK)
+    final fkInfo = attribute.fields.fkInfo;
+    if(fkInfo != null) {
+      final repo = ref.watch(projectDatabaseProvider);
+      final rows = repo.getAllRows(fkInfo.referencedTable);
+
+      final options = rows
+      .map((row) => row.values[fkInfo.referencedColumn])
+      .where((value) => value != null)
+      .map((value) => value.toString())
+      .toSet() // removes duplicates
+      .toList();
+
+      //copying the field config created earlier, but with the parent drop down options
+      fieldConfig = fieldConfig.copyWith(
+        options: options, 
+        useDropdown: true,
+        allowCustomValues: true,
+        isSticky: true,
+      );
+    }
 
     //defining the FlexFieldConfig object with the domain-level config added 
     final config = FlexFieldConfig(

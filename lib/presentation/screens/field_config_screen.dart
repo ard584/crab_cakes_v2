@@ -6,7 +6,6 @@ import 'package:ui_prototype/infrastructure/providers/settings_provider.dart';
 import 'package:ui_prototype/infrastructure/providers/field_config_providers.dart';
 
 import 'package:ui_prototype/domain/entities/settings/field_config.dart';
-import 'package:ui_prototype/domain/entities/settings/project_settings.dart';
 
 class FieldConfigScreen extends ConsumerWidget {
   const FieldConfigScreen({super.key});
@@ -18,9 +17,7 @@ class FieldConfigScreen extends ConsumerWidget {
     final activeTableName = ref.watch(activeTableProvider);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Field Config'),
-      ),
+      appBar: AppBar(title: const Text('Field Config')),
       body: Padding(
         padding: const EdgeInsets.all(20.0),
         child: projectAsync.when(
@@ -28,19 +25,14 @@ class FieldConfigScreen extends ConsumerWidget {
           error: (e, st) => Center(child: Text("Error: $e")),
           data: (project) {
             if (project.tables.isEmpty) {
-              return const Center(
-                child: Text("No project tables available."),
-              );
+              return const Center(child: Text("No project tables available."));
             }
 
-            final resolvedTableName =
-                activeTableName ?? project.tables.keys.first;
+            final resolvedTableName = activeTableName ?? project.tables.keys.first;
             final table = project.tables[resolvedTableName];
 
             if (table == null) {
-              return const Center(
-                child: Text("Selected table could not be found."),
-              );
+              return const Center(child: Text("Selected table could not be found."));
             }
 
             final attributes = table.attributes.values.toList();
@@ -49,17 +41,13 @@ class FieldConfigScreen extends ConsumerWidget {
               loading: () => const Center(child: CircularProgressIndicator()),
               error: (e, st) => Center(child: Text("Error: $e")),
               data: (settings) {
-                final resolvedSettings = settings;
-
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     _TableChoiceChips(
                       activeTableName: resolvedTableName,
                       onTableSelected: (tableName) {
-                        ref
-                            .read(activeTableProvider.notifier)
-                            .setActiveTable(tableName);
+                        ref.read(activeTableProvider.notifier).setActiveTable(tableName);
                       },
                     ),
                     const SizedBox(height: 18),
@@ -75,17 +63,18 @@ class FieldConfigScreen extends ConsumerWidget {
                           ? const _EmptyFieldConfigView()
                           : ListView.separated(
                               itemCount: attributes.length,
-                              separatorBuilder: (_, __) =>
-                                  const SizedBox(height: 8),
+                              separatorBuilder: (_, __) => const SizedBox(height: 8),
                               itemBuilder: (context, index) {
                                 final attribute = attributes[index];
+
                                 final fieldName = attribute.fields.name;
                                 final dataType = attribute.fields.dataType;
-                                final schemaRequired =
-                                    attribute.fields.isNotNullable;
+                                final schemaRequired = attribute.fields.isNotNullable;
+                                final isForeignKey = attribute.fields.isForeignKey;
+                                final isPrimaryKey = attribute.fields.isPrimaryKey;
+                                final isAutoIncrement = attribute.fields.isAutoIncrement;
 
-                                final savedConfig =
-                                    resolvedSettings.fieldConfig.getConfig(
+                                final savedConfig = settings.fieldConfig.getConfig(
                                   table: resolvedTableName,
                                   col: fieldName,
                                 );
@@ -100,28 +89,30 @@ class FieldConfigScreen extends ConsumerWidget {
                                   dataType: dataType,
                                   config: effectiveConfig,
                                   schemaRequired: schemaRequired,
+                                  isForeignKey: isForeignKey,
+                                  isPrimaryKey: isPrimaryKey,
+                                  isAutoIncrement: isAutoIncrement,
                                   onEditPressed: () async {
-                                    final updated =
-                                        await showDialog<FieldConfig>(
+                                    final updated = await showDialog<FieldConfig>(
                                       context: context,
                                       builder: (_) => FieldConfigDialog(
                                         initialValue: effectiveConfig,
                                         fieldName: fieldName,
                                         dataType: dataType,
                                         schemaRequired: schemaRequired,
+                                        isForeignKey: isForeignKey,
+                                        isPrimaryKey: isPrimaryKey,
+                                        isAutoIncrement: isAutoIncrement,
                                       ),
                                     );
 
-                                    if (updated == null) return;
-                                    if (!context.mounted) return;
+                                    if (updated == null || !context.mounted) return;
 
-                                    final updateUsecase = ref.read(
-                                      updateFieldConfigUsecaseProvider,
-                                    );
+                                    final updateUsecase =
+                                        ref.read(updateFieldConfigUsecaseProvider);
 
                                     if (updateUsecase == null) {
-                                      ScaffoldMessenger.of(context)
-                                          .showSnackBar(
+                                      ScaffoldMessenger.of(context).showSnackBar(
                                         const SnackBar(
                                           content: Text(
                                             'No active project settings repository.',
@@ -141,16 +132,14 @@ class FieldConfigScreen extends ConsumerWidget {
                                       ref.invalidate(projectSettingsProvider);
 
                                       if (!context.mounted) return;
-                                      ScaffoldMessenger.of(context)
-                                          .showSnackBar(
+                                      ScaffoldMessenger.of(context).showSnackBar(
                                         const SnackBar(
                                           content: Text('Field config saved.'),
                                         ),
                                       );
                                     } catch (e) {
                                       if (!context.mounted) return;
-                                      ScaffoldMessenger.of(context)
-                                          .showSnackBar(
+                                      ScaffoldMessenger.of(context).showSnackBar(
                                         SnackBar(
                                           content: Text(
                                             'Failed to save field config: $e',
@@ -172,6 +161,16 @@ class FieldConfigScreen extends ConsumerWidget {
       ),
     );
   }
+}
+
+bool canHideField({
+  required bool isForeignKey,
+  required bool isPrimaryKey,
+  required bool isAutoIncrement,
+  required bool schemaRequired,
+}) {
+  return !isForeignKey &&
+      (isAutoIncrement || (!schemaRequired && !isPrimaryKey));
 }
 
 class _TableChoiceChips extends ConsumerWidget {
@@ -196,20 +195,14 @@ class _TableChoiceChips extends ConsumerWidget {
             label: Text(table.key),
             selected: table.key == activeTableName,
             onSelected: (selected) {
-              if (selected) {
-                onTableSelected(table.key);
-              }
+              if (selected) onTableSelected(table.key);
             },
           );
         }).toList();
 
         return SingleChildScrollView(
           scrollDirection: Axis.horizontal,
-          child: Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: chips,
-          ),
+          child: Wrap(spacing: 8, runSpacing: 8, children: chips),
         );
       },
     );
@@ -234,10 +227,7 @@ class _FieldConfigHeader extends StatelessWidget {
         children: [
           Expanded(
             flex: 2,
-            child: Text(
-              "Column",
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
+            child: Text("Column", style: TextStyle(fontWeight: FontWeight.bold)),
           ),
           Expanded(
             flex: 4,
@@ -258,6 +248,9 @@ class _FieldConfigRow extends StatelessWidget {
   final String dataType;
   final FieldConfig config;
   final bool schemaRequired;
+  final bool isForeignKey;
+  final bool isPrimaryKey;
+  final bool isAutoIncrement;
   final VoidCallback onEditPressed;
 
   const _FieldConfigRow({
@@ -265,6 +258,9 @@ class _FieldConfigRow extends StatelessWidget {
     required this.dataType,
     required this.config,
     required this.schemaRequired,
+    required this.isForeignKey,
+    required this.isPrimaryKey,
+    required this.isAutoIncrement,
     required this.onEditPressed,
   });
 
@@ -289,15 +285,30 @@ class _FieldConfigRow extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    fieldName,
-                    style: Theme.of(context).textTheme.titleSmall,
-                  ),
+                  Text(fieldName, style: Theme.of(context).textTheme.titleSmall),
                   const SizedBox(height: 4),
-                  Text(
-                    dataType,
-                    style: Theme.of(context).textTheme.bodySmall,
-                  ),
+                  Text(dataType, style: Theme.of(context).textTheme.bodySmall),
+                  if (isPrimaryKey) ...[
+                    const SizedBox(height: 6),
+                    Text(
+                      "Primary key field",
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                  ],
+                  if (isAutoIncrement) ...[
+                    const SizedBox(height: 6),
+                    Text(
+                      "Auto-increment field",
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                  ],
+                  if (isForeignKey) ...[
+                    const SizedBox(height: 6),
+                    Text(
+                      "Foreign key field",
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                  ],
                 ],
               ),
             ),
@@ -307,6 +318,9 @@ class _FieldConfigRow extends StatelessWidget {
             child: _ConfigSummary(
               config: config,
               schemaRequired: schemaRequired,
+              isForeignKey: isForeignKey,
+              isPrimaryKey: isPrimaryKey,
+              isAutoIncrement: isAutoIncrement,
             ),
           ),
           const SizedBox(width: 12),
@@ -326,33 +340,51 @@ class _FieldConfigRow extends StatelessWidget {
 class _ConfigSummary extends StatelessWidget {
   final FieldConfig config;
   final bool schemaRequired;
+  final bool isForeignKey;
+  final bool isPrimaryKey;
+  final bool isAutoIncrement;
 
   const _ConfigSummary({
     required this.config,
     required this.schemaRequired,
+    required this.isForeignKey,
+    required this.isPrimaryKey,
+    required this.isAutoIncrement,
   });
 
   @override
   Widget build(BuildContext context) {
     final summaryLines = <String>[];
 
-    if (config.useDropdown) {
-      if (config.options.isEmpty) {
-        summaryLines.add("Dropdown enabled, no options yet");
-      } else {
-        summaryLines.add("Options: ${config.options.join(', ')}");
-      }
+    final showHiddenSummary = canHideField(
+      isForeignKey: isForeignKey,
+      isPrimaryKey: isPrimaryKey,
+      isAutoIncrement: isAutoIncrement,
+      schemaRequired: schemaRequired,
+    );
+
+    if (isForeignKey) {
+      summaryLines.add(
+        "Locked: options are populated automatically from referenced table data",
+      );
+    } else if (config.useDropdown) {
+      summaryLines.add(
+        config.options.isEmpty
+            ? "Dropdown enabled, no options yet"
+            : "Options: ${config.options.join(', ')}",
+      );
+
+      summaryLines.add(
+        config.allowCustomValues
+            ? "Custom values allowed"
+            : "Restricted to listed options",
+      );
     } else {
       summaryLines.add("Free text entry");
     }
 
-    summaryLines.add(
-      config.allowCustomValues
-          ? "Custom values allowed"
-          : "Restricted to listed options",
-    );
-
-    if (config.minValue != null || config.maxValue != null) {
+    if (!isForeignKey &&
+        (config.minValue != null || config.maxValue != null)) {
       summaryLines.add(
         "Range: ${config.minValue?.toString() ?? '-∞'} to ${config.maxValue?.toString() ?? '∞'}",
       );
@@ -362,8 +394,12 @@ class _ConfigSummary extends StatelessWidget {
       summaryLines.add("Required");
     }
 
-    if (config.isSticky) {
+    if (!isForeignKey && config.isSticky) {
       summaryLines.add("Sticky field");
+    }
+
+    if (showHiddenSummary && config.isHidden) {
+      summaryLines.add("Hidden field");
     }
 
     if ((config.helpText ?? '').trim().isNotEmpty) {
@@ -403,6 +439,9 @@ class FieldConfigDialog extends StatefulWidget {
   final String fieldName;
   final String dataType;
   final bool schemaRequired;
+  final bool isForeignKey;
+  final bool isPrimaryKey;
+  final bool isAutoIncrement;
 
   const FieldConfigDialog({
     super.key,
@@ -410,6 +449,9 @@ class FieldConfigDialog extends StatefulWidget {
     required this.fieldName,
     required this.dataType,
     required this.schemaRequired,
+    required this.isForeignKey,
+    required this.isPrimaryKey,
+    required this.isAutoIncrement,
   });
 
   @override
@@ -421,11 +463,19 @@ class _FieldConfigDialogState extends State<FieldConfigDialog> {
   late bool _allowCustomValues;
   late bool _isRequired;
   late bool _isSticky;
+  late bool _isHidden;
 
   late TextEditingController _optionsController;
   late TextEditingController _minController;
   late TextEditingController _maxController;
   late TextEditingController _helpTextController;
+
+  bool get _canHideField => canHideField(
+        isForeignKey: widget.isForeignKey,
+        isPrimaryKey: widget.isPrimaryKey,
+        isAutoIncrement: widget.isAutoIncrement,
+        schemaRequired: widget.schemaRequired,
+      );
 
   @override
   void initState() {
@@ -435,6 +485,7 @@ class _FieldConfigDialogState extends State<FieldConfigDialog> {
     _allowCustomValues = widget.initialValue.allowCustomValues;
     _isRequired = widget.initialValue.isRequired;
     _isSticky = widget.initialValue.isSticky;
+    _isHidden = widget.initialValue.isHidden;
 
     _optionsController = TextEditingController(
       text: widget.initialValue.options.join(', '),
@@ -469,37 +520,56 @@ class _FieldConfigDialogState extends State<FieldConfigDialog> {
         width: 560,
         child: SingleChildScrollView(
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              SwitchListTile(
-                contentPadding: EdgeInsets.zero,
-                title: const Text("Enable dropdown / autocomplete"),
-                value: _useDropdown,
-                onChanged: (value) {
-                  setState(() {
-                    _useDropdown = value;
-                  });
-                },
-              ),
-              SwitchListTile(
-                contentPadding: EdgeInsets.zero,
-                title: const Text("Allow custom values"),
-                subtitle: const Text(
-                  "If off, users must choose from listed options.",
+              if (widget.isForeignKey)
+                Container(
+                  width: double.infinity,
+                  margin: const EdgeInsets.only(bottom: 12),
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                      color: Theme.of(context).colorScheme.outlineVariant,
+                    ),
+                  ),
+                  child: const Text(
+                    "This field is a foreign key. Its dropdown options, sticky behavior, numeric constraints, and hide behavior are locked.",
+                  ),
                 ),
-                value: _allowCustomValues,
-                onChanged: (value) {
-                  setState(() {
-                    _allowCustomValues = value;
-                  });
-                },
-              ),
+
+              if (!widget.isForeignKey) ...[
+                SwitchListTile(
+                  contentPadding: EdgeInsets.zero,
+                  title: const Text("Enable dropdown / autocomplete"),
+                  value: _useDropdown,
+                  onChanged: (value) {
+                    setState(() {
+                      _useDropdown = value;
+                    });
+                  },
+                ),
+                SwitchListTile(
+                  contentPadding: EdgeInsets.zero,
+                  title: const Text("Allow custom values"),
+                  subtitle: const Text(
+                    "If off, users must choose from listed options.",
+                  ),
+                  value: _allowCustomValues,
+                  onChanged: (value) {
+                    setState(() {
+                      _allowCustomValues = value;
+                    });
+                  },
+                ),
+              ],
+
               SwitchListTile(
                 contentPadding: EdgeInsets.zero,
                 title: const Text("Required field"),
                 subtitle: widget.schemaRequired
-                    ? const Text(
-                        "This column is already required by the schema.",
-                      )
+                    ? const Text("This column is already required by the schema.")
                     : null,
                 value: _isRequired || widget.schemaRequired,
                 onChanged: widget.schemaRequired
@@ -510,32 +580,50 @@ class _FieldConfigDialogState extends State<FieldConfigDialog> {
                         });
                       },
               ),
-              SwitchListTile(
-                contentPadding: EdgeInsets.zero,
-                title: const Text("Sticky field"),
-                subtitle: const Text(
-                  "Keeps its value after a record is saved.",
+
+              if (!widget.isForeignKey)
+                SwitchListTile(
+                  contentPadding: EdgeInsets.zero,
+                  title: const Text("Sticky field"),
+                  subtitle: const Text("Keeps its value after a record is saved."),
+                  value: _isSticky,
+                  onChanged: (value) {
+                    setState(() {
+                      _isSticky = value;
+                    });
+                  },
                 ),
-                value: _isSticky,
-                onChanged: (value) {
-                  setState(() {
-                    _isSticky = value;
-                  });
-                },
-              ),
+
+              if (_canHideField)
+                SwitchListTile(
+                  contentPadding: EdgeInsets.zero,
+                  title: const Text("Hidden field"),
+                  subtitle: const Text("Hides this field from the data entry form."),
+                  value: _isHidden,
+                  onChanged: (value) {
+                    setState(() {
+                      _isHidden = value;
+                    });
+                  },
+                ),
+
               const SizedBox(height: 8),
-              TextField(
-                controller: _optionsController,
-                maxLines: 4,
-                decoration: const InputDecoration(
-                  labelText: "Dropdown options",
-                  hintText: "Male, Female, Unknown",
-                  border: OutlineInputBorder(),
-                  helperText: "Comma-separated input",
+
+              if (!widget.isForeignKey)
+                TextField(
+                  controller: _optionsController,
+                  maxLines: 4,
+                  decoration: const InputDecoration(
+                    labelText: "Dropdown options",
+                    hintText: "Male, Female, Unknown",
+                    border: OutlineInputBorder(),
+                    helperText: "Comma-separated input",
+                  ),
                 ),
-              ),
-              const SizedBox(height: 14),
-              if (isNumeric)
+
+              if (!widget.isForeignKey) const SizedBox(height: 14),
+
+              if (!widget.isForeignKey && isNumeric)
                 Row(
                   children: [
                     Expanded(
@@ -567,14 +655,16 @@ class _FieldConfigDialogState extends State<FieldConfigDialog> {
                     ),
                   ],
                 )
-              else
+              else if (!widget.isForeignKey)
                 const Align(
                   alignment: Alignment.centerLeft,
                   child: Text(
                     "Numeric range constraints hidden for non-numeric field.",
                   ),
                 ),
+
               const SizedBox(height: 14),
+
               TextField(
                 controller: _helpTextController,
                 maxLines: 3,
@@ -595,13 +685,21 @@ class _FieldConfigDialogState extends State<FieldConfigDialog> {
         FilledButton(
           onPressed: () {
             final updated = FieldConfig(
-              useDropdown: _useDropdown,
-              allowCustomValues: _allowCustomValues,
+              useDropdown: widget.isForeignKey ? true : _useDropdown,
+              allowCustomValues:
+                  widget.isForeignKey ? false : _allowCustomValues,
               isRequired: widget.schemaRequired ? true : _isRequired,
-              isSticky: _isSticky,
-              options: _parseOptions(_optionsController.text),
-              minValue: _parseNullableNum(_minController.text),
-              maxValue: _parseNullableNum(_maxController.text),
+              isSticky: widget.isForeignKey ? false : _isSticky,
+              isHidden: _canHideField ? _isHidden : false,
+              options: widget.isForeignKey
+                  ? widget.initialValue.options
+                  : _parseOptions(_optionsController.text),
+              minValue: widget.isForeignKey
+                  ? null
+                  : _parseNullableNum(_minController.text),
+              maxValue: widget.isForeignKey
+                  ? null
+                  : _parseNullableNum(_maxController.text),
               helpText: _helpTextController.text.trim().isEmpty
                   ? null
                   : _helpTextController.text.trim(),

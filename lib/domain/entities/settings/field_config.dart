@@ -3,6 +3,7 @@ class FieldConfig {
   final bool allowCustomValues;
   final bool isRequired;
   final bool isSticky;
+  final bool isHidden;
   final List<String> options; //these are the values added by the user to be selected from in the field
   final num? minValue;
   final num? maxValue;
@@ -13,6 +14,7 @@ class FieldConfig {
     required this.allowCustomValues,
     required this.isRequired,
     required this.isSticky,
+    this.isHidden = false,
     List<String>? options,
     required this.minValue,
     required this.maxValue,
@@ -25,6 +27,7 @@ class FieldConfig {
     'allowCustomValues':allowCustomValues,
     'isRequired':isRequired,
     'isSticky':isSticky,
+    'isHidden':isHidden,
     'options':options,
     'minValue':minValue,
     'maxValue':maxValue,
@@ -39,6 +42,7 @@ class FieldConfig {
       allowCustomValues: json['allowCustomValues'] ?? true,
       isRequired: json['isRequired'] ?? false,
       isSticky: json['isSticky'] ?? false,
+      isHidden: json['isHidden'] ?? false,
       options: List<String>.from(json['options'] ?? []),
       minValue: json['minValue'],
       maxValue: json['maxValue'],
@@ -52,6 +56,7 @@ class FieldConfig {
      bool? allowCustomValues,
      bool? isRequired,
      bool? isSticky,
+     bool? isHidden,
     List<String>? options,
     num? minValue,
     num? maxValue,
@@ -66,6 +71,7 @@ class FieldConfig {
       allowCustomValues: allowCustomValues ?? this.allowCustomValues,
       isRequired: isRequired ?? this.isRequired,
       isSticky: isSticky ?? this.isSticky,
+      isHidden: isHidden ?? this.isHidden,
       options: clearOptions ? null : (options ?? this.options),
       minValue: clearMinMax ? null : (minValue ?? this.minValue),
       maxValue: clearMinMax ? null : (maxValue ?? this.maxValue),
@@ -79,6 +85,7 @@ class FieldConfig {
     allowCustomValues: true,
     isRequired: false,
     isSticky: false,
+    isHidden: false,
     options: const [],
     minValue: null,
     maxValue: null,
