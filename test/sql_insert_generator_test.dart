@@ -67,6 +67,7 @@ void main() {
     );
 
     test('Generated string should not end with a trailing comma', () {
+      print(table.toValueMap());
 
       final record = generator.generate(table.name, table.toValueMap());
       final statement = record.sql;

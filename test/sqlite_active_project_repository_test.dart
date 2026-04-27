@@ -2,7 +2,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:sqlite3/sqlite3.dart';
 import 'package:ui_prototype/infrastructure/project/sqlite/sql_insert_generator.dart';
 import 'package:ui_prototype/infrastructure/project/sqlite/sqlite_active_project_repository.dart';
-import 'package:ui_prototype/infrastructure/project/sqlite/sqlite_update_generator.dart';
 
 void main() {
   late Database db;
@@ -10,11 +9,7 @@ void main() {
 
   setUp(() {
     db = sqlite3.openInMemory();
-    repo = SqliteActiveProjectRepository(
-      db: db,
-      insert: SQLInsertGenerator(),
-      update: SqliteUpdateGenerator(),
-    );
+    repo = SqliteActiveProjectRepository(db: db, generator: SQLInsertGenerator());
 
     // Make fake table
     db.execute('''

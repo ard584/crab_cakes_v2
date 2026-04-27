@@ -161,7 +161,7 @@ void main() {
       expect(statements.length, 1);
       expect(
         statements[0],
-        contains('VALUES ("IT""S A SEMICOLON; RIGHT HERE")'),
+        contains('VALUES ("IT\"\"S A SEMICOLON; RIGHT HERE")'),
       );
     });
 

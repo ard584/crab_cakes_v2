@@ -1,7 +1,6 @@
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:ui_prototype/application/device_storage/device_storage.dart';
 
-class FakeSecureStorage implements DeviceStorage {
+class FakeSecureStorage implements FlutterSecureStorage {
 
   // Define dict for fake secure storage
   final Map<String, String> _store = {};
