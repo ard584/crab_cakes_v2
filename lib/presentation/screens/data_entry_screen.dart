@@ -34,7 +34,11 @@ class _DataEntryState extends ConsumerState<DataEntryScreen> {
   final ScrollController scrollController = ScrollController();
 
   void jumpToTop() {
-    scrollController.animateTo(0, duration: Duration(milliseconds: 150), curve: Curves.fastOutSlowIn);
+    scrollController.animateTo(
+      0,
+      duration: Duration(milliseconds: 150),
+      curve: Curves.fastOutSlowIn,
+    );
   }
 
   @override
@@ -104,70 +108,67 @@ class _DataEntryState extends ConsumerState<DataEntryScreen> {
             loading: () => const Text('Loading...'),
           ),
         ),
-      drawer: ProjectDrawer(),
-      body: Padding(
-        padding: const EdgeInsets.all(28.0),
-        child: projectAsync.when(
-          error: (err, stack) => Center(child: Text("Error: $err")),
-          data: (project) {
-            if (project.tables.isEmpty) {
-              return Center(child: Text("No project selected"));
-            }
+        drawer: ProjectDrawer(),
+        body: Padding(
+          padding: const EdgeInsets.all(28.0),
+          child: projectAsync.when(
+            error: (err, stack) => Center(child: Text("Error: $err")),
+            data: (project) {
+              if (project.tables.isEmpty) {
+                return Center(child: Text("No project selected"));
+              }
 
-            if (activeTableName == null) {
-              return Center(child: const CircularProgressIndicator());
-            }
+              if (activeTableName == null) {
+                return Center(child: const CircularProgressIndicator());
+              }
 
-            return Column(
-              children: [
-                //made it a row to show status on the left followed by table on the
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const StatusPanel(),
-                    const SizedBox(width: 12),
-                    // push table to right
-                    const Spacer(), 
-                    CatchHistorySection(tableName: activeTableName),
+              return Column(
+                children: [
+                  //made it a row to show status on the left followed by table on the
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const StatusPanel(),
+                      const SizedBox(width: 12),
+                      // push table to right
+                      const Spacer(),
+                      CatchHistorySection(tableName: activeTableName),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
 
-                  ]
-                ),
-                const SizedBox(height: 16),
-                
-                Expanded(
-                  child: TableFormSection(controller: scrollController,),
-                ),
-              ],
-            );
-          },
+                  Expanded(
+                    child: TableFormSection(controller: scrollController),
+                  ),
+                ],
+              );
+            },
 
-          // Handle error and loading states
-          loading: () => const Center(child: CircularProgressIndicator()),
+            // Handle error and loading states
+            loading: () => const Center(child: CircularProgressIndicator()),
+          ),
         ),
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        focusNode: FocusNode(skipTraversal: true),
-        onPressed: () async {
-          final projectMap = ref.read(projectViewModelProvider).value;
+        floatingActionButton: FloatingActionButton.extended(
+          focusNode: FocusNode(skipTraversal: true),
+          onPressed: () async {
+            final projectMap = ref.read(projectViewModelProvider).value;
 
-          if (projectMap == null) return;
+            if (projectMap == null) return;
 
-          final table = projectMap.tables[activeTableName];
+            final table = projectMap.tables[activeTableName];
 
-          // Table is returning null for some reason
-          if (table == null) {
-            return;
-          }
+            // Table is returning null for some reason
+            if (table == null) {
+              return;
+            }
 
-          jumpToTop();
+            jumpToTop();
 
-          await ref.read(formSaveProvider.notifier).saveTable(table);
-
-          
-        },
-        label: Padding(
-          padding: const EdgeInsets.all(20.0),
-          child: Text("Save Record (f12)"),
+            await ref.read(formSaveProvider.notifier).saveTable(table);
+          },
+          label: Padding(
+            padding: const EdgeInsets.all(20.0),
+            child: Text("Save Record (f12)"),
           ),
         ),
       ),
@@ -190,7 +191,7 @@ class _TableFormSectionState extends ConsumerState<TableFormSection> {
     final tableName = ref.watch(activeTableProvider);
 
     if (tableName == null) {
-      return Center(child: CircularProgressIndicator(),);
+      return Center(child: CircularProgressIndicator());
     }
 
     final table = project?.tables[tableName];
