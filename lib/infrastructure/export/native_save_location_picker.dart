@@ -1,0 +1,42 @@
+import 'package:ui_prototype/application/export/interfaces/save_location_picker.dart';
+import 'package:file_selector/file_selector.dart';
+import 'package:ui_prototype/domain/value_objects/save_file_type.dart';
+
+class NativeSaveLocationPicker implements SaveLocationPicker {
+  @override
+  Future<String?> getLocation({
+    required String suggestedName,
+    required SaveFileType type,
+  }) async { 
+
+    final typeGroup = _typeGroupFor(type);
+
+    final location = await getSaveLocation(
+    suggestedName: suggestedName,
+    acceptedTypeGroups: [
+      typeGroup
+    ],
+  );
+
+  if(location == null) return null;
+
+  return location.path;
+  }
+
+  XTypeGroup _typeGroupFor(SaveFileType type) {
+    switch(type) {
+      case SaveFileType.csv:
+        return XTypeGroup(
+          label: 'CSV Files',
+          extensions: ['csv'],
+          mimeTypes: ['text/csv'],
+        );
+      case SaveFileType.json:
+        return XTypeGroup(
+          label: 'JSON Files',
+          extensions: ['json'],
+          mimeTypes: ['application/json'],
+        );
+    }
+  }
+}

@@ -21,6 +21,7 @@ class SqliteUpdateGenerator implements UpdateGenerator {
     sql += " WHERE $identifier = $key";
     sql += ";\n";
 
+    print("SQL: $sql");
     return sql;
   }
 

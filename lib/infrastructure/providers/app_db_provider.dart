@@ -2,26 +2,18 @@ import 'dart:typed_data';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ui_prototype/application/project/use_cases/create_project.dart';
-import 'package:ui_prototype/application/uuid/generate_uuid.dart';
 import 'package:ui_prototype/infrastructure/project/sqlite/sql_security_validator.dart';
 import 'package:ui_prototype/infrastructure/project/sqlite/sql_statement_parser.dart';
 import 'package:ui_prototype/infrastructure/project/sqlite/sqlite_project_database_builder.dart';
 import 'package:ui_prototype/infrastructure/providers/active_database_connection_provider.dart';
 import 'package:ui_prototype/domain/models/project.dart';
-import 'package:ui_prototype/infrastructure/providers/device_id_use_case_provider.dart';
-import 'package:ui_prototype/infrastructure/providers/device_storage_provider.dart';
-import 'package:ui_prototype/infrastructure/providers/generate_uuid_provider.dart';
 import 'package:ui_prototype/presentation/services/projects/database/projects_database.dart';
-import 'package:ui_prototype/application/device_storage/device_id_use_case.dart';
+import 'package:ui_prototype/presentation/services/device_uuid_helper.dart';
 import 'package:ui_prototype/presentation/services/projects/projects_repository.dart';
 import 'package:ui_prototype/presentation/services/projects/project_service.dart';
 
 final _deviceIdProvider = FutureProvider<Uint8List>((ref) async {
-  // Get the UUID function
-  final uuidFunc = ref.watch(generateUuidProvider);
-  final storage = ref.watch(deviceStorageProvider);
-  final DeviceIDUseCase deviceIDUseCase = ref.watch(deviceIDUseCaseProvider);
-  return await deviceIDUseCase.getOrCreateDeviceID(uuidGen: uuidFunc, storage: storage);
+  return await getOrCreateDeviceID();
 });
 
 // App database provider (holds all the projects)
@@ -37,26 +29,22 @@ final _appDatabaseProvider = Provider<AppDatabase>((ref) {
 final _projectsRepositoryProvider = Provider<ProjectsRepository?>((ref) {
   final deviceIdAsync = ref.watch(_deviceIdProvider);
   final db = ref.watch(_appDatabaseProvider);
-  final GenerateUuid uuidGen = ref.watch(generateUuidProvider);
 
   return deviceIdAsync.maybeWhen(
-    data: (id) =>
-        ProjectsRepository(db: db, deviceId: id, generateUuid: uuidGen),
+    data: (id) => ProjectsRepository(db, id),
     orElse: () => null,
   );
 });
 
 final _createProjectUseCaseProvider = Provider<CreateProjectUseCase>((ref) {
+
   final parser = SqlSchemaParser();
   final validator = SqlSecurityValidator();
   final dbBuilder = SqliteProjectDatabaseBuilder();
 
-  return CreateProjectUseCase(
-    validator: validator,
-    dbBuilder: dbBuilder,
-    parser: parser,
-  );
-});
+  return CreateProjectUseCase(validator: validator, dbBuilder: dbBuilder, parser: parser);
+  
+},);
 
 final projectListProvider =
     AsyncNotifierProvider<ProjectsListNotifier, List<ProjectModel>>(() {

@@ -1,10 +1,10 @@
 // projects_repository.dart
 
-import 'package:ui_prototype/application/uuid/generate_uuid.dart';
-
 import 'database/projects_database.dart';
 import 'package:drift/drift.dart';
 import '../../../domain/models/project.dart';
+
+import '../uuid_helpers.dart';
 
 /// Returns current UTC time in ISO-8601 format
 String _nowIsoUtc() => DateTime.now().toUtc().toIso8601String();
@@ -12,9 +12,8 @@ String _nowIsoUtc() => DateTime.now().toUtc().toIso8601String();
 class ProjectsRepository {
   final AppDatabase db;
   final Uint8List deviceId;
-  final GenerateUuid generateUuid;
 
-  ProjectsRepository({required this.db, required this.deviceId, required this.generateUuid});
+  ProjectsRepository(this.db, this.deviceId);
 
   // Create project
   Future<void> createProject({
@@ -38,7 +37,7 @@ class ProjectsRepository {
             updatedAt: Value(now),
 
             // Generate a UUID for the pk
-            id: Value(generateUuid.generate()),
+            id: Value(newUuidV7()),
 
             // And pass the user-generated values in
             title: Value(title),

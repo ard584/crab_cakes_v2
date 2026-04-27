@@ -219,7 +219,6 @@ class SqlSecurityValidator implements SchemaValidator {
     return false;
   }
 
-  @override
   bool isSafe(List<String> statements) {
 
     // Iterate through statements

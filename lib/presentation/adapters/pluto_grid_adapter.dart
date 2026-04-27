@@ -8,6 +8,7 @@ List<RowIdentifier> extractIdentifiers(List<PlutoRow> rows) {
   final List<RowIdentifier> identifiers = [];
 
   for (final row in rows) {
+    print("ROW KEY: ${row.key}");
     identifiers.add((row.key as ValueKey<RowIdentifier>).value);
   }
 

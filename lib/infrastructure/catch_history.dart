@@ -1,4 +1,4 @@
-import 'package:ui_prototype/application/active_project_repository.dart';
+import 'package:ui_prototype/application/table_repository.dart';
 import 'package:ui_prototype/domain/entities/row_identifier.dart';
 import 'package:ui_prototype/presentation/view_models/project_input.dart';
 
