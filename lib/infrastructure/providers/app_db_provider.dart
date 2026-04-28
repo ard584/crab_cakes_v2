@@ -12,6 +12,10 @@ import 'package:ui_prototype/presentation/services/device_uuid_helper.dart';
 import 'package:ui_prototype/presentation/services/projects/projects_repository.dart';
 import 'package:ui_prototype/presentation/services/projects/project_service.dart';
 
+import 'package:ui_prototype/infrastructure/providers/json_import_providers.dart';
+
+
+
 final _deviceIdProvider = FutureProvider<Uint8List>((ref) async {
   return await getOrCreateDeviceID();
 });
@@ -90,6 +94,32 @@ class ProjectsListNotifier extends AsyncNotifier<List<ProjectModel>> {
       );
 
       // Invalidate self to update the UI
+      ref.invalidateSelf();
+    } catch (error) {
+      rethrow;
+    }
+  }
+
+  //importing a project from json
+  Future<void> importProject({
+    required String title,
+    String? description,
+    required String jsonString,
+  }) async {
+    final repo = ref.read(_projectsRepositoryProvider);
+    if(repo == null) return;
+
+    final service = ref.read(importProjectUseCaseProvider);
+
+    try {
+      final path = await service.execute(jsonString);
+
+      await repo.createProject(
+        title: title,
+        dbPath: path,
+        description: description,
+      );
+
       ref.invalidateSelf();
     } catch (error) {
       rethrow;
