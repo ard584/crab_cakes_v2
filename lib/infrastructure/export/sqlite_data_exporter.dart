@@ -15,7 +15,10 @@ class SqliteDataExporter implements DataExporter {
   Future<List<String>> getTables() async {
     final graph = buildGraph(db);
 
-    return graph.allTables();
+    final tableList = graph.allTables();
+
+    return _filterTableList(tableList);
+
   }
 
 
@@ -66,6 +69,18 @@ class SqliteDataExporter implements DataExporter {
     } finally {
       await sink.close();
     }  
+  }
+
+  List<String> _filterTableList( List<String> list ) {
+    final filtered = list.where((t) {
+      final rows = db.select('''
+        SELECT 1 FROM "$t" LIMIT 1
+      ''');
+
+        return rows.isNotEmpty;
+    }).toList();
+
+    return filtered;
   }
 
 

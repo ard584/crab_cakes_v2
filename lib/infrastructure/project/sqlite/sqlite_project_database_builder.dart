@@ -142,7 +142,7 @@ class SqliteProjectDatabaseBuilder implements ProjectDatabaseBuilder {
       db.execute('COMMIT');
     } catch (e) {
       db.execute('ROLLBACK;');
-      db.dispose();
+
       // Clean up temp file
       if (File(dbTempPath).existsSync()) File(dbTempPath).deleteSync();
       rethrow;
