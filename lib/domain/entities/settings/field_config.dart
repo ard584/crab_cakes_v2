@@ -2,6 +2,7 @@ class FieldConfig {
   final bool useDropdown;
   final bool allowCustomValues;
   final bool isRequired;
+  final bool showInCatchHistory;
   final bool isSticky;
   final List<String> options; //these are the values added by the user to be selected from in the field
   final num? minValue;
@@ -12,6 +13,7 @@ class FieldConfig {
     required this.useDropdown,
     required this.allowCustomValues,
     required this.isRequired,
+    this.showInCatchHistory = false,
     required this.isSticky,
     List<String>? options,
     required this.minValue,
@@ -24,6 +26,7 @@ class FieldConfig {
     'useDropdown':useDropdown,
     'allowCustomValues':allowCustomValues,
     'isRequired':isRequired,
+    'showInCatchHistory':showInCatchHistory,
     'isSticky':isSticky,
     'options':options,
     'minValue':minValue,
@@ -38,6 +41,7 @@ class FieldConfig {
       useDropdown: json['useDropdown'] ?? false,
       allowCustomValues: json['allowCustomValues'] ?? true,
       isRequired: json['isRequired'] ?? false,
+      showInCatchHistory: json['showInCatchHistory'] as bool? ?? false,
       isSticky: json['isSticky'] ?? false,
       options: List<String>.from(json['options'] ?? []),
       minValue: json['minValue'],
@@ -51,6 +55,7 @@ class FieldConfig {
      bool? useDropdown,
      bool? allowCustomValues,
      bool? isRequired,
+     bool? showInCatchHistory,
      bool? isSticky,
     List<String>? options,
     num? minValue,
@@ -65,6 +70,7 @@ class FieldConfig {
       useDropdown: useDropdown ?? this.useDropdown,
       allowCustomValues: allowCustomValues ?? this.allowCustomValues,
       isRequired: isRequired ?? this.isRequired,
+      showInCatchHistory: showInCatchHistory ?? this.showInCatchHistory,
       isSticky: isSticky ?? this.isSticky,
       options: clearOptions ? null : (options ?? this.options),
       minValue: clearMinMax ? null : (minValue ?? this.minValue),
@@ -78,6 +84,7 @@ class FieldConfig {
     useDropdown: false,
     allowCustomValues: true,
     isRequired: false,
+    showInCatchHistory: false,
     isSticky: false,
     options: const [],
     minValue: null,

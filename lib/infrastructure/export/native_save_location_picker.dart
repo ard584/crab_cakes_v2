@@ -37,6 +37,12 @@ class NativeSaveLocationPicker implements SaveLocationPicker {
           extensions: ['json'],
           mimeTypes: ['application/json'],
         );
+      case SaveFileType.txt:
+        return XTypeGroup(
+          label: 'Text Files',
+          extensions: ['txt'],
+          mimeTypes: ['txt'],
+        );
     }
   }
 }

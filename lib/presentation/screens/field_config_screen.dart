@@ -6,7 +6,10 @@ import 'package:ui_prototype/infrastructure/providers/settings_provider.dart';
 import 'package:ui_prototype/infrastructure/providers/field_config_providers.dart';
 
 import 'package:ui_prototype/domain/entities/settings/field_config.dart';
-import 'package:ui_prototype/domain/entities/settings/project_settings.dart';
+
+import 'package:ui_prototype/infrastructure/providers/column_filter_provider.dart';
+
+import 'package:ui_prototype/presentation/dialogs/column_order_dialog.dart';
 
 class FieldConfigScreen extends ConsumerWidget {
   const FieldConfigScreen({super.key});
@@ -43,7 +46,13 @@ class FieldConfigScreen extends ConsumerWidget {
               );
             }
 
-            final attributes = table.attributes.values.toList();
+            // Get filter setting from provider
+            final hideDoubleUnderscore = ref.watch(hideDoubleUnderscoreColumnsProvider);
+
+            // Apply filter based on provider setting
+            final attributes = hideDoubleUnderscore
+                ? table.attributes.values.where((a) => !a.fields.name.startsWith(kColumnPrefixToHide)).toList()
+                : table.attributes.values.toList();
 
             return settingsAsync.when(
               loading: () => const Center(child: CircularProgressIndicator()),
@@ -74,11 +83,78 @@ class FieldConfigScreen extends ConsumerWidget {
                       child: attributes.isEmpty
                           ? const _EmptyFieldConfigView()
                           : ListView.separated(
-                              itemCount: attributes.length,
+                              itemCount: attributes.length + 1,
                               separatorBuilder: (_, __) =>
                                   const SizedBox(height: 8),
                               itemBuilder: (context, index) {
-                                final attribute = attributes[index];
+                              if (index == 0) {
+                                return Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+                                  decoration: BoxDecoration(
+                                    color: Theme.of(context).colorScheme.surface,
+                                    borderRadius: BorderRadius.circular(10),
+                                    border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
+                                  ),
+                                  child: Row(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Expanded(
+                                        flex: 2,
+                                        child: Padding(
+                                          padding: const EdgeInsets.only(top: 6),
+                                          child: Text(
+                                            "Column Display Order",
+                                            style: Theme.of(context).textTheme.titleSmall,
+                                          ),
+                                        ),
+                                      ),
+                                      const Expanded(
+                                        flex: 4,
+                                        child: Text("Reorder columns in catch history table"),
+                                      ),
+                                      Expanded(
+                                        flex: 3,
+                                        child: Row(
+                                          children: [
+                                            const Spacer(),
+                                            SizedBox(
+                                              width: 98,
+                                              child: OutlinedButton(
+                                                onPressed: () {
+                                                  final visibleColumns = attributes.where((attr) {
+                                                    final fieldName = attr.fields.name;
+                                                    final config = resolvedSettings.fieldConfig.getConfig(
+                                                      table: resolvedTableName,
+                                                      col: fieldName,
+                                                    );
+                                                    return config?.showInCatchHistory ?? false;
+                                                  }).map((a) => a.fields.name).toList();
+                                                  
+                                                  final columnsToOrder = visibleColumns.isEmpty
+                                                      ? attributes.take(8).map((a) => a.fields.name).toList()
+                                                      : visibleColumns;
+                                                  
+                                                  showDialog(
+                                                    context: context,
+                                                    builder: (context) => ColumnOrderDialog(
+                                                      tableName: resolvedTableName,
+                                                      allColumns: columnsToOrder,
+                                                    ),
+                                                  );
+                                                },
+                                                child: const Text("Order"),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              }
+                                
+                                final fieldIndex = index - 1;
+                                final attribute = attributes[fieldIndex];
                                 final fieldName = attribute.fields.name;
                                 final dataType = attribute.fields.dataType;
                                 final schemaRequired =
@@ -101,6 +177,15 @@ class FieldConfigScreen extends ConsumerWidget {
                                   config: effectiveConfig,
                                   schemaRequired: schemaRequired,
                                   onEditPressed: () async {
+                                    final shownCount = attributes.where((attr) {
+                                      final fn = attr.fields.name;
+                                      final cfg = resolvedSettings.fieldConfig.getConfig(
+                                        table: resolvedTableName,
+                                        col: fn,
+                                      );
+                                      return cfg?.showInCatchHistory ?? false;
+                                    }).length;
+
                                     final updated =
                                         await showDialog<FieldConfig>(
                                       context: context,
@@ -108,6 +193,7 @@ class FieldConfigScreen extends ConsumerWidget {
                                         initialValue: effectiveConfig,
                                         fieldName: fieldName,
                                         dataType: dataType,
+                                        currentShownCount: shownCount,
                                         schemaRequired: schemaRequired,
                                       ),
                                     );
@@ -137,6 +223,26 @@ class FieldConfigScreen extends ConsumerWidget {
                                         column: fieldName,
                                         config: updated,
                                       );
+                                      if (effectiveConfig.showInCatchHistory != updated.showInCatchHistory) {
+                                        final currentOrder = resolvedSettings.columnOrder[resolvedTableName] ?? [];
+                                        List<String> newOrder;
+                                        if (updated.showInCatchHistory) {
+                                          if (!currentOrder.contains(fieldName)) {
+                                            newOrder = [...currentOrder, fieldName];
+                                          } else {
+                                            newOrder = currentOrder;
+                                          }
+                                        } else {
+                                          newOrder = currentOrder.where((col) => col != fieldName).toList();
+                                        }
+                                        final updateColumnOrderUsecase = ref.read(updateColumnOrderUsecaseProvider);
+                                        if (updateColumnOrderUsecase != null) {
+                                          await updateColumnOrderUsecase.execute(
+                                            tableName: resolvedTableName,
+                                            columnOrder: newOrder,
+                                          );
+                                        }
+                                      }
 
                                       ref.invalidate(projectSettingsProvider);
 
@@ -246,14 +352,20 @@ class _FieldConfigHeader extends StatelessWidget {
               style: TextStyle(fontWeight: FontWeight.bold),
             ),
           ),
-          SizedBox(width: 110),
+          Expanded(
+            flex:3,
+            child: Text(
+              "Catch Table",
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+          ),
         ],
       ),
     );
   }
 }
 
-class _FieldConfigRow extends StatelessWidget {
+class _FieldConfigRow extends ConsumerWidget {
   final String fieldName;
   final String dataType;
   final FieldConfig config;
@@ -269,7 +381,7 @@ class _FieldConfigRow extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final scheme = Theme.of(context).colorScheme;
 
     return Container(
@@ -309,12 +421,35 @@ class _FieldConfigRow extends StatelessWidget {
               schemaRequired: schemaRequired,
             ),
           ),
-          const SizedBox(width: 12),
-          SizedBox(
-            width: 98,
-            child: OutlinedButton(
-              onPressed: onEditPressed,
-              child: const Text("Edit"),
+          Expanded(
+            flex: 3,
+            child: Row(
+              children: [
+                if (config.showInCatchHistory)
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: scheme.primaryContainer,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: Text(
+                      'Shown',
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w500,
+                        color: scheme.onPrimaryContainer,
+                      ),
+                    ),
+                  ),
+                const Spacer(),
+                SizedBox(
+                  width: 98,
+                  child: OutlinedButton(
+                    onPressed: onEditPressed,
+                    child: const Text("Edit"),
+                  ),
+                ),
+              ],
             ),
           ),
         ],
@@ -402,6 +537,7 @@ class FieldConfigDialog extends StatefulWidget {
   final FieldConfig initialValue;
   final String fieldName;
   final String dataType;
+  final int currentShownCount;
   final bool schemaRequired;
 
   const FieldConfigDialog({
@@ -409,6 +545,7 @@ class FieldConfigDialog extends StatefulWidget {
     required this.initialValue,
     required this.fieldName,
     required this.dataType,
+    required this.currentShownCount,
     required this.schemaRequired,
   });
 
@@ -420,6 +557,7 @@ class _FieldConfigDialogState extends State<FieldConfigDialog> {
   late bool _useDropdown;
   late bool _allowCustomValues;
   late bool _isRequired;
+  late bool _showInCatchHistory;
   late bool _isSticky;
 
   late TextEditingController _optionsController;
@@ -434,6 +572,7 @@ class _FieldConfigDialogState extends State<FieldConfigDialog> {
     _useDropdown = widget.initialValue.useDropdown;
     _allowCustomValues = widget.initialValue.allowCustomValues;
     _isRequired = widget.initialValue.isRequired;
+    _showInCatchHistory = widget.initialValue.showInCatchHistory;
     _isSticky = widget.initialValue.isSticky;
 
     _optionsController = TextEditingController(
@@ -462,6 +601,7 @@ class _FieldConfigDialogState extends State<FieldConfigDialog> {
   @override
   Widget build(BuildContext context) {
     final isNumeric = _looksNumeric(widget.dataType);
+    final canEnableShown = widget.initialValue.showInCatchHistory || widget.currentShownCount < 8;
 
     return AlertDialog(
       title: Text("Configure ${widget.fieldName}"),
@@ -522,6 +662,28 @@ class _FieldConfigDialogState extends State<FieldConfigDialog> {
                     _isSticky = value;
                   });
                 },
+              ),
+              SwitchListTile(
+                contentPadding: EdgeInsets.zero,
+                title: const Text("Show in Catch History Table."),
+                subtitle: Text(
+                  canEnableShown
+                      ? "Display this field in the catch history table."
+                      : "Maximum of 8 fields can be shown (${widget.currentShownCount}/8 selected)",
+                  style: TextStyle(
+                    color: canEnableShown 
+                        ? null 
+                        : Theme.of(context).colorScheme.error,
+                  ),
+                ),
+                value: _showInCatchHistory,
+                onChanged: canEnableShown
+                    ? (value) {
+                        setState(() {
+                          _showInCatchHistory = value;
+                        });
+                      }
+                    : null,
               ),
               const SizedBox(height: 8),
               TextField(
@@ -598,6 +760,7 @@ class _FieldConfigDialogState extends State<FieldConfigDialog> {
               useDropdown: _useDropdown,
               allowCustomValues: _allowCustomValues,
               isRequired: widget.schemaRequired ? true : _isRequired,
+              showInCatchHistory: _showInCatchHistory,
               isSticky: _isSticky,
               options: _parseOptions(_optionsController.text),
               minValue: _parseNullableNum(_minController.text),

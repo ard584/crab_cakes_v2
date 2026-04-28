@@ -3,6 +3,8 @@ import 'package:sqlite3/sqlite3.dart';
 import 'package:ui_prototype/application/export/interfaces/data_exporter.dart';
 import 'package:ui_prototype/infrastructure/schema_discovery/schema_graph.dart';
 
+import 'package:ui_prototype/infrastructure/providers/column_filter_provider.dart';
+
 
 class SqliteDataExporter implements DataExporter {
   final Database db;
@@ -24,7 +26,7 @@ class SqliteDataExporter implements DataExporter {
     DELIMITER = delimiter;
 
     //add extension to the end of the file name
-    filePath = "$filePath.txt";
+    filePath = "$filePath";
 
     final file = File(filePath);
     final sink = file.openWrite();
@@ -224,7 +226,7 @@ class SqliteDataExporter implements DataExporter {
     for(final row in tableList) {
       final tableName = row['name'] as String;
       final rows = db.select("PRAGMA table_info($tableName);");
-      final cols = rows.map((r)=>r['name'] as String).toList();
+      final cols = filterColumnsByPrefix(rows.map((r) => r['name'] as String).toList(), true);
 
       colMap[tableName] = cols;
     }
