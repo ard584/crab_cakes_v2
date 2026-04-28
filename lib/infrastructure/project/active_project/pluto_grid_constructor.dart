@@ -47,6 +47,8 @@ class PlutoGridConstructor
           type = PlutoColumnType.text();
       }
 
+      final bool readOnly = column.primaryKey;
+
       // Construct field
       final String field = _getFieldName(table.name, column.name);
 
@@ -54,7 +56,7 @@ class PlutoGridConstructor
       final String title = column.name;
 
       // Construct PlutoColumn
-      final col = PlutoColumn(title: title, field: field, type: type);
+      final col = PlutoColumn(title: title, field: field, type: type, readOnly: readOnly);
 
       // Append to columns array
       columns.add(col);
