@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:ui_prototype/application/project/use_cases/save_table.dart';
-import 'package:ui_prototype/application/table_repository.dart';
+import 'package:ui_prototype/application/active_project_repository.dart';
 import 'package:ui_prototype/domain/models/attribute.dart';
 import 'package:ui_prototype/domain/models/db_row.dart';
 import 'package:ui_prototype/presentation/view_models/project_input.dart';

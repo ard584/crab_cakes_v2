@@ -1,7 +1,7 @@
 import 'package:sqlite3/sqlite3.dart';
 import 'package:ui_prototype/application/project/interfaces/active_project/insert_generator.dart';
 import 'package:ui_prototype/application/project/interfaces/active_project/update_generator.dart';
-import 'package:ui_prototype/application/table_repository.dart';
+import 'package:ui_prototype/application/active_project_repository.dart';
 import 'package:ui_prototype/domain/db_table.dart';
 import 'package:ui_prototype/domain/entities/row_identifier.dart';
 import 'package:ui_prototype/domain/models/db_row.dart';
