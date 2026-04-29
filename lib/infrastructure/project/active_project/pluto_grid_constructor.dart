@@ -5,6 +5,8 @@ import 'package:ui_prototype/domain/db_table.dart';
 import 'package:ui_prototype/domain/entities/row_identifier.dart';
 import 'package:ui_prototype/domain/models/db_row.dart';
 
+import 'package:ui_prototype/infrastructure/providers/column_filter_provider.dart';
+
 class PlutoGridConstructor
     implements
         GridConstructor<
@@ -19,8 +21,13 @@ class PlutoGridConstructor
     // Define list of pluto columns
     List<PlutoColumn> columns = [];
 
+    // Filter to exclude columns starting with __
+    final visibleColumns = table.columns
+    .where((col) => !col.name.startsWith(kColumnPrefixToHide))
+    .toList();
+
     // Iterate through DbTable
-    for (final column in table.columns) {
+    for (final column in visibleColumns) {
       // Get type of current column
       final PlutoColumnType type;
 
@@ -40,6 +47,8 @@ class PlutoGridConstructor
           type = PlutoColumnType.text();
       }
 
+      final bool readOnly = column.primaryKey;
+
       // Construct field
       final String field = _getFieldName(table.name, column.name);
 
@@ -47,7 +56,7 @@ class PlutoGridConstructor
       final String title = column.name;
 
       // Construct PlutoColumn
-      final col = PlutoColumn(title: title, field: field, type: type);
+      final col = PlutoColumn(title: title, field: field, type: type, readOnly: readOnly);
 
       // Append to columns array
       columns.add(col);
@@ -81,8 +90,14 @@ class PlutoGridConstructor
       key: ValueKey(id),
     );
 
+
+    // Filter to exclude columns starting with __
+    final visibleEntries = row.values.entries.where(
+      (entry) => !entry.key.startsWith(kColumnPrefixToHide)
+    ).toList();
+
     // Iterate through row
-    for (final cell in row.values.entries) {
+    for (final cell in visibleEntries) {
       // Match pluto field name
       final String fieldName = _getFieldName(table.name, cell.key);
 

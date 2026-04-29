@@ -23,6 +23,8 @@ import 'package:ui_prototype/infrastructure/export/native_save_location_picker.d
 import 'package:ui_prototype/domain/entities/settings/project_settings.dart';
 
 
+import 'package:ui_prototype/application/catch_history/usecases/update_column_order_usecase.dart';
+
 //wiring infrastructure providers
 
 final saveLocationPickerProvider = Provider<SaveLocationPicker>((ref) {
@@ -94,3 +96,8 @@ final projectSettingsProvider = FutureProvider<ProjectSettings>((ref) async {
 });
 
 
+
+final updateColumnOrderUsecaseProvider = Provider<UpdateColumnOrderUsecase?>((ref) {
+  final repo = ref.watch(projectSettingsRepoProvider);
+  return repo != null ? UpdateColumnOrderUsecase(repo) : null;
+});

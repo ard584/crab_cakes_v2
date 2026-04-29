@@ -26,6 +26,7 @@ import 'package:ui_prototype/presentation/components/status_panel.dart';
 import 'package:ui_prototype/infrastructure/providers/external_backup_provider.dart';
 import 'package:ui_prototype/infrastructure/providers/active_database_connection_provider.dart';
 import 'package:ui_prototype/infrastructure/providers/settings_provider.dart';
+import 'package:ui_prototype/infrastructure/providers/column_filter_provider.dart';
 
 import 'package:ui_prototype/infrastructure/providers/sound_provider.dart';
 import 'package:ui_prototype/domain/enums/app_sound.dart';
@@ -185,7 +186,7 @@ class _DataEntryState extends ConsumerState<DataEntryScreen> {
     child: Scaffold(
       appBar: AppBar(
         title: projectAsync.when(
-          data: (project) => Text('Data Entry'),
+          data: (project) => Text(activeTableName ?? 'Data Entry'),
           error: (_, __) => const Text("Error"),
           loading: () => const Text('Loading...'),
         ),
@@ -310,7 +311,13 @@ class _TableFormSectionState extends ConsumerState<TableFormSection> {
       return Center(child: Text("Table is null"));
     }
 
-    final attrbutes = table.attributes.values.toList();
+    // Get filter setting from provider
+    final hideDoubleUnderscore = ref.watch(hideDoubleUnderscoreColumnsProvider);
+
+    // Apply filter based on provider setting
+    final attrbutes = hideDoubleUnderscore
+        ? table.attributes.values.where((a) => !a.fields.name.startsWith(kColumnPrefixToHide)).toList()
+        : table.attributes.values.toList();
 
     return ListView.builder(
       itemCount: attrbutes.length,

@@ -2,6 +2,7 @@ class FieldConfig {
   final bool useDropdown;
   final bool allowCustomValues;
   final bool isRequired;
+  final bool showInCatchHistory;
   final bool isSticky;
   final bool isHidden;
   final List<String> options; //these are the values added by the user to be selected from in the field
@@ -13,6 +14,7 @@ class FieldConfig {
     required this.useDropdown,
     required this.allowCustomValues,
     required this.isRequired,
+    this.showInCatchHistory = false,
     required this.isSticky,
     this.isHidden = false,
     List<String>? options,
@@ -26,6 +28,7 @@ class FieldConfig {
     'useDropdown':useDropdown,
     'allowCustomValues':allowCustomValues,
     'isRequired':isRequired,
+    'showInCatchHistory':showInCatchHistory,
     'isSticky':isSticky,
     'isHidden':isHidden,
     'options':options,
@@ -41,6 +44,7 @@ class FieldConfig {
       useDropdown: json['useDropdown'] ?? false,
       allowCustomValues: json['allowCustomValues'] ?? true,
       isRequired: json['isRequired'] ?? false,
+      showInCatchHistory: json['showInCatchHistory'] as bool? ?? false,
       isSticky: json['isSticky'] ?? false,
       isHidden: json['isHidden'] ?? false,
       options: List<String>.from(json['options'] ?? []),
@@ -55,6 +59,7 @@ class FieldConfig {
      bool? useDropdown,
      bool? allowCustomValues,
      bool? isRequired,
+     bool? showInCatchHistory,
      bool? isSticky,
      bool? isHidden,
     List<String>? options,
@@ -70,6 +75,7 @@ class FieldConfig {
       useDropdown: useDropdown ?? this.useDropdown,
       allowCustomValues: allowCustomValues ?? this.allowCustomValues,
       isRequired: isRequired ?? this.isRequired,
+      showInCatchHistory: showInCatchHistory ?? this.showInCatchHistory,
       isSticky: isSticky ?? this.isSticky,
       isHidden: isHidden ?? this.isHidden,
       options: clearOptions ? null : (options ?? this.options),
@@ -84,6 +90,7 @@ class FieldConfig {
     useDropdown: false,
     allowCustomValues: true,
     isRequired: false,
+    showInCatchHistory: false,
     isSticky: false,
     isHidden: false,
     options: const [],

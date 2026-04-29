@@ -1,4 +1,4 @@
-import 'package:ui_prototype/infrastructure/catch_history.dart';
+import 'package:ui_prototype/application/catch_history/catch_history.dart';
 
 class HistoryCatch {
   final CatchHistoryViewModel viewModel;
