@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 import 'package:ui_prototype/infrastructure/providers/active_database_connection_provider.dart';
-import 'package:ui_prototype/presentation/services/flex_engine/flex_db_mapper.dart';
+import 'package:ui_prototype/infrastructure/providers/db_mapper_provider.dart';
 import 'package:ui_prototype/presentation/view_models/project_input.dart';
 
 // DTO
@@ -23,8 +23,8 @@ class ProjectViewModelNotifier extends AsyncNotifier<ProjectInput> {
     }
 
     // Map database
-    final mapper = FlexDbMapper(db: db);
-    final project = mapper.mapFromDatabase();
+    final mapper = ref.watch(dbMapperProvider);
+    final project = mapper.mapDB(db);
 
     final projectInput = ProjectInput(name: "project", project: project);
 
