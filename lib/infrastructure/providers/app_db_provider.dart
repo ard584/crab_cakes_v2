@@ -6,6 +6,7 @@ import 'package:ui_prototype/application/project/use_cases/create_project.dart';
 import 'package:ui_prototype/infrastructure/project/sqlite/sql_security_validator.dart';
 import 'package:ui_prototype/infrastructure/project/sqlite/sql_statement_parser.dart';
 import 'package:ui_prototype/infrastructure/project/sqlite/sqlite_project_database_builder.dart';
+import 'package:ui_prototype/infrastructure/project_creation/dtos/sqlite_project_create_request.dart';
 import 'package:ui_prototype/infrastructure/providers/active_database_connection_provider.dart';
 import 'package:ui_prototype/domain/models/project.dart';
 import 'package:ui_prototype/infrastructure/providers/device_id_use_case_provider.dart';
@@ -13,7 +14,6 @@ import 'package:ui_prototype/infrastructure/providers/device_storage_provider.da
 import 'package:ui_prototype/infrastructure/providers/generate_uuid_provider.dart';
 import 'package:ui_prototype/presentation/services/projects/database/projects_database.dart';
 import 'package:ui_prototype/presentation/services/projects/projects_repository.dart';
-import 'package:ui_prototype/presentation/services/projects/project_service.dart';
 import 'package:ui_prototype/application/uuid/generate_uuid.dart';
 
 final _deviceIdProvider = FutureProvider<Uint8List>((ref) async {
@@ -82,7 +82,7 @@ class ProjectsListNotifier extends AsyncNotifier<List<ProjectModel>> {
     // Create projectService
     final service = ref.read(_createProjectUseCaseProvider);
 
-    final request = ProjectCreateRequest(
+    final request = SqliteProjectCreateRequest(
       title: title,
       description: description,
       sql: sql,

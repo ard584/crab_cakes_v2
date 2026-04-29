@@ -3,9 +3,9 @@ import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'dart:io' as io;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:ui_prototype/infrastructure/project_creation/dtos/sqlite_project_create_request.dart';
 import 'package:ui_prototype/infrastructure/providers/app_db_provider.dart';
 import 'package:ui_prototype/presentation/utils/logger.dart';
-import 'package:ui_prototype/presentation/services/projects/project_service.dart';
 
 class ProjectCreationScreen extends ConsumerStatefulWidget {
   const ProjectCreationScreen({super.key});
@@ -100,7 +100,7 @@ class _ProjectCreationScreenState extends ConsumerState<ProjectCreationScreen> {
       return;
     }
 
-    final request = ProjectCreateRequest(title: title, sql: sql);
+    final request = SqliteProjectCreateRequest(title: title, sql: sql);
 
     log.d("NAME: ${_projectNameController.text}");
     log.d("DESCRIPTION: ${_projectDescriptionController.text}");
