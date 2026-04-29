@@ -1,5 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:ui_prototype/application/active_project_repository.dart';
+import 'package:ui_prototype/application/table_repository.dart';
 import 'package:ui_prototype/infrastructure/project/sqlite/sql_insert_generator.dart';
 import 'package:ui_prototype/infrastructure/project/sqlite/sqlite_active_project_repository.dart';
 import 'package:ui_prototype/infrastructure/project/sqlite/sqlite_update_generator.dart';
