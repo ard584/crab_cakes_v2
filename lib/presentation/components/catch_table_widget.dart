@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:ui_prototype/application/table_repository.dart';
+import 'package:ui_prototype/application/active_project_repository.dart';
 import 'package:ui_prototype/domain/catch_history.dart';
 import 'package:ui_prototype/application/catch_history/catch_history.dart';
 import 'package:ui_prototype/presentation/view_models/project_input.dart';

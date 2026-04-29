@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
-import 'package:ui_prototype/application/table_repository.dart';
+import 'package:ui_prototype/application/active_project_repository.dart';
 import 'package:ui_prototype/domain/db_table.dart';
 import 'package:ui_prototype/domain/entities/row_identifier.dart';
 import 'package:ui_prototype/domain/models/attribute.dart';
