@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:ui_prototype/application/settings/usecases/update_export_settings.dart';
 
 //importing the active database (project) provider
 import 'package:ui_prototype/infrastructure/providers/active_database_connection_provider.dart';
@@ -73,6 +74,14 @@ final updateScannerTargetUsecaseProvider = Provider<UpdateScannerTarget?>((ref) 
   return UpdateScannerTarget(repo);
 });
 
+final updateExportSettingsUsecaseProvider = Provider<UpdateExportSettings?>((ref) {
+  final repo = ref.watch(projectSettingsRepoProvider);
+
+  if(repo == null) return null;
+
+  return UpdateExportSettings(repo);
+});
+
 final exportSettingsUsecaseProvider = Provider<ExportSettings?>((ref) {
   final saveLocationPicker = ref.watch(saveLocationPickerProvider);
   final exporter = ref.watch(projcetSettingsExporterProvider);
@@ -80,6 +89,11 @@ final exportSettingsUsecaseProvider = Provider<ExportSettings?>((ref) {
   if(exporter == null) return null;
 
   return ExportSettings(exporter, saveLocationPicker);
+});
+
+final updateColumnOrderUsecaseProvider = Provider<UpdateColumnOrderUsecase?>((ref) {
+  final repo = ref.watch(projectSettingsRepoProvider);
+  return repo != null ? UpdateColumnOrderUsecase(repo) : null;
 });
 
 
@@ -97,7 +111,3 @@ final projectSettingsProvider = FutureProvider<ProjectSettings>((ref) async {
 
 
 
-final updateColumnOrderUsecaseProvider = Provider<UpdateColumnOrderUsecase?>((ref) {
-  final repo = ref.watch(projectSettingsRepoProvider);
-  return repo != null ? UpdateColumnOrderUsecase(repo) : null;
-});

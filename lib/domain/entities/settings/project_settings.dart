@@ -1,21 +1,26 @@
 import 'package:ui_prototype/domain/entities/settings/scanner_settings.dart';
 import 'package:ui_prototype/domain/entities/settings/field_config_settings.dart';
+import 'package:ui_prototype/domain/entities/settings/export_settings.dart';
 
 class ProjectSettings {
   final ScannerSettings scanner;
   final FieldConfigSettings fieldConfig;
   final Map<String, List<String>> columnOrder;
+  final ExportSettings export;
+
 
   const ProjectSettings({
     required this.scanner,
     required this.fieldConfig,
     this.columnOrder = const {},
+    required this.export,
   });
 
   Map<String, dynamic> toJson() => {
     'scanner': scanner.toJson(),
     'fieldConfig': fieldConfig.toJson(),
     'columnOrder': columnOrder,
+    'exportSettings':export.toJson(),
   };
 
   factory ProjectSettings.fromJson(Map<String, dynamic> json) {
@@ -23,6 +28,7 @@ class ProjectSettings {
     final scannerJson = json["scanner"] ?? {};
     final fieldConfigJson = json["fieldConfig"] ?? {};
     final columnOrderJson = json["columnOrder"] ?? {};
+    final exportJson = json['export'] ?? {};
 
     return ProjectSettings(
       scanner: ScannerSettings.fromJson(
@@ -37,6 +43,9 @@ class ProjectSettings {
                 value is List ? List<String>.from(value) : <String>[],
               ))
           : {},
+      export: ExportSettings.fromJson(
+        exportJson is Map ? Map<String, dynamic>.from(exportJson) : {},
+      ),
     );
   }
 
@@ -44,14 +53,18 @@ class ProjectSettings {
     ScannerSettings? scanner,
     FieldConfigSettings? fieldConfig,
     Map<String, List<String>>? columnOrder,
+    ExportSettings? export,
 
     bool clearScannerSettings = false,
     bool clearFieldConfigSettings = false,
+    bool clearColumnOrder = false,
+    bool clearExportSettings = false,
     }) {
     return ProjectSettings(
       scanner: clearScannerSettings ? ScannerSettings.empty() : (scanner ?? this.scanner),
       fieldConfig: clearFieldConfigSettings ? FieldConfigSettings.empty() : (fieldConfig ?? this.fieldConfig),
-      columnOrder: columnOrder ?? this.columnOrder,
+      columnOrder: clearColumnOrder ? {} : (columnOrder ?? this.columnOrder),
+      export: clearExportSettings ? ExportSettings.empty() : (export ?? this.export),
     );
   }
 
@@ -60,6 +73,7 @@ class ProjectSettings {
       scanner: ScannerSettings.empty(),
       fieldConfig: FieldConfigSettings.empty(),
       columnOrder: {},
+      export: ExportSettings.empty(),
     );
   }
 }
