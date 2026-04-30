@@ -1,13 +1,22 @@
+import 'dart:convert';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:ui_prototype/infrastructure/backup/crab_cakes_backup_planner.dart';
+
+
+//importing supporting provider files
+import 'package:ui_prototype/infrastructure/providers/export_provider.dart';
+import 'package:ui_prototype/infrastructure/providers/active_database_connection_provider.dart';
+import 'package:ui_prototype/infrastructure/providers/app_db_provider.dart';
 
 import 'dart:io' show Platform;
 
-import 'package:ui_prototype/infrastructure/providers/active_database_connection_provider.dart';
 
 //importing dummy Infrastructure used when Platform is MAC-OS
 import 'package:ui_prototype/infrastructure/backup/dummies/dummy_backup_writer.dart';
 import 'package:ui_prototype/infrastructure/backup/dummies/dummy_drive_discovery.dart';
 import 'package:ui_prototype/infrastructure/backup/dummies/dummy_drive_selection_repo.dart';
+import 'package:ui_prototype/infrastructure/backup/dummies/dummy_manifest_writer.dart';
 
 //importing use cases
 import 'package:ui_prototype/application/backup/usecases/discover_drives.dart';
@@ -16,16 +25,25 @@ import 'package:ui_prototype/application/backup/usecases/select_drives.dart';
 import 'package:ui_prototype/application/backup/usecases/write_backup.dart';
 import 'package:ui_prototype/application/backup/usecases/auto_select_backups.dart';
 
+//importing app-level dtos
+import 'package:ui_prototype/application/backup/dtos/backup_plan.dart';
+import 'package:ui_prototype/application/backup/dtos/backup_request.dart';
+import 'package:ui_prototype/application/backup/dtos/backup_target.dart';
+
 //importing interfaces
 import 'package:ui_prototype/application/backup/interfaces/backup_writer.dart';
 import 'package:ui_prototype/application/backup/interfaces/drive_discovery.dart';
 import 'package:ui_prototype/application/backup/interfaces/drive_selection_repo.dart';
+import 'package:ui_prototype/application/backup/interfaces/backup_manifest_writer.dart';
+import 'package:ui_prototype/application/backup/interfaces/db_backup_writer.dart';
+import 'package:ui_prototype/application/backup/interfaces/backup_planner.dart';
 
 //importing concrete infrastructure implementations
 import 'package:ui_prototype/infrastructure/backup/backup_settings_db.dart';
-import 'package:ui_prototype/infrastructure/backup/db_backup_writer.dart';
+import 'package:ui_prototype/infrastructure/backup/sqlite_db_backup_writer.dart';
 import 'package:ui_prototype/infrastructure/backup/drift_drive_selection_repo.dart';
 import 'package:ui_prototype/infrastructure/backup/win32_drive_discovery.dart';
+import 'package:ui_prototype/infrastructure/backup/json_manifest_writer.dart';
 
 //------------------------------------------------------------------------------------
 
@@ -59,17 +77,25 @@ final driveSelectionRepoProvider = Provider<DriveSelectionRepository>((ref) {
   }
 });
 
-final backupWriterProvider = Provider<BackupWriter>((ref) {
+final backupPlannerProvider = Provider<BackupPlanner>((ref) {
+  return CrabCakesBackupPlanner();
+});
 
+final backupWriterProvider = Provider<DbBackupWriter>((ref) {
   if(Platform.isWindows) {
-    return DbBackupWriter(
-      getActiveDb: () => ref.read(activeDatabaseConnectionProvider),
-    );
+    return SqliteDbBackupWriter();
   } else {
     return DummyBackupWriter();
   }
 });
 
+final backupManifestWriterProvider = Provider<BackupManifestWriter>((ref) {
+  if(Platform.isWindows) {
+    return JsonManifestWriter();
+  } else {
+    return DummyManifestWriter();
+  }
+});
 
 
 //Wiring USE CASE providers (which read the infra providers)
@@ -92,11 +118,21 @@ final selectDrivesProvider = Provider<SelectDrives>((ref) {
 });
 
 final writeBackupProvider = Provider<WriteBackup>((ref) {
-  final writer = ref.read(backupWriterProvider);
+  final backupWriter = ref.read(backupWriterProvider);
   final repo = ref.read(driveSelectionRepoProvider);
   final discoverer = ref.read(driveDiscoveryProvider);
+  final planner = ref.read(backupPlannerProvider);
+  final manifestWriter = ref.read(backupManifestWriterProvider);
+  final dataExporter = ref.read(dataExporterProvider);
 
-  return WriteBackup(writer, repo, discoverer);
+  return WriteBackup(
+    planner: planner,
+    dbBackupWriter: backupWriter,
+    manifestWriter: manifestWriter,
+    repo: repo,
+    discovery: discoverer,
+    dataExporter: dataExporter,
+  );
 });
 
 final autoSelectBackupTargetsProvider = Provider<AutoSelectBackups>((ref) {
@@ -107,4 +143,50 @@ final autoSelectBackupTargetsProvider = Provider<AutoSelectBackups>((ref) {
 });
 // ---------------------- WIRING COMPLETE -----------------------------------
 
+/// Async Notifier that allows a BackupRequest to be built from UI state and
+/// backs up the current project's database.
+class BackupActionsNotifier extends AsyncNotifier<void> {
+  @override
+  Future<void> build() async {}
 
+  Future<void> backupCurrentProject({
+    required bool includeTextExport,
+    String? baseTable,
+    String? exportDelimiter,
+  }) async {
+    state = const AsyncLoading();
+
+    state = await AsyncValue.guard(() async {
+      final project = ref.read(activeProjectProvider);
+      final sourceDbPath = ref.read(activeDatabasePathProvider);
+
+      if (project == null) {
+        throw Exception('No active project selected.');
+      }
+
+      if (sourceDbPath == null) {
+        throw Exception('No active project database path is available.');
+      }
+
+      final projectId = base64UrlEncode(project.id);
+
+      final request = BackupRequest(
+        projectId: projectId,
+        projectName: project.title,
+        sourceDbPath: sourceDbPath,
+        includeTextExport: includeTextExport,
+        createdAt: DateTime.now(),
+        baseTable: baseTable,
+        exportDelimiter: exportDelimiter,
+      );
+
+      await ref.read(writeBackupProvider).execute(request: request);
+    });
+  }
+}
+
+//exposing the class
+final backupActionsProvider =
+    AsyncNotifierProvider<BackupActionsNotifier, void>(
+  BackupActionsNotifier.new,
+);

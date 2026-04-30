@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/legacy.dart';
 import 'package:ui_prototype/application/device_storage/device_id_use_case.dart';
 import 'package:ui_prototype/application/project/use_cases/create_project.dart';
 import 'package:ui_prototype/infrastructure/project/sqlite/sql_security_validator.dart';
@@ -63,6 +64,16 @@ final projectListProvider =
     AsyncNotifierProvider<ProjectsListNotifier, List<ProjectModel>>(() {
       return ProjectsListNotifier();
     });
+
+
+/// Holds the currently selected app-level project.
+///
+/// This is different from [activeDatabaseConnectionProvider].
+///
+/// - [activeProjectProvider] stores metadata such as project ID, title, and dbPath.
+/// - [activeDatabaseConnectionProvider] stores the open SQLite connection.
+/// - [activeDatabasePathProvider] stores the path to the active project DB.
+final activeProjectProvider = StateProvider<ProjectModel?>((ref) => null);
 
 // Notifiers control state as well as provide data
 class ProjectsListNotifier extends AsyncNotifier<List<ProjectModel>> {
@@ -136,11 +147,12 @@ class ProjectsListNotifier extends AsyncNotifier<List<ProjectModel>> {
   }
 
   // Read
-  Future<void> selectProject({required String dbPath}) async {
-    // await ref.read(currentFlexProjectProvider.notifier).loadProject(dbPath);
+  Future<void> selectProject({required ProjectModel project}) async {
     ref
         .read(activeDatabaseConnectionProvider.notifier)
-        .setActiveProjectDatabase(dbPath);
+        .setActiveProjectDatabase(project.dbPath);
+
+    ref.read(activeProjectProvider.notifier).state = project;
   }
 
   // Update

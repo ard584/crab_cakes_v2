@@ -268,7 +268,11 @@ class _DataEntryState extends ConsumerState<DataEntryScreen> {
           // 2) Immediately run backup to selected drives
           final dbPath = ref.read(activeDatabasePathProvider);
           if (dbPath != null) {
-            await ref.read(writeBackupProvider).execute(sourceDbPath: dbPath);
+            await ref.read(backupActionsProvider.notifier).backupCurrentProject(
+              includeTextExport: true,
+              baseTable: activeTableName,
+              exportDelimiter: '\t',
+            );
           }
 
           scrollController.animateTo(

@@ -40,7 +40,7 @@ class _ProjectSelectionState extends ConsumerState<ProjectSelection> {
                   onPressed: () async {
                     await ref
                         .read(projectListProvider.notifier)
-                        .selectProject(dbPath: project.dbPath);
+                        .selectProject(project: project);
 
                     // If mounted
                     if (context.mounted) {
