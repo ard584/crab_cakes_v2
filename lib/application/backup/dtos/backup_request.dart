@@ -7,6 +7,7 @@ class BackupRequest {
   final List<BackupTarget> targets;
   final bool includeTextExport;
   final DateTime createdAt;
+  final String baseTable;
 
   const BackupRequest({
     required this.projectId,
@@ -15,5 +16,6 @@ class BackupRequest {
     required this.targets,
     required this.includeTextExport,
     required this.createdAt,
+    required this.baseTable,
   });
 }
