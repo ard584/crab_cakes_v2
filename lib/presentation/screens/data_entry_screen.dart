@@ -266,14 +266,16 @@ class _DataEntryState extends ConsumerState<DataEntryScreen> {
           await ref.read(formSaveProvider.notifier).saveTable(table);
 
           // 2) Immediately run backup to selected drives
-          final dbPath = ref.read(activeDatabasePathProvider);
-          if (dbPath != null) {
-            await ref.read(backupActionsProvider.notifier).backupCurrentProject(
-              includeTextExport: true,
-              baseTable: activeTableName,
-              exportDelimiter: '\t',
-            );
-          }
+          final settings = await ref.read(projectSettingsProvider.future);
+
+          final exportBaseTable = settings.export.baseTable;
+          final exportDelimiter = settings.export.delimiter ?? '\t';
+
+          await ref.read(backupActionsProvider.notifier).backupCurrentProject(
+            includeTextExport: exportBaseTable != null,
+            baseTable: exportBaseTable,
+            exportDelimiter: exportDelimiter,
+          );
 
           scrollController.animateTo(
               0,
