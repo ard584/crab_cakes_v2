@@ -20,7 +20,7 @@ class ProjectSettings {
     'scanner': scanner.toJson(),
     'fieldConfig': fieldConfig.toJson(),
     'columnOrder': columnOrder,
-    'exportSettings':export.toJson(),
+    'export':export.toJson(),
   };
 
   factory ProjectSettings.fromJson(Map<String, dynamic> json) {

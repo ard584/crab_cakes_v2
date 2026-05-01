@@ -39,20 +39,34 @@ class _ExportScreenState extends ConsumerState<ExportScreen> {
         .key;
   }
 
-  Future<void> _persistExportSettings() async {
+  Future<void> _persistExportSettings({
+    String? baseTable,
+    String? delimiter,
+  }) async {
     final updateExportSettings = ref.read(updateExportSettingsUsecaseProvider);
 
     if (updateExportSettings == null) return;
 
-    final delimiter = delimiterOptions[selectedDelimiterLabel]!;
+    // Read current persisted settings first so updating only the delimiter
+    // does not accidentally overwrite the saved base table with null.
+    final currentSettings = await ref.read(projectSettingsProvider.future);
+
+    final resolvedBaseTable = baseTable ?? currentSettings.export.baseTable;
+    final resolvedDelimiter =
+        delimiter ?? currentSettings.export.delimiter ?? defaultDelimiter;
 
     await updateExportSettings.execute(
-      baseTable: selectedTable,
-      delimiter: delimiter,
+      baseTable: resolvedBaseTable,
+      delimiter: resolvedDelimiter,
     );
 
     //refresh cached settings so backup/export consumers see the latest values
     ref.invalidate(projectSettingsProvider);
+
+    // Optional debugging while verifying persistence:
+    // final refreshed = await ref.read(projectSettingsProvider.future);
+    // debugPrint('Persisted export base table: ${refreshed.export.baseTable}');
+    // debugPrint('Persisted export delimiter: ${refreshed.export.delimiter}');
   }
 
   @override
@@ -75,7 +89,8 @@ class _ExportScreenState extends ConsumerState<ExportScreen> {
         setState(() {
           selectedTable = settings.export.baseTable;
           selectedDelimiterLabel = _labelForDelimiter(
-            settings.export.delimiter ?? defaultDelimiter);
+            settings.export.delimiter ?? defaultDelimiter,
+          );
           _loadedSettingsIntoUi = true;
         });
       });
@@ -134,27 +149,16 @@ class _ExportScreenState extends ConsumerState<ExportScreen> {
               // ---------- BASE TABLE DROPDOWN ----------
               baseTablesAsync.when(
                 data: (tables) {
-                  //auto select the first table if none selected
-                  if (tables.isNotEmpty &&
-                      selectedTable == null &&
-                      _loadedSettingsIntoUi) {
-                    WidgetsBinding.instance.addPostFrameCallback((_) async {
-                      if (mounted) {
-                        setState(() {
-                          selectedTable = tables.first;
-                        });
-
-                        await _persistExportSettings();
-                      }
-                    });
-                  }
+                  final safeSelectedTable =
+                      tables.contains(selectedTable) ? selectedTable : null;
 
                   return DropdownButtonFormField<String>(
+                    key: ValueKey('base-table-$safeSelectedTable'),
                     decoration: const InputDecoration(
                       labelText: "Base Table",
                       border: OutlineInputBorder(),
                     ),
-                    value: tables.contains(selectedTable) ? selectedTable : null,
+                    initialValue: safeSelectedTable,
                     items: tables.map((table) {
                       return DropdownMenuItem<String>(
                         value: table,
@@ -162,11 +166,13 @@ class _ExportScreenState extends ConsumerState<ExportScreen> {
                       );
                     }).toList(),
                     onChanged: (value) async {
+                      if (value == null) return;
+
                       setState(() {
                         selectedTable = value;
                       });
 
-                      await _persistExportSettings();
+                      await _persistExportSettings(baseTable: value);
                     },
                   );
                 },
@@ -180,11 +186,12 @@ class _ExportScreenState extends ConsumerState<ExportScreen> {
 
               // ---------- DELIMITER DROPDOWN ----------
               DropdownButtonFormField<String>(
+                key: ValueKey('delimiter-$selectedDelimiterLabel'),
                 decoration: const InputDecoration(
                   labelText: "Delimiter",
                   border: OutlineInputBorder(),
                 ),
-                value: selectedDelimiterLabel,
+                initialValue: selectedDelimiterLabel,
                 items: delimiterOptions.keys.map((label) {
                   return DropdownMenuItem<String>(
                     value: label,
@@ -194,11 +201,13 @@ class _ExportScreenState extends ConsumerState<ExportScreen> {
                 onChanged: (value) async {
                   if (value == null) return;
 
+                  final newDelimiter = delimiterOptions[value]!;
+
                   setState(() {
                     selectedDelimiterLabel = value;
                   });
 
-                  await _persistExportSettings();
+                  await _persistExportSettings(delimiter: newDelimiter);
                 },
               ),
             ],

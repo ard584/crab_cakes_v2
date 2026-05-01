@@ -1,11 +1,10 @@
 import 'dart:convert';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:ui_prototype/infrastructure/backup/crab_cakes_backup_planner.dart';
+import 'package:ui_prototype/application/backup/interfaces/backup_exporter.dart';
 
 
 //importing supporting provider files
-import 'package:ui_prototype/infrastructure/providers/export_provider.dart';
 import 'package:ui_prototype/infrastructure/providers/active_database_connection_provider.dart';
 import 'package:ui_prototype/infrastructure/providers/app_db_provider.dart';
 
@@ -41,11 +40,17 @@ import 'package:ui_prototype/infrastructure/backup/sqlite_db_backup_writer.dart'
 import 'package:ui_prototype/infrastructure/backup/drift_drive_selection_repo.dart';
 import 'package:ui_prototype/infrastructure/backup/win32_drive_discovery.dart';
 import 'package:ui_prototype/infrastructure/backup/json_manifest_writer.dart';
+import 'package:ui_prototype/infrastructure/backup/crab_cakes_backup_planner.dart';
+import 'package:ui_prototype/infrastructure/backup/sqlite_backup_exporter.dart';
 
 //------------------------------------------------------------------------------------
 
 
 //Wiring INFRASTRUCTURE providers
+
+final backupExporterProvider = Provider<BackupExporter>((ref) {
+  return SqliteBackupExporter();
+});
 
 final backupSettingsDbProvider = Provider<BackupSettingsDb>((ref) {
   final db = BackupSettingsDb();
@@ -120,7 +125,7 @@ final writeBackupProvider = Provider<WriteBackup>((ref) {
   final discoverer = ref.read(driveDiscoveryProvider);
   final planner = ref.read(backupPlannerProvider);
   final manifestWriter = ref.read(backupManifestWriterProvider);
-  final dataExporter = ref.read(dataExporterProvider);
+  final backupExporter = ref.read(backupExporterProvider);
 
   return WriteBackup(
     planner: planner,
@@ -128,7 +133,7 @@ final writeBackupProvider = Provider<WriteBackup>((ref) {
     manifestWriter: manifestWriter,
     repo: repo,
     discovery: discoverer,
-    dataExporter: dataExporter,
+    backupExporter: backupExporter,
   );
 });
 

@@ -239,8 +239,6 @@ class _DataEntryState extends ConsumerState<DataEntryScreen> {
         focusNode: FocusNode(skipTraversal: true),
         onPressed: () async {
 
-          print("JUST JUMPED TO TOP!");
-
           //validating the form before submission. Invalid should already be 
           //marked in read 
           final isValid = _formKey.currentState?.validate() ?? false;
@@ -263,18 +261,19 @@ class _DataEntryState extends ConsumerState<DataEntryScreen> {
 
           // 1) Save record (this is where INSERT happens, inside saveTable)
           jumpToTop();
-          print("JUST JUMPED TO TOP!");
           //mark as user initiated save
           _saveTriggeredByUser = true;
           await ref.read(formSaveProvider.notifier).saveTable(table);
 
           // 2) Immediately run backup to selected drives
+          // Force settings to reload so backup uses the latest saved export settings.
+          ref.invalidate(projectSettingsProvider);
+          
           final settings = await ref.read(projectSettingsProvider.future);
 
           final exportBaseTable = settings.export.baseTable;
           final exportDelimiter = settings.export.delimiter ?? '\t';
 
-          print("ABOUT TO RUN BACKUP!");
           await ref.read(backupActionsProvider.notifier).backupCurrentProject(
             includeTextExport: exportBaseTable != null,
             baseTable: exportBaseTable,
