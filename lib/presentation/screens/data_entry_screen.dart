@@ -24,7 +24,6 @@ import 'package:ui_prototype/presentation/shortcuts/data_entry_shortcuts.dart';
 import 'package:ui_prototype/presentation/components/status_panel.dart';
 
 import 'package:ui_prototype/infrastructure/providers/external_backup_provider.dart';
-import 'package:ui_prototype/infrastructure/providers/active_database_connection_provider.dart';
 import 'package:ui_prototype/infrastructure/providers/settings_provider.dart';
 import 'package:ui_prototype/infrastructure/providers/column_filter_provider.dart';
 
