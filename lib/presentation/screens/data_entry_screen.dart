@@ -60,6 +60,61 @@ class _DataEntryState extends ConsumerState<DataEntryScreen> {
     scrollController.animateTo(0, duration: Duration(milliseconds: 150), curve: Curves.fastOutSlowIn);
   }
 
+  /// Method to centralize the save flow and allow it to be called from anywhere
+  /// regardless of if its via the button or a short cut. 
+  Future<void> _saveRecordAndRunBackups() async {
+    //validating the form before submission. Invalid should already be 
+    //marked in read 
+    final isValid = _formKey.currentState?.validate() ?? false;
+    if (!isValid) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please correct the highlighted fields before saving.'),
+        ),
+      );
+      return;
+    }
+
+    final projectMap = ref.read(projectViewModelProvider).value;
+
+    if (projectMap == null) return;
+
+    final activeTableName = ref.read(activeTableProvider);
+
+    if (activeTableName == null) return;
+
+    final table = projectMap.tables[activeTableName];
+    if (table == null) return;
+
+    // 1) Save record (this is where INSERT happens, inside saveTable)
+    jumpToTop();
+
+    //mark as user initiated save
+    _saveTriggeredByUser = true;
+    await ref.read(formSaveProvider.notifier).saveTable(table);
+
+    // 2) Immediately run backup to selected drives
+    // Force settings to reload so backup uses the latest saved export settings.
+    ref.invalidate(projectSettingsProvider);
+
+    final settings = await ref.read(projectSettingsProvider.future);
+
+    final exportBaseTable = settings.export.baseTable;
+    final exportDelimiter = settings.export.delimiter ?? '\t';
+
+    await ref.read(backupActionsProvider.notifier).backupCurrentProject(
+      includeTextExport: exportBaseTable != null,
+      baseTable: exportBaseTable,
+      exportDelimiter: exportDelimiter,
+    );
+
+    scrollController.animateTo(
+      0,
+      duration: const Duration(milliseconds: 150),
+      curve: Curves.fastOutSlowIn,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final projectAsync = ref.watch(projectViewModelProvider);
@@ -161,28 +216,7 @@ class _DataEntryState extends ConsumerState<DataEntryScreen> {
     });
 
   return DataEntryShortcuts(
-    onSave: () async {
-      final projectMap = ref.read(projectViewModelProvider).value;
-      if (projectMap == null) return;
-      final table = projectMap.tables[activeTableName];
-      if (table == null) return;
-
-      //validate: ensure no required or incorrect fields are present
-      final isValid = _formKey.currentState?.validate() ?? false;
-      if (!isValid) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Please correct the highlighted fields before saving.'),
-          ),
-        );
-        return;
-      }
-
-      //mark the save as user initiated
-      _saveTriggeredByUser = true;
-      await ref.read(formSaveProvider.notifier).saveTable(table);
-      jumpToTop();
-    },
+    onSave: _saveRecordAndRunBackups,
     child: Scaffold(
       appBar: AppBar(
         title: projectAsync.when(
@@ -237,60 +271,12 @@ class _DataEntryState extends ConsumerState<DataEntryScreen> {
       ),
       floatingActionButton: FloatingActionButton.extended(
         focusNode: FocusNode(skipTraversal: true),
-        onPressed: () async {
-
-          //validating the form before submission. Invalid should already be 
-          //marked in read 
-          final isValid = _formKey.currentState?.validate() ?? false;
-          if (!isValid) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Please correct the highlighted fields before saving.'),
-              ),
-            );
-            return;
-          }
-
-          final projectMap = ref.read(projectViewModelProvider).value;
-
-          if (projectMap == null) return;
-          if (activeTableName == null) return;
-
-          final table = projectMap.tables[activeTableName];
-          if (table == null) return;
-
-          // 1) Save record (this is where INSERT happens, inside saveTable)
-          jumpToTop();
-          //mark as user initiated save
-          _saveTriggeredByUser = true;
-          await ref.read(formSaveProvider.notifier).saveTable(table);
-
-          // 2) Immediately run backup to selected drives
-          // Force settings to reload so backup uses the latest saved export settings.
-          ref.invalidate(projectSettingsProvider);
-          
-          final settings = await ref.read(projectSettingsProvider.future);
-
-          final exportBaseTable = settings.export.baseTable;
-          final exportDelimiter = settings.export.delimiter ?? '\t';
-
-          await ref.read(backupActionsProvider.notifier).backupCurrentProject(
-            includeTextExport: exportBaseTable != null,
-            baseTable: exportBaseTable,
-            exportDelimiter: exportDelimiter,
-          );
-
-          scrollController.animateTo(
-              0,
-              duration: Duration(milliseconds: 150),
-              curve: Curves.fastOutSlowIn,
-            );
-        },
-        label: Padding(
-          padding: const EdgeInsets.all(20.0),
+        onPressed: _saveRecordAndRunBackups,
+        label: const Padding(
+          padding: EdgeInsets.all(20.0),
           child: Text("Save Record (f12)"),
-          ),
         ),
+      ),
       ),
     );
   }
