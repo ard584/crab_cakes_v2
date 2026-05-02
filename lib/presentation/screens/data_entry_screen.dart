@@ -444,38 +444,29 @@ class DrawerSubmenu extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Column(
       children: [
         ListTile(
-          leading: const Icon(Icons.settings),
-          title: const Text("Settings"),
-          onTap: () {
-            Navigator.pop(context);
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const SettingsScreen()),
-            );
-          },
-        ),
-        ListTile(
-          leading: const Icon(Icons.file_open),
-          title: const Text("Switch Project"),
+          leading: Icon(
+            Icons.home,
+            color: colorScheme.primary,
+          ),
+          title: Text(
+            "Switch Project",
+            style: TextStyle(
+              fontWeight: FontWeight.w600,
+              color: colorScheme.primary,
+            ),
+          ),
+          subtitle: const Text("Return to project selection"),
+          tileColor: colorScheme.primaryContainer.withOpacity(0.35),
           onTap: () {
             Navigator.pop(context);
             Navigator.push(
               context,
               MaterialPageRoute(builder: (context) => const ProjectSelection()),
-            );
-          },
-        ),
-        ListTile(
-          leading: const Icon(Icons.file_download),
-          title: const Text("Export Data"),
-          onTap: () {
-            Navigator.pop(context);
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const ExportScreen()),
             );
           },
         ),
@@ -493,6 +484,17 @@ class DrawerSubmenu extends StatelessWidget {
           },
         ),
         ListTile(
+          leading: const Icon(Icons.file_download),
+          title: const Text("Export Data"),
+          onTap: () {
+            Navigator.pop(context);
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const ExportScreen()),
+            );
+          },
+        ),
+        ListTile(
           leading: const Icon(Icons.build),
           title: const Text("Field Config"),
           onTap: () {
@@ -502,6 +504,17 @@ class DrawerSubmenu extends StatelessWidget {
               MaterialPageRoute(
                 builder: (context) => FieldConfigScreen(),
               ),
+            );
+          },
+        ),
+        ListTile(
+          leading: const Icon(Icons.settings),
+          title: const Text("Settings"),
+          onTap: () {
+            Navigator.pop(context);
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const SettingsScreen()),
             );
           },
         ),
