@@ -1,6 +1,5 @@
 import 'package:ui_prototype/application/sync/dtos/sync_compat_result.dart';
 import 'package:ui_prototype/application/sync/interfaces/project_sync_repo.dart';
-import 'package:ui_prototype/presentation/services/projects/project_service.dart';
 
 class CheckSyncCompat {
   final ProjectSyncRepo repo;

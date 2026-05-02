@@ -20,6 +20,14 @@ class _ScannerTargetSectionState extends ConsumerState<ScannerTargetSection> {
   String? _columnOverride;
   bool _isSaving = false;
 
+  bool _isInternalColumn(String columnName) {
+    return columnName.startsWith('__');
+  }
+
+  List<String> _filterVisibleColumns(List<String> columns) {
+    return columns.where((column) => !_isInternalColumn(column)).toList();
+  }
+
   Future<void> _saveScannerTarget({
     required String? table,
     required String? column,
@@ -81,8 +89,8 @@ class _ScannerTargetSectionState extends ConsumerState<ScannerTargetSection> {
               return Text('Error loading settings: $error');
             },
             data: (settings) {
-              final savedTable = settings?.scanner.targetTable;
-              final savedColumn = settings?.scanner.targetColumn;
+              final savedTable = settings.scanner.targetTable;
+              final savedColumn = settings.scanner.targetColumn;
 
               final effectiveTable = _tableOverride ?? savedTable;
 
@@ -176,10 +184,12 @@ class _ScannerTargetSectionState extends ConsumerState<ScannerTargetSection> {
                       );
                     },
                     data: (columns) {
+                      final visibleColumns = _filterVisibleColumns(columns);
+
                       final effectiveColumn = _columnOverride ?? savedColumn;
 
                       final visibleColumn =
-                          columns.contains(effectiveColumn)
+                          visibleColumns.contains(effectiveColumn)
                               ? effectiveColumn
                               : null;
 
@@ -221,7 +231,7 @@ class _ScannerTargetSectionState extends ConsumerState<ScannerTargetSection> {
                               labelText: 'Target Column',
                               border: OutlineInputBorder(),
                             ),
-                            items: columns
+                            items: visibleColumns
                                 .map(
                                   (column) => DropdownMenuItem<String>(
                                     value: column,
