@@ -189,21 +189,29 @@ class PitConnectionController extends StateNotifier<PitConnectionState> {
 
       // Adjust to your use case API:
       // await connect(deviceId: selectedId);
-      await connect.execute(selectedId);
+      final connectionSuccess = await connect.execute(selectedId);
 
-      final wasConnected = state.isConnected;
+      if(connectionSuccess) {
+        final wasConnected = state.isConnected;
 
-      state = PitConnectionState(
-        isConnecting: false,
-        connectedDeviceId: selectedId,
-        error: null,
-      );
+        state = PitConnectionState(
+          isConnecting: false,
+          connectedDeviceId: selectedId,
+          error: null,
+        );
 
-      //play the sound after reader has been successfully connected
-      //a guard that makes sure it does not replay on redundant reconnects
-      //NOTE: I dont have the pittag scanner to test if it works
-      if(!wasConnected){
-        _ref.read(soundServiceProvider).play(AppSound.readerDiscovered);
+        //play the sound after reader has been successfully connected
+        //a guard that makes sure it does not replay on redundant reconnects
+        //NOTE: I dont have the pittag scanner to test if it works
+        if(!wasConnected){
+          _ref.read(soundServiceProvider).play(AppSound.readerDiscovered);
+        }
+      } else {
+        state = PitConnectionState(
+          isConnecting: false,
+          connectedDeviceId: null,
+          error: Exception("Could not connect to Scanner"),
+        );
       }
 
 
