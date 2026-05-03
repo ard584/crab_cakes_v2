@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'dart:io' as io;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:ui_prototype/infrastructure/project/project_json_integrity_service.dart';
 import 'package:ui_prototype/infrastructure/providers/app_db_provider.dart';
 import 'package:ui_prototype/presentation/utils/logger.dart';
 import 'package:ui_prototype/presentation/services/projects/project_service.dart';
@@ -177,6 +178,15 @@ class _ProjectCreationScreenState extends ConsumerState<ProjectCreationScreen> {
     return true;
   }
 
+  String _getProjectCreationErrorMessage(Object error) {
+    if (error is ProjectJsonIntegrityException) {
+      return 'Project Settings file failed validation check. '
+          'The file may have been modified, corrupted, or exported by an incompatible version of the app.';
+    }
+
+    return 'Failed to create project: $error';
+  }
+
   @override
   void dispose() {
     _projectNameController.dispose();
@@ -344,23 +354,21 @@ class _ProjectCreationScreenState extends ConsumerState<ProjectCreationScreen> {
                                 Navigator.pop(context);
                               }
                             } catch (error) {
-                              log.d("PROJECT CREATION ERROR: $error");
+                                log.d("PROJECT CREATION ERROR: $error");
 
-                              if (context.mounted) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text(
-                                      'Failed to create project: $error',
+                                if (context.mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(_getProjectCreationErrorMessage(error)),
                                     ),
-                                  ),
-                                );
-                              }
-                            } finally {
-                              if (context.mounted) {
-                                setState(() {
-                                  isSubmitting = false;
-                                });
-                              }
+                                  );
+                                }
+                              } finally {
+                                if (context.mounted) {
+                                  setState(() {
+                                    isSubmitting = false;
+                                  });
+                                }
                             }
                           },
 

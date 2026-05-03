@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ui_prototype/application/settings/usecases/update_export_settings.dart';
 
@@ -19,6 +21,8 @@ import 'package:ui_prototype/application/export/interfaces/save_location_picker.
 import 'package:ui_prototype/infrastructure/settings/project_settings_sqlite_repo.dart';
 import 'package:ui_prototype/infrastructure/settings/settings_exporter.dart';
 import 'package:ui_prototype/infrastructure/export/native_save_location_picker.dart';
+import 'package:ui_prototype/infrastructure/project/project_json_integrity_service.dart';
+
 
 //importing domain-level types
 import 'package:ui_prototype/domain/entities/settings/project_settings.dart';
@@ -27,6 +31,12 @@ import 'package:ui_prototype/domain/entities/settings/project_settings.dart';
 import 'package:ui_prototype/application/catch_history/usecases/update_column_order_usecase.dart';
 
 //wiring infrastructure providers
+
+final jsonIntegrityServiceProvider = Provider<ProjectJsonIntegrityService>((ref) {
+  return ProjectJsonIntegrityService(
+    hmacKey: utf8.encode('this-is-THE-super-duper-secret-safe-key-for-import-integrity-validation'),
+  );
+});
 
 final saveLocationPickerProvider = Provider<SaveLocationPicker>((ref) {
   return NativeSaveLocationPicker();
@@ -42,10 +52,11 @@ final projectSettingsRepoProvider = Provider<ProjectSettingsRepo?>((ref) {
 
 final projcetSettingsExporterProvider = Provider<ProjectSettingsExporter?>((ref) {
   final projectDb = ref.watch(activeDatabaseConnectionProvider);
+  final integrityService = ref.watch(jsonIntegrityServiceProvider);
 
   if(projectDb == null) return null;
 
-  return SettingsExporter(projectDb);
+  return SettingsExporter(projectDb, integrityService);
 });
 
 

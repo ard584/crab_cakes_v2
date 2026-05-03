@@ -256,7 +256,8 @@ class SqliteProjectDatabaseBuilder implements ProjectDatabaseBuilder {
     'schemaHash': schemaHash,
     'syncVersion': 1,
     'schemaSql': statements,
-    'settings': {}
+    'settings': {},
+    'integrity': {},
     });
 
     //creating the Settings table (stores setting json), and inserting first row
