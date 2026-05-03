@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'dart:io' show Platform;
 
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 
@@ -50,12 +51,15 @@ final scannerDiscoveryProvider = Provider<ScannerDeviceDiscovery>((ref) {
 });
 
 final scannerConnectorProvider = Provider<ScannerConnector>((ref) {
-  // Construct the concrete connector implementation
-  if(Platform.isWindows) {
-    return LibserialportAdapter();
-  } else {
-    return DummyScannerConnector();
-  }
+  final connector = Platform.isWindows
+      ? LibserialportAdapter()
+      : DummyScannerConnector();
+
+  ref.onDispose(() {
+    connector.disconnect();
+  });
+
+  return connector;
 });
 
 
@@ -170,6 +174,10 @@ class PitConnectionController extends StateNotifier<PitConnectionState> {
 
   final Ref _ref;
 
+  void clearError() {
+    state = state.copyWith(error: null);
+  }
+
   Future<void> connectSelected() async {
     final selectedId = _ref.read(selectedDeviceIdProvider); 
     if (selectedId == null) {
@@ -183,6 +191,9 @@ class PitConnectionController extends StateNotifier<PitConnectionState> {
     }
 
     state = state.copyWith(isConnecting: true, error: null);
+
+    // Give the UI a chance to show the loading spinner.
+    await Future<void>.delayed(const Duration(milliseconds: 50));
 
     try {
       final connect = _ref.read(connectScannerUsecaseProvider);
@@ -266,5 +277,3 @@ final selectedDeviceProvider = Provider<DiscoveredPort?>((ref) {
     orElse: () => null,
   );
 });
-
-
