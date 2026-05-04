@@ -177,9 +177,20 @@ class _ExportScreenState extends ConsumerState<ExportScreen> {
         selectedSyncDriveBPath!,
       );
 
+      final exportPathA = _exportPathForProjectDatabase(dbPathA);
+      final exportPathB = _exportPathForProjectDatabase(dbPathB);
+
+      // Read the saved export settings so synced drive exports are refreshed
+      // using the same base table and delimiter as normal backups/exports.
+      final settings = await ref.read(projectSettingsProvider.future);
+
       await ref.read(projectSyncNotifierProvider.notifier).applySync(
             activeDbPath: dbPathA,
             candidateDbPath: dbPathB,
+            activeExportPath: exportPathA,
+            candidateExportPath: exportPathB,
+            baseTable: settings.export.baseTable,
+            delim: settings.export.delimiter ?? defaultDelimiter,
           );
 
       if (!context.mounted) return;
@@ -239,6 +250,18 @@ class _ExportScreenState extends ConsumerState<ExportScreen> {
     });
 
     return sqliteFiles.first.path;
+  }
+
+  String _exportPathForProjectDatabase(String dbPath) {
+    final dbFile = File(dbPath);
+    final dataDir = dbFile.parent;
+    final projectDir = dataDir.parent;
+
+    return projectDir.path +
+        Platform.pathSeparator +
+        'export' +
+        Platform.pathSeparator +
+        'data.txt';
   }
 
   @override

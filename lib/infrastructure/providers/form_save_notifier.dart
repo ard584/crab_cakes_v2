@@ -38,8 +38,9 @@ class FormSaveNotifier extends AsyncNotifier<void> {
         
 
         final isSticky = config?.isSticky ?? false;
+        final isForeignKey = attribute.fields.fkInfo != null;
 
-        if (!isSticky) {
+        if (!isSticky && !isForeignKey) {
           attribute.controller.clear();
         }
       }

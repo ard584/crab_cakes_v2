@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:crab_cakes/application/sync/interfaces/project_sync_repo.dart';
 
+
 import 'package:crab_cakes/application/sync/usecases/apply_sync_plan.dart';
 import 'package:crab_cakes/application/sync/usecases/build_sync_plan.dart';
 import 'package:crab_cakes/application/sync/usecases/check_sync_compat.dart';
@@ -11,6 +12,7 @@ import 'package:crab_cakes/application/sync/dtos/sync_plan.dart';
 
 import 'package:crab_cakes/infrastructure/sync/sqlite_project_sync_repo.dart';
 
+import 'package:crab_cakes/infrastructure/providers/external_backup_provider.dart';
 
 final projectSyncRepositoryProvider = Provider<ProjectSyncRepo>((ref) {
   return SqliteProjectSyncRepository();
@@ -33,7 +35,9 @@ final buildSyncPlanProvider = Provider<BuildSyncPlan>((ref) {
 
 final applySyncPlanProvider = Provider<ApplySyncPlan>((ref) {
   final repo = ref.watch(projectSyncRepositoryProvider);
-  return ApplySyncPlan(repo);
+  final exporter = ref.watch(backupExporterProvider);
+
+  return ApplySyncPlan(repo: repo, backupExporter: exporter);
 });
 
 
@@ -128,6 +132,10 @@ class ProjectSyncNotifier extends Notifier<ProjectSyncState> {
   Future<void> applySync({
     required String activeDbPath,
     required String candidateDbPath,
+    String? activeExportPath,
+    String? candidateExportPath,
+    String? baseTable,
+    String delim = '\t',
   }) async {
     final plan = state.plan;
 
@@ -158,6 +166,10 @@ class ProjectSyncNotifier extends Notifier<ProjectSyncState> {
         activeDbPath: activeDbPath,
         candidateDbPath: candidateDbPath,
         plan: plan,
+        activeExportPath: activeExportPath,
+        candidateExportPath: candidateExportPath,
+        baseTable: baseTable,
+        delim: delim,
       );
 
       state = state.copyWith(

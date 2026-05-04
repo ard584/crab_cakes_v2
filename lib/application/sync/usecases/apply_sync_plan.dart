@@ -1,15 +1,26 @@
 import 'package:crab_cakes/application/sync/dtos/sync_plan.dart';
 import 'package:crab_cakes/application/sync/interfaces/project_sync_repo.dart';
+import 'package:crab_cakes/application/backup/interfaces/backup_exporter.dart';
 
 class ApplySyncPlan {
   final ProjectSyncRepo repo;
+  final BackupExporter backupExporter;
 
-  ApplySyncPlan(this.repo);
+  ApplySyncPlan({
+    required this.repo,
+    required this.backupExporter,
+  });
 
   Future<void> call({
     required String activeDbPath,
     required String candidateDbPath,
     required SyncPlan plan,
+
+    // Optional export refresh info
+    String? activeExportPath,
+    String? candidateExportPath,
+    String? baseTable,
+    String delim = '\t',
   }) async {
     if (plan.totalConflicts > 0) {
       throw Exception(
@@ -49,6 +60,25 @@ class ApplySyncPlan {
           row: row,
         );
       }
+    }
+
+    // Refresh text exports after both databases have been updated.
+    if (baseTable != null && activeExportPath != null) {
+      await backupExporter.export(
+        dbPath: activeDbPath,
+        destPath: activeExportPath,
+        baseTable: baseTable,
+        delim: delim,
+      );
+    }
+
+    if (baseTable != null && candidateExportPath != null) {
+      await backupExporter.export(
+        dbPath: candidateDbPath,
+        destPath: candidateExportPath,
+        baseTable: baseTable,
+        delim: delim,
+      );
     }
   }
 }
