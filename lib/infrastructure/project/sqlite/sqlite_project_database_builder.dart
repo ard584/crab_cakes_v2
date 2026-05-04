@@ -231,10 +231,27 @@ class SqliteProjectDatabaseBuilder implements ProjectDatabaseBuilder {
 
       db.execute('COMMIT');
     } catch (e) {
-      db.execute('ROLLBACK;');
+      try {
+        db.execute('ROLLBACK;');
+      } catch (_) {
+        // Ignore rollback failures so the original failure can still be rethrown.
+      }
 
-      // Clean up temp file
-      if (File(dbTempPath).existsSync()) File(dbTempPath).deleteSync();
+      try {
+        db.dispose();
+      } catch (_) {
+        // Ignore dispose failures during cleanup.
+      }
+
+      // Clean up temp file after closing the database connection.
+      try {
+        if (File(dbTempPath).existsSync()) {
+          File(dbTempPath).deleteSync();
+        }
+      } catch (_) {
+        // Ignore cleanup failure so the original error is preserved.
+      }
+
       rethrow;
     } finally {
       //closing the database connection to prevent windows complaints
