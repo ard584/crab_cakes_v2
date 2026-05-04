@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:crab_cakes/presentation/components/usb_backups_section.dart';
 import 'package:crab_cakes/presentation/components/scanner_target_section.dart';
-import 'package:crab_cakes/presentation/utils/logger.dart';
 import 'package:crab_cakes/domain/enums/app_sound.dart';
 import 'package:crab_cakes/presentation/components/sound_setting_row.dart';
 import 'package:crab_cakes/presentation/components/master_sound_toggle_row.dart';
