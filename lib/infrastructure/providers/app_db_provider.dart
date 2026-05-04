@@ -3,10 +3,12 @@ import 'dart:typed_data';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 import 'package:ui_prototype/application/device_storage/device_id_use_case.dart';
+import 'package:ui_prototype/application/project/interfaces/schema_structure_validator.dart';
 import 'package:ui_prototype/application/project/use_cases/create_project.dart';
 import 'package:ui_prototype/infrastructure/project/sqlite/sql_security_validator.dart';
 import 'package:ui_prototype/infrastructure/project/sqlite/sql_statement_parser.dart';
 import 'package:ui_prototype/infrastructure/project/sqlite/sqlite_project_database_builder.dart';
+import 'package:ui_prototype/infrastructure/project/sqlite/sqlite_schema_structure_validator.dart';
 import 'package:ui_prototype/infrastructure/providers/active_database_connection_provider.dart';
 import 'package:ui_prototype/domain/models/project.dart';
 import 'package:ui_prototype/infrastructure/providers/device_id_use_case_provider.dart';
@@ -53,10 +55,15 @@ final _projectsRepositoryProvider = Provider<ProjectsRepository?>((ref) {
 final _createProjectUseCaseProvider = Provider<CreateProjectUseCase>((ref) {
 
   final parser = SqlSchemaParser();
-  final validator = SqlSecurityValidator();
+  final statementValidator = SqlSecurityValidator();
   final dbBuilder = SqliteProjectDatabaseBuilder();
+  final structureValidator = SqliteSchemaStructureValidator();
 
-  return CreateProjectUseCase(validator: validator, dbBuilder: dbBuilder, parser: parser);
+  return CreateProjectUseCase(
+    statementValidator: statementValidator, 
+    structureValidator: structureValidator,
+    dbBuilder: dbBuilder, 
+    parser: parser);
   
 },);
 
