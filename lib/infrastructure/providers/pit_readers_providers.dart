@@ -152,10 +152,13 @@ class PitConnectionState {
     bool? isConnecting,
     String? connectedDeviceId,
     Object? error,
+    bool clearConnectedDeviceId = false,
   }) {
     return PitConnectionState(
       isConnecting: isConnecting ?? this.isConnecting,
-      connectedDeviceId: connectedDeviceId,
+      connectedDeviceId: clearConnectedDeviceId
+          ? null
+          : (connectedDeviceId ?? this.connectedDeviceId),
       error: error,
     );
   }
@@ -276,4 +279,21 @@ final selectedDeviceProvider = Provider<DiscoveredPort?>((ref) {
     },
     orElse: () => null,
   );
+});
+
+/// Live scanner connection status reported by the active scanner connector.
+///
+/// This reflects app-initiated connect/disconnect events and any disconnects
+/// detected by the connector's read stream/error handling. It does not perform
+/// active heartbeat polling.
+final scannerConnectionStatusProvider = StreamProvider<bool>((ref) async* {
+  final connector = ref.watch(scannerConnectorProvider);
+
+  // Emit the current connection status immediately.
+  yield connector.isConnected;
+
+  // Then emit future status changes from the connector.
+  await for (final isConnected in connector.connectionStatusStream) {
+    yield isConnected;
+  }
 });

@@ -281,6 +281,8 @@ class _DataEntryState extends ConsumerState<DataEntryScreen> {
                               children: [
                                 const StatusPanel(),
                                 const SizedBox(height: 12),
+                                const ScannerStatusPanel(),
+                                const SizedBox(height: 12),
                                 const BackupStatusPanel(),
                                 const SizedBox(height: 12),
                                 // Table switching
@@ -333,6 +335,90 @@ class _DataEntryState extends ConsumerState<DataEntryScreen> {
     );
   }
 }
+
+class ScannerStatusPanel extends ConsumerWidget {
+  const ScannerStatusPanel({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final pitConnectionState = ref.watch(pitConnectionControllerProvider);
+    final liveStatusAsync = ref.watch(scannerConnectionStatusProvider);
+
+    return Container(
+      constraints: const BoxConstraints(
+        minWidth: 260,
+        maxWidth: 400,
+      ),
+      padding: const EdgeInsets.all(12.0),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(10.0),
+        border: Border.all(
+          color: Theme.of(context).colorScheme.outlineVariant,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Scanner Status',
+            style: Theme.of(context).textTheme.titleSmall,
+          ),
+          const SizedBox(height: 8),
+
+          if (pitConnectionState.isConnecting)
+            const _StatusLine(
+              isWarning: false,
+              label: 'Bluetooth scanner',
+              value: 'Connecting...',
+              helpTitle: 'Bluetooth scanner',
+              helpText:
+                  'The app is currently trying to connect to the selected PIT tag scanner.',
+            )
+          else if (!pitConnectionState.isConnected)
+            const _StatusLine(
+              isWarning: true,
+              label: 'Bluetooth scanner',
+              value: 'Not connected',
+              helpTitle: 'Bluetooth scanner',
+              helpText:
+                  'The PIT tag scanner is not connected. Records can still be entered manually, but scan data will not automatically populate the configured scanner field.',
+            )
+          else
+            liveStatusAsync.when(
+              data: (isStillConnected) {
+                final connectedDeviceId =
+                    pitConnectionState.connectedDeviceId ?? 'Unknown device';
+
+                return _StatusLine(
+                  isWarning: !isStillConnected,
+                  label: 'Bluetooth scanner',
+                  value: isStillConnected
+                      ? 'Connected: $connectedDeviceId'
+                      : 'Connection may be stale',
+                  helpTitle: 'Bluetooth scanner',
+                  helpText:
+                      'This status reflects the scanner connection reported by the app and scanner adapter. If the scanner is turned off or the Bluetooth serial connection becomes stale, the app may only detect that once the serial reader reports an error or the device is disconnected through the app.',
+                );
+              },
+              loading: () => const Text('Bluetooth scanner: checking...'),
+              error: (error, stack) {
+                return const _StatusLine(
+                  isWarning: true,
+                  label: 'Bluetooth scanner',
+                  value: 'Error checking status',
+                  helpTitle: 'Bluetooth scanner',
+                  helpText:
+                      'The app could not confirm the scanner connection status. Records can still be saved manually, but scanner input may not be available.',
+                );
+              },
+            ),
+        ],
+      ),
+    );
+  }
+}
+
 
 class BackupStatusPanel extends ConsumerWidget {
   const BackupStatusPanel({super.key});

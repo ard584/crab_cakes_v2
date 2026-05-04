@@ -16,6 +16,15 @@ import 'dart:typed_data';
     
     bool connected = false; 
 
+    final StreamController<bool> _statusController =
+      StreamController<bool>.broadcast();
+
+    @override
+    Stream<bool> get connectionStatusStream => _statusController.stream;
+
+    @override
+    bool get isConnected => connected;
+
     //stream handoff point (just a getter)
     @override
     Stream<Uint8List> get byteStream => _controller.stream;                       
@@ -69,6 +78,7 @@ import 'dart:typed_data';
         } 
 
         connected = true;
+        _statusController.add(true);
 
         //setting a reader to get access to the byte stream
         final reader = SerialPortReader(port);
@@ -79,8 +89,12 @@ import 'dart:typed_data';
           (data) {
             _controller.add(data);
           },
-          onError: (error, stackTrace) {
+          onError: (error, stackTrace) async {
             _controller.addError(error, stackTrace);
+            await disconnect();
+          },
+          onDone: () async {
+            await disconnect();
           },
         );
         //return success
@@ -116,6 +130,7 @@ import 'dart:typed_data';
         }
 
         connected = false;
+        _statusController.add(false);
         return true;
 
       } catch (error) {

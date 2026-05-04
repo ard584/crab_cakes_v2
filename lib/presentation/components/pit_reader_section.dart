@@ -25,6 +25,18 @@ class _PitReadersSectionState extends ConsumerState<PitReadersSection> {
       if (!mounted) return;
 
       ref.read(pitConnectionControllerProvider.notifier).clearError();
+
+      // If the app still has a confirmed scanner connection, restore the dropdown
+      // selection to that device when returning to this section.
+      //
+      // This keeps the button state consistent:
+      // - selected connected device => Disconnect
+      // - selected different device => Connect
+      final conn = ref.read(pitConnectionControllerProvider);
+
+      if (conn.connectedDeviceId != null) {
+        ref.read(selectedDeviceIdProvider.notifier).state = conn.connectedDeviceId;
+      }
     });
   }
 
@@ -77,14 +89,32 @@ class _PitReadersSectionState extends ConsumerState<PitReadersSection> {
     final hasConnectionError = conn.error != null;
     final connectionErrorMessage = _formatConnectionError(conn.error);
 
-    // Keep the displayed connected-device text tied to the most recent confirmed
-    // connection, not the currently selected dropdown option.
-    if (conn.connectedDeviceId != null) {
-      _lastConnectedDeviceId = conn.connectedDeviceId;
-    }
+    final connectedDeviceId = conn.connectedDeviceId;
 
-    final displayedConnectedDeviceId =
-      conn.connectedDeviceId ?? _lastConnectedDeviceId;
+    // Use one effective dropdown value for both the dropdown and button logic.
+    //
+    // If selectedId is missing for a moment while this section is restoring,
+    // fall back to the currently connected device.
+    final effectiveSelectedDeviceId = selectedId ?? connectedDeviceId;
+
+    // Tracks whether the dropdown's currently selected device is the scanner
+    // that the app currently confirms as connected.
+    //
+    // This keeps the button state tied to the selected dropdown option:
+    // - selected connected device => Disconnect
+    // - selected different device => Connect
+    final selectedDeviceIsConnected =
+      conn.isConnected &&
+      connectedDeviceId != null &&
+      effectiveSelectedDeviceId == connectedDeviceId;
+
+    // Keep the last confirmed connected device only as historical memory.
+    //
+    // Do not use this to display "Connected to ..." because it can make the UI
+    // claim a connection exists after the real connection state has reset.
+    if (connectedDeviceId != null) {
+      _lastConnectedDeviceId = connectedDeviceId;
+    }
 
     return Container(
       decoration: reusableBoxDecoration,
@@ -103,12 +133,12 @@ class _PitReadersSectionState extends ConsumerState<PitReadersSection> {
                   data: (devices) {
                     if (devices.isEmpty) return const Text('No devices found');
 
-                    final selectedStillExists =
-                      selectedId != null &&
-                      devices.any((device) => device.port == selectedId);
+                    final effectiveSelectionStillExists =
+                      effectiveSelectedDeviceId != null &&
+                      devices.any((device) => device.port == effectiveSelectedDeviceId);
 
-                    final value = selectedStillExists
-                      ? selectedId
+                    final value = effectiveSelectionStillExists
+                      ? effectiveSelectedDeviceId
                       : devices.first.port;
 
                     return DropdownButtonHideUnderline(
@@ -153,7 +183,7 @@ class _PitReadersSectionState extends ConsumerState<PitReadersSection> {
                           final controller =
                               ref.read(pitConnectionControllerProvider.notifier);
 
-                          if (conn.isConnected) {
+                          if (selectedDeviceIsConnected) {
                             await controller.disconnect();
 
                             if (mounted) {
@@ -184,7 +214,7 @@ class _PitReadersSectionState extends ConsumerState<PitReadersSection> {
                         ),
                       )
                     : Text(
-                        conn.isConnected ? 'Disconnect' : 'Connect',
+                        selectedDeviceIsConnected ? 'Disconnect' : 'Connect',
                       ),
                 ),
               ),
@@ -244,10 +274,10 @@ class _PitReadersSectionState extends ConsumerState<PitReadersSection> {
                 ),
                 const SizedBox(width: 8),
                 const Text('Connecting to scanner...'),
-              ] else if (displayedConnectedDeviceId != null && !hasConnectionError) ...[
+              ] else if (conn.isConnected && connectedDeviceId != null && !hasConnectionError) ...[
                 const Icon(Icons.check_circle_outline, size: 18),
                 const SizedBox(width: 8),
-                Text('Connected to $displayedConnectedDeviceId'),
+                Text('Connected to $connectedDeviceId'),
               ] else if (hasConnectionError) ...[
                 Icon(
                   Icons.error_outline,
@@ -270,6 +300,10 @@ class _PitReadersSectionState extends ConsumerState<PitReadersSection> {
                   onPressed: () => _showConnectionErrorDialog(context, conn.error),
                   child: const Text('Details'),
                 ),
+              ] else if (_lastConnectedDeviceId != null) ...[
+                const Icon(Icons.bluetooth_disabled, size: 18),
+                const SizedBox(width: 8),
+                Text('Scanner disconnected. Last connected: $_lastConnectedDeviceId'),
               ] else ...[
                 const Icon(Icons.bluetooth_disabled, size: 18),
                 const SizedBox(width: 8),
