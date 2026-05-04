@@ -34,6 +34,8 @@ import 'package:ui_prototype/domain/enums/app_sound.dart';
 
 import 'settings_screen.dart';
 
+
+
 class DataEntryScreen extends ConsumerStatefulWidget {
   const DataEntryScreen({super.key});
 
@@ -269,24 +271,35 @@ class _DataEntryState extends ConsumerState<DataEntryScreen> {
                         // Left side
                         Flexible(
                           flex: 1,
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const StatusPanel(),
-                              const SizedBox(height: 12),
-                              // Table switching
-                              TableSwitcher(
-                                tables: project.tables,
-                                activeTableName: activeTableName,
-                                showFKeyBadges: true,
-                              ),
-                            ],
+                          child: ConstrainedBox(
+                            constraints: const BoxConstraints(
+                              minWidth: 280,
+                              maxWidth: 420,
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const StatusPanel(),
+                                const SizedBox(height: 12),
+                                const BackupStatusPanel(),
+                                const SizedBox(height: 12),
+                                // Table switching
+                                TableSwitcher(
+                                  tables: project.tables,
+                                  activeTableName: activeTableName,
+                                  showFKeyBadges: true,
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                         const SizedBox(width: 12),
-                        Flexible(
-                          flex: 1,
-                          child: CatchHistorySection(tableName: activeTableName),
+                        Expanded(
+                          flex: 2,
+                          child: Align(
+                            alignment: Alignment.topRight,
+                            child: CatchHistorySection(tableName: activeTableName),
+                          ),
                         ),
                       ],
                     ),
@@ -317,6 +330,166 @@ class _DataEntryState extends ConsumerState<DataEntryScreen> {
           ),
         ),
       ),
+    );
+  }
+}
+
+class BackupStatusPanel extends ConsumerWidget {
+  const BackupStatusPanel({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final settingsAsync = ref.watch(projectSettingsProvider);
+    final targetsAsync = ref.watch(connectedSelectedBackupTargetsProvider);
+
+    return Container(
+      constraints: const BoxConstraints(
+        minWidth: 260,
+        maxWidth: 400,
+      ),
+      padding: const EdgeInsets.all(12.0),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(10.0),
+        border: Border.all(
+          color: Theme.of(context).colorScheme.outlineVariant,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Backup Status',
+            style: Theme.of(context).textTheme.titleSmall,
+          ),
+          const SizedBox(height: 8),
+
+          targetsAsync.when(
+            data: (targets) {
+              final hasTargets = targets.isNotEmpty;
+
+              return _StatusLine(
+                isWarning: !hasTargets,
+                label: 'Backup drives',
+                value: hasTargets
+                    ? targets.map((target) => target.drivePath).join(', ')
+                    : 'No selected drives connected',
+                helpTitle: 'Backup drives',
+                helpText:
+                    'Selected backup drives are the external drives where the app copies this project database after each saved record. '
+                    'If no selected drives are connected, records are still saved locally, but no external backup is created.',
+              );
+            },
+            loading: () => const Text('Backup drives: checking...'),
+            error: (error, stack) {
+              return _StatusLine(
+                isWarning: true,
+                label: 'Backup drives',
+                value: 'Error checking drives',
+                helpTitle: 'Backup drives',
+                helpText:
+                    'The app could not check the selected backup drives. Records may still save locally, but external backup status could not be confirmed.',
+              );
+            },
+          ),
+
+          const SizedBox(height: 8),
+
+          settingsAsync.when(
+            data: (settings) {
+              final baseTable = settings.export.baseTable;
+              final hasBaseTable = baseTable != null;
+
+              return _StatusLine(
+                isWarning: !hasBaseTable,
+                label: 'Export base table',
+                value: hasBaseTable
+                    ? baseTable
+                    : 'No base table selected',
+                helpTitle: 'Export base table',
+                helpText:
+                    'The base table controls the text export created during backups. Each exported row is based on this table, with related data included according to the project schema. '
+                    'If no base table is selected, the database backup is still created, but export/data.txt is skipped.',
+              );
+            },
+            loading: () => const Text('Export base table: loading...'),
+            error: (error, stack) {
+              return _StatusLine(
+                isWarning: true,
+                label: 'Export base table',
+                value: 'Error loading settings',
+                helpTitle: 'Export base table',
+                helpText:
+                    'The app could not load the saved export base table. Database backups may still work, but text export settings could not be confirmed.',
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _StatusLine extends StatelessWidget {
+  final bool isWarning;
+  final String label;
+  final String value;
+  final String helpTitle;
+  final String helpText;
+
+  const _StatusLine({
+    required this.isWarning,
+    required this.label,
+    required this.value,
+    required this.helpTitle,
+    required this.helpText,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final color = isWarning
+        ? Theme.of(context).colorScheme.error
+        : Theme.of(context).colorScheme.onSurface;
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(
+          isWarning ? Icons.warning_amber_rounded : Icons.check_circle_outline,
+          size: 18,
+          color: color,
+        ),
+        const SizedBox(width: 6),
+        Expanded(
+          child: Text(
+            '$label: $value',
+            style: TextStyle(color: color),
+          ),
+        ),
+        IconButton(
+          icon: const Icon(Icons.help_outline, size: 18),
+          padding: EdgeInsets.zero,
+          constraints: const BoxConstraints(),
+          tooltip: 'What does this mean?',
+          onPressed: () {
+            showDialog(
+              context: context,
+              builder: (_) {
+                return AlertDialog(
+                  title: Text(helpTitle),
+                  content: Text(helpText),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: const Text('Close'),
+                    ),
+                  ],
+                );
+              },
+            );
+          },
+        ),
+      ],
     );
   }
 }

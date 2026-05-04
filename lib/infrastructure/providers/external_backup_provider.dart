@@ -192,3 +192,32 @@ final backupActionsProvider =
     AsyncNotifierProvider<BackupActionsNotifier, void>(
   BackupActionsNotifier.new,
 );
+
+
+/// Provides the selected backup targets that are currently connected.
+///
+/// This is used by the data entry screen to warn the user when records will only
+/// be saved locally because no selected backup drive is currently available.
+final connectedSelectedBackupTargetsProvider = StreamProvider((ref) async* {
+  final discovery = ref.watch(driveDiscoveryProvider);
+  final repo = ref.watch(driveSelectionRepoProvider);
+
+  var isDisposed = false;
+
+  ref.onDispose(() {
+    isDisposed = true;
+  });
+
+  while (!isDisposed) {
+    final detectedDrives = await discovery.discover();
+    final selectedIds = await repo.loadSelectedIds();
+
+    final connectedSelectedTargets = detectedDrives
+        .where((drive) => selectedIds.contains(drive.id))
+        .toList();
+
+    yield connectedSelectedTargets;
+
+    await Future.delayed(const Duration(seconds: 2));
+  }
+});
