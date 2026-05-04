@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqlite3/sqlite3.dart';
 
-import 'package:ui_prototype/infrastructure/schema_discovery/sqlite_schema_discovery_repo.dart';
+import 'package:crab_cakes/infrastructure/schema_discovery/sqlite_schema_discovery_repo.dart';
 
 void main() {
   group('SqliteSchemaDiscoveryRepo getTables', () {

@@ -1,4 +1,4 @@
-import 'package:ui_prototype/application/settings/interfaces/project_settings_repo.dart';
+import 'package:crab_cakes/application/settings/interfaces/project_settings_repo.dart';
 
 class UpdateColumnOrderUsecase {
   final ProjectSettingsRepo repository;

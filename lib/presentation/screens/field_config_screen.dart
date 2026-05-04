@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:ui_prototype/infrastructure/providers/flex_form_provider.dart';
-import 'package:ui_prototype/infrastructure/providers/settings_provider.dart';
-import 'package:ui_prototype/infrastructure/providers/field_config_providers.dart';
+import 'package:crab_cakes/infrastructure/providers/flex_form_provider.dart';
+import 'package:crab_cakes/infrastructure/providers/settings_provider.dart';
+import 'package:crab_cakes/infrastructure/providers/field_config_providers.dart';
 
-import 'package:ui_prototype/domain/entities/settings/field_config.dart';
+import 'package:crab_cakes/domain/entities/settings/field_config.dart';
 
-import 'package:ui_prototype/infrastructure/providers/column_filter_provider.dart';
+import 'package:crab_cakes/infrastructure/providers/column_filter_provider.dart';
 
-import 'package:ui_prototype/presentation/dialogs/column_order_dialog.dart';
+import 'package:crab_cakes/presentation/dialogs/column_order_dialog.dart';
 
 class FieldConfigScreen extends ConsumerWidget {
   const FieldConfigScreen({super.key});

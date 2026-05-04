@@ -2,8 +2,8 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:ui_prototype/domain/enums/battery_state.dart';
-import 'package:ui_prototype/infrastructure/providers/battery_provider.dart';
+import 'package:crab_cakes/domain/enums/battery_state.dart';
+import 'package:crab_cakes/infrastructure/providers/battery_provider.dart';
 
 //used consumerWidget so it can listen to riverpod providers
 class BatteryIndicator extends ConsumerWidget {

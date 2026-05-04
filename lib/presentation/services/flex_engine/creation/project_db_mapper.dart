@@ -1,7 +1,7 @@
 import 'package:sqlite3/sqlite3.dart';
-import 'package:ui_prototype/domain/models/table.dart';
-import 'package:ui_prototype/domain/models/attribute.dart';
-import 'package:ui_prototype/domain/models/project_db.dart';
+import 'package:crab_cakes/domain/models/table.dart';
+import 'package:crab_cakes/domain/models/attribute.dart';
+import 'package:crab_cakes/domain/models/project_db.dart';
 
 ProjectDb createDbObject(db) {
   try {

@@ -4,8 +4,8 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqlite3/sqlite3.dart';
 
-import 'package:ui_prototype/domain/entities/settings/project_settings.dart';
-import 'package:ui_prototype/infrastructure/settings/project_settings_sqlite_repo.dart';
+import 'package:crab_cakes/domain/entities/settings/project_settings.dart';
+import 'package:crab_cakes/infrastructure/settings/project_settings_sqlite_repo.dart';
 
 void main() {
   group('ProjectSettingsSqliteRepo', () {

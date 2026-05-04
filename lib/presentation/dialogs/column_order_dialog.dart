@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:ui_prototype/infrastructure/providers/settings_provider.dart';
+import 'package:crab_cakes/infrastructure/providers/settings_provider.dart';
 
 class ColumnOrderDialog extends ConsumerStatefulWidget {
   final String tableName;

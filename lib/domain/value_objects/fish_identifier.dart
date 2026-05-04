@@ -1,4 +1,4 @@
-import 'package:ui_prototype/domain/enums/identifier_types.dart';
+import 'package:crab_cakes/domain/enums/identifier_types.dart';
 
 class FishIdentifier {
   IdentifierTypes type;

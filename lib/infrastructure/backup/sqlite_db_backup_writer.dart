@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'package:path/path.dart' as path;
 import 'package:sqlite3/sqlite3.dart';
-import 'package:ui_prototype/application/backup/interfaces/db_backup_writer.dart';
+import 'package:crab_cakes/application/backup/interfaces/db_backup_writer.dart';
 
 /// Class to implement the DbBackupWriter interface
 ///

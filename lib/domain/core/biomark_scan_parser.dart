@@ -1,5 +1,5 @@
-import 'package:ui_prototype/domain/entities/scan_event.dart';
-import 'package:ui_prototype/domain/value_objects/parse_result.dart';
+import 'package:crab_cakes/domain/entities/scan_event.dart';
+import 'package:crab_cakes/domain/value_objects/parse_result.dart';
 
 
 class BiomarkScanParser {

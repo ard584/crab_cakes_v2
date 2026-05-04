@@ -1,7 +1,7 @@
-import 'package:ui_prototype/application/project/interfaces/schema/project_database_builder.dart';
-import 'package:ui_prototype/application/project/interfaces/schema/schema_parser.dart';
-import 'package:ui_prototype/application/project/interfaces/schema/schema_validator.dart';
-import 'package:ui_prototype/application/project/interfaces/schema_structure_validator.dart';
+import 'package:crab_cakes/application/project/interfaces/schema/project_database_builder.dart';
+import 'package:crab_cakes/application/project/interfaces/schema/schema_parser.dart';
+import 'package:crab_cakes/application/project/interfaces/schema/schema_validator.dart';
+import 'package:crab_cakes/application/project/interfaces/schema_structure_validator.dart';
 
 // Project File Path typedef for clarity
 typedef ProjectFilePath = String;

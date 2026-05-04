@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqlite3/sqlite3.dart';
 
-import 'package:ui_prototype/infrastructure/schema_discovery/schema_graph.dart';
+import 'package:crab_cakes/infrastructure/schema_discovery/schema_graph.dart';
 
 void main() {
   group('SchemaGraph pure graph methods', () {

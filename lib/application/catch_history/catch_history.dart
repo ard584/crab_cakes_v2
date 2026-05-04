@@ -1,7 +1,7 @@
-import 'package:ui_prototype/application/active_project_repository.dart';
-import 'package:ui_prototype/presentation/view_models/project_input.dart';
-import 'package:ui_prototype/infrastructure/providers/column_filter_provider.dart';
-import 'package:ui_prototype/domain/entities/settings/project_settings.dart';
+import 'package:crab_cakes/application/active_project_repository.dart';
+import 'package:crab_cakes/presentation/view_models/project_input.dart';
+import 'package:crab_cakes/infrastructure/providers/column_filter_provider.dart';
+import 'package:crab_cakes/domain/entities/settings/project_settings.dart';
 
 class CatchHistoryViewModel {
   final ActiveProjectRepository db;

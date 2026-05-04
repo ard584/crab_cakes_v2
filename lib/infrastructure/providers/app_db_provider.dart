@@ -2,23 +2,23 @@ import 'dart:typed_data';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
-import 'package:ui_prototype/application/device_storage/device_id_use_case.dart';
-import 'package:ui_prototype/application/project/use_cases/create_project.dart';
-import 'package:ui_prototype/infrastructure/project/sqlite/sql_security_validator.dart';
-import 'package:ui_prototype/infrastructure/project/sqlite/sql_statement_parser.dart';
-import 'package:ui_prototype/infrastructure/project/sqlite/sqlite_project_database_builder.dart';
-import 'package:ui_prototype/infrastructure/project/sqlite/sqlite_schema_structure_validator.dart';
-import 'package:ui_prototype/infrastructure/providers/active_database_connection_provider.dart';
-import 'package:ui_prototype/domain/models/project.dart';
-import 'package:ui_prototype/infrastructure/providers/device_id_use_case_provider.dart';
-import 'package:ui_prototype/infrastructure/providers/device_storage_provider.dart';
-import 'package:ui_prototype/infrastructure/providers/generate_uuid_provider.dart';
-import 'package:ui_prototype/presentation/services/projects/database/projects_database.dart';
-import 'package:ui_prototype/presentation/services/projects/projects_repository.dart';
-import 'package:ui_prototype/presentation/services/projects/project_service.dart';
-import 'package:ui_prototype/application/uuid/generate_uuid.dart';
+import 'package:crab_cakes/application/device_storage/device_id_use_case.dart';
+import 'package:crab_cakes/application/project/use_cases/create_project.dart';
+import 'package:crab_cakes/infrastructure/project/sqlite/sql_security_validator.dart';
+import 'package:crab_cakes/infrastructure/project/sqlite/sql_statement_parser.dart';
+import 'package:crab_cakes/infrastructure/project/sqlite/sqlite_project_database_builder.dart';
+import 'package:crab_cakes/infrastructure/project/sqlite/sqlite_schema_structure_validator.dart';
+import 'package:crab_cakes/infrastructure/providers/active_database_connection_provider.dart';
+import 'package:crab_cakes/domain/models/project.dart';
+import 'package:crab_cakes/infrastructure/providers/device_id_use_case_provider.dart';
+import 'package:crab_cakes/infrastructure/providers/device_storage_provider.dart';
+import 'package:crab_cakes/infrastructure/providers/generate_uuid_provider.dart';
+import 'package:crab_cakes/presentation/services/projects/database/projects_database.dart';
+import 'package:crab_cakes/presentation/services/projects/projects_repository.dart';
+import 'package:crab_cakes/presentation/services/projects/project_service.dart';
+import 'package:crab_cakes/application/uuid/generate_uuid.dart';
 
-import 'package:ui_prototype/infrastructure/providers/json_import_providers.dart';
+import 'package:crab_cakes/infrastructure/providers/json_import_providers.dart';
 
 
 

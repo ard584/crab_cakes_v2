@@ -1,16 +1,16 @@
-import 'package:ui_prototype/application/project/interfaces/schema/project_database_builder.dart';
+import 'package:crab_cakes/application/project/interfaces/schema/project_database_builder.dart';
 
 import 'package:path_provider/path_provider.dart';
 import 'package:sqlite3/sqlite3.dart';
-import 'package:ui_prototype/presentation/exceptions/project_db_exception.dart';
+import 'package:crab_cakes/presentation/exceptions/project_db_exception.dart';
 
 import 'dart:io';
 import 'package:path/path.dart' as path;
 
 import 'package:uuid/uuid.dart';
-import 'package:ui_prototype/presentation/utils/logger.dart';
+import 'package:crab_cakes/presentation/utils/logger.dart';
 
-import 'package:ui_prototype/infrastructure/providers/column_filter_provider.dart';
+import 'package:crab_cakes/infrastructure/providers/column_filter_provider.dart';
 import 'dart:convert';
 import 'package:crypto/crypto.dart';
 

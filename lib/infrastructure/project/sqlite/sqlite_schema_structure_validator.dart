@@ -1,6 +1,6 @@
 import 'package:sqlite3/sqlite3.dart';
-import 'package:ui_prototype/application/project/interfaces/schema_structure_validator.dart';
-import 'package:ui_prototype/infrastructure/schema_discovery/schema_graph.dart';
+import 'package:crab_cakes/application/project/interfaces/schema_structure_validator.dart';
+import 'package:crab_cakes/infrastructure/schema_discovery/schema_graph.dart';
 
 
 class SqliteSchemaStructureValidator implements SchemaStructureValidator {

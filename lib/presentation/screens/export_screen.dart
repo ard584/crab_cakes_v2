@@ -2,14 +2,14 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:ui_prototype/application/sync/dtos/sync_plan.dart';
+import 'package:crab_cakes/application/sync/dtos/sync_plan.dart';
 
-import 'package:ui_prototype/infrastructure/providers/export_provider.dart';
-import 'package:ui_prototype/infrastructure/providers/external_backup_provider.dart';
-import 'package:ui_prototype/infrastructure/providers/project_sync_providers.dart';
-import 'package:ui_prototype/infrastructure/providers/settings_provider.dart';
+import 'package:crab_cakes/infrastructure/providers/export_provider.dart';
+import 'package:crab_cakes/infrastructure/providers/external_backup_provider.dart';
+import 'package:crab_cakes/infrastructure/providers/project_sync_providers.dart';
+import 'package:crab_cakes/infrastructure/providers/settings_provider.dart';
 
-import 'package:ui_prototype/application/backup/dtos/backup_target.dart';
+import 'package:crab_cakes/application/backup/dtos/backup_target.dart';
 
 class ExportScreen extends ConsumerStatefulWidget {
   const ExportScreen({super.key});

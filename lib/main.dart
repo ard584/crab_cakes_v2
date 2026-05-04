@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'presentation/screens/project_selection.dart';
 
 // importing startup provider(s)
-import 'package:ui_prototype/infrastructure/providers/startup_provider.dart';
+import 'package:crab_cakes/infrastructure/providers/startup_provider.dart';
 
 void main() async {
 

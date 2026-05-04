@@ -4,9 +4,9 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as path;
 
-import 'package:ui_prototype/application/backup/dtos/backup_plan.dart';
-import 'package:ui_prototype/application/backup/dtos/backup_request.dart';
-import 'package:ui_prototype/infrastructure/backup/json_manifest_writer.dart';
+import 'package:crab_cakes/application/backup/dtos/backup_plan.dart';
+import 'package:crab_cakes/application/backup/dtos/backup_request.dart';
+import 'package:crab_cakes/infrastructure/backup/json_manifest_writer.dart';
 
 void main() {
   group('JsonManifestWriter', () {

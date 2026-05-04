@@ -4,8 +4,8 @@
 //in short it handles communication with the battery plugin.
 import 'dart:async';
 import 'package:battery_plus/battery_plus.dart' as bp;
-import 'package:ui_prototype/application/services/battery_service.dart';
-import 'package:ui_prototype/domain/enums/battery_state.dart';
+import 'package:crab_cakes/application/services/battery_service.dart';
+import 'package:crab_cakes/domain/enums/battery_state.dart';
 
 class BatteryPlusService implements BatteryService {
   //access battery information

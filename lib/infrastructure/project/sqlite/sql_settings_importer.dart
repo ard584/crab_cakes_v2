@@ -1,5 +1,5 @@
 import 'package:sqlite3/sqlite3.dart';
-import 'package:ui_prototype/application/project/interfaces/schema/project_settings_importer.dart';
+import 'package:crab_cakes/application/project/interfaces/schema/project_settings_importer.dart';
 
 class SqlSettingsImporter implements ProjectSettingsImporter{
 

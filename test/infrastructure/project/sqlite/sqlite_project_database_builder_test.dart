@@ -4,8 +4,8 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqlite3/sqlite3.dart';
 
-import 'package:ui_prototype/infrastructure/project/sqlite/sqlite_project_database_builder.dart';
-import 'package:ui_prototype/infrastructure/providers/column_filter_provider.dart';
+import 'package:crab_cakes/infrastructure/project/sqlite/sqlite_project_database_builder.dart';
+import 'package:crab_cakes/infrastructure/providers/column_filter_provider.dart';
 
 void main() {
   group('SqliteProjectDatabaseBuilder createProjectInTemp', () {

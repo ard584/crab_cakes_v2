@@ -1,10 +1,10 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
-import 'package:ui_prototype/application/project/use_cases/save_table.dart';
-import 'package:ui_prototype/application/active_project_repository.dart';
-import 'package:ui_prototype/domain/models/attribute.dart';
-import 'package:ui_prototype/domain/models/db_row.dart';
-import 'package:ui_prototype/presentation/view_models/project_input.dart';
+import 'package:crab_cakes/application/project/use_cases/save_table.dart';
+import 'package:crab_cakes/application/active_project_repository.dart';
+import 'package:crab_cakes/domain/models/attribute.dart';
+import 'package:crab_cakes/domain/models/db_row.dart';
+import 'package:crab_cakes/presentation/view_models/project_input.dart';
 
 class MockActiveProjectRepository extends Mock
     implements ActiveProjectRepository {}

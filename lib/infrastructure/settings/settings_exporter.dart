@@ -3,8 +3,8 @@ import 'dart:io';
 
 import 'package:sqlite3/sqlite3.dart';
 
-import 'package:ui_prototype/application/settings/interfaces/project_settings_exporter.dart';
-import 'package:ui_prototype/infrastructure/project/project_json_integrity_service.dart';
+import 'package:crab_cakes/application/settings/interfaces/project_settings_exporter.dart';
+import 'package:crab_cakes/infrastructure/project/project_json_integrity_service.dart';
 
 class SettingsExporter implements ProjectSettingsExporter {
   final Database db;

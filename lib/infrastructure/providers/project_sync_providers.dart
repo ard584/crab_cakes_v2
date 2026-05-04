@@ -1,15 +1,15 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 
-import 'package:ui_prototype/application/sync/interfaces/project_sync_repo.dart';
+import 'package:crab_cakes/application/sync/interfaces/project_sync_repo.dart';
 
-import 'package:ui_prototype/application/sync/usecases/apply_sync_plan.dart';
-import 'package:ui_prototype/application/sync/usecases/build_sync_plan.dart';
-import 'package:ui_prototype/application/sync/usecases/check_sync_compat.dart';
+import 'package:crab_cakes/application/sync/usecases/apply_sync_plan.dart';
+import 'package:crab_cakes/application/sync/usecases/build_sync_plan.dart';
+import 'package:crab_cakes/application/sync/usecases/check_sync_compat.dart';
 
-import 'package:ui_prototype/application/sync/dtos/sync_plan.dart';
+import 'package:crab_cakes/application/sync/dtos/sync_plan.dart';
 
-import 'package:ui_prototype/infrastructure/sync/sqlite_project_sync_repo.dart';
+import 'package:crab_cakes/infrastructure/sync/sqlite_project_sync_repo.dart';
 
 
 final projectSyncRepositoryProvider = Provider<ProjectSyncRepo>((ref) {

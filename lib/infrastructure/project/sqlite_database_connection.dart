@@ -2,9 +2,9 @@ import 'dart:io';
 
 import 'package:path/path.dart' as path;
 import 'package:sqlite3/sqlite3.dart';
-import 'package:ui_prototype/application/database_connection.dart';
+import 'package:crab_cakes/application/database_connection.dart';
 
-import 'package:ui_prototype/presentation/utils/logger.dart';
+import 'package:crab_cakes/presentation/utils/logger.dart';
 
 class SqliteDatabaseConnection implements DatabaseConnection<Database> {
   

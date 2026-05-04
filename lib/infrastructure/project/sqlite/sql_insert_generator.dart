@@ -1,4 +1,4 @@
-import 'package:ui_prototype/application/project/interfaces/active_project/insert_generator.dart';
+import 'package:crab_cakes/application/project/interfaces/active_project/insert_generator.dart';
 
 class SQLInsertGenerator implements InsertGenerator {
   bool _isValid(dynamic value) {

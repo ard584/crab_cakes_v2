@@ -1,12 +1,12 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:ui_prototype/infrastructure/providers/settings_provider.dart';
+import 'package:crab_cakes/infrastructure/providers/settings_provider.dart';
 
 //importing app level usecases
-import 'package:ui_prototype/application/settings/usecases/get_field_config.dart';
-import 'package:ui_prototype/application/settings/usecases/update_field_config.dart';
+import 'package:crab_cakes/application/settings/usecases/get_field_config.dart';
+import 'package:crab_cakes/application/settings/usecases/update_field_config.dart';
 
 //importing domain level entities
-import 'package:ui_prototype/domain/entities/settings/field_config.dart';
+import 'package:crab_cakes/domain/entities/settings/field_config.dart';
 
 
 final updateFieldConfigUsecaseProvider = Provider<UpdateFieldConfig?>((ref) {

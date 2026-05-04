@@ -1,12 +1,12 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:ui_prototype/application/project/interfaces/schema/project_settings_importer.dart';
-import 'package:ui_prototype/application/project/use_cases/import_project.dart';
-import 'package:ui_prototype/infrastructure/project/sqlite/sql_security_validator.dart';
+import 'package:crab_cakes/application/project/interfaces/schema/project_settings_importer.dart';
+import 'package:crab_cakes/application/project/use_cases/import_project.dart';
+import 'package:crab_cakes/infrastructure/project/sqlite/sql_security_validator.dart';
 
-import 'package:ui_prototype/infrastructure/project/sqlite/sql_settings_importer.dart';
-import 'package:ui_prototype/infrastructure/project/sqlite/sqlite_project_database_builder.dart';
-import 'package:ui_prototype/infrastructure/providers/settings_provider.dart';
+import 'package:crab_cakes/infrastructure/project/sqlite/sql_settings_importer.dart';
+import 'package:crab_cakes/infrastructure/project/sqlite/sqlite_project_database_builder.dart';
+import 'package:crab_cakes/infrastructure/providers/settings_provider.dart';
 
 
 //wiring infra providers

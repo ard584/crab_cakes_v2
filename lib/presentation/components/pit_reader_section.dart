@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:ui_prototype/presentation/components/project_widget.dart';
+import 'package:crab_cakes/presentation/components/project_widget.dart';
 
-import 'package:ui_prototype/infrastructure/providers/pit_readers_providers.dart';
-import 'package:ui_prototype/presentation/screens/project_creation.dart';
+import 'package:crab_cakes/infrastructure/providers/pit_readers_providers.dart';
+import 'package:crab_cakes/presentation/screens/project_creation.dart';
 
 
 class PitReadersSection extends ConsumerStatefulWidget {

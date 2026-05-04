@@ -1,4 +1,4 @@
-import 'package:ui_prototype/application/project/interfaces/active_project/update_generator.dart';
+import 'package:crab_cakes/application/project/interfaces/active_project/update_generator.dart';
 
 class SqliteUpdateGenerator implements UpdateGenerator {
   String _generateUpdateStatement(

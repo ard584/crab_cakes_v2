@@ -1,6 +1,6 @@
-import 'package:ui_prototype/application/sync/dtos/sync_plan.dart';
-import 'package:ui_prototype/application/sync/interfaces/project_sync_repo.dart';
-import 'package:ui_prototype/application/sync/usecases/check_sync_compat.dart';
+import 'package:crab_cakes/application/sync/dtos/sync_plan.dart';
+import 'package:crab_cakes/application/sync/interfaces/project_sync_repo.dart';
+import 'package:crab_cakes/application/sync/usecases/check_sync_compat.dart';
 
 class BuildSyncPlan {
   final ProjectSyncRepo repo;

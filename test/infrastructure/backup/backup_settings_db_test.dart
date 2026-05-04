@@ -1,7 +1,7 @@
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:ui_prototype/infrastructure/backup/backup_settings_db.dart';
+import 'package:crab_cakes/infrastructure/backup/backup_settings_db.dart';
 
 void main() {
   group('BackupSettingsDb', () {

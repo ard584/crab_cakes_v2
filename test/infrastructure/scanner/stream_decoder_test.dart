@@ -4,7 +4,7 @@ import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:ui_prototype/infrastructure/scanner/stream_decoder.dart';
+import 'package:crab_cakes/infrastructure/scanner/stream_decoder.dart';
 
 void main() {
   group('StreamDecoder', () {

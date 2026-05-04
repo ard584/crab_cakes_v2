@@ -1,36 +1,36 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:ui_prototype/domain/value_objects/parse_result.dart';
+import 'package:crab_cakes/domain/value_objects/parse_result.dart';
 
-import 'package:ui_prototype/domain/entities/scan_event.dart';
-import 'package:ui_prototype/domain/entities/settings/field_config.dart';
+import 'package:crab_cakes/domain/entities/scan_event.dart';
+import 'package:crab_cakes/domain/entities/settings/field_config.dart';
 
-import 'package:ui_prototype/infrastructure/providers/flex_form_provider.dart';
-import 'package:ui_prototype/infrastructure/providers/form_save_notifier.dart';
-import 'package:ui_prototype/infrastructure/providers/pit_readers_providers.dart';
-import 'package:ui_prototype/infrastructure/providers/project_database_provider.dart';
-import 'package:ui_prototype/infrastructure/providers/field_config_providers.dart';
-import 'package:ui_prototype/infrastructure/providers/data_entry_title_project_provider.dart';
+import 'package:crab_cakes/infrastructure/providers/flex_form_provider.dart';
+import 'package:crab_cakes/infrastructure/providers/form_save_notifier.dart';
+import 'package:crab_cakes/infrastructure/providers/pit_readers_providers.dart';
+import 'package:crab_cakes/infrastructure/providers/project_database_provider.dart';
+import 'package:crab_cakes/infrastructure/providers/field_config_providers.dart';
+import 'package:crab_cakes/infrastructure/providers/data_entry_title_project_provider.dart';
 
-import 'package:ui_prototype/presentation/screens/check_database_screen.dart';
-import 'package:ui_prototype/presentation/screens/export_screen.dart';
-import 'package:ui_prototype/presentation/screens/field_config_screen.dart';
+import 'package:crab_cakes/presentation/screens/check_database_screen.dart';
+import 'package:crab_cakes/presentation/screens/export_screen.dart';
+import 'package:crab_cakes/presentation/screens/field_config_screen.dart';
 
-import 'package:ui_prototype/presentation/screens/project_selection.dart';
-import 'package:ui_prototype/presentation/services/flex_field/flex_field_factory.dart';
-import 'package:ui_prototype/presentation/view_models/project_input.dart';
-import 'package:ui_prototype/presentation/components/catch_table_widget.dart';
-import 'package:ui_prototype/presentation/shortcuts/data_entry_shortcuts.dart';
-import 'package:ui_prototype/presentation/components/status_panel.dart';
-import 'package:ui_prototype/presentation/components/table_switcher.dart';
+import 'package:crab_cakes/presentation/screens/project_selection.dart';
+import 'package:crab_cakes/presentation/services/flex_field/flex_field_factory.dart';
+import 'package:crab_cakes/presentation/view_models/project_input.dart';
+import 'package:crab_cakes/presentation/components/catch_table_widget.dart';
+import 'package:crab_cakes/presentation/shortcuts/data_entry_shortcuts.dart';
+import 'package:crab_cakes/presentation/components/status_panel.dart';
+import 'package:crab_cakes/presentation/components/table_switcher.dart';
 
-import 'package:ui_prototype/infrastructure/providers/external_backup_provider.dart';
-import 'package:ui_prototype/infrastructure/providers/settings_provider.dart';
-import 'package:ui_prototype/infrastructure/providers/column_filter_provider.dart';
+import 'package:crab_cakes/infrastructure/providers/external_backup_provider.dart';
+import 'package:crab_cakes/infrastructure/providers/settings_provider.dart';
+import 'package:crab_cakes/infrastructure/providers/column_filter_provider.dart';
 
-import 'package:ui_prototype/infrastructure/providers/sound_provider.dart';
-import 'package:ui_prototype/domain/enums/app_sound.dart';
+import 'package:crab_cakes/infrastructure/providers/sound_provider.dart';
+import 'package:crab_cakes/domain/enums/app_sound.dart';
 
 import 'settings_screen.dart';
 

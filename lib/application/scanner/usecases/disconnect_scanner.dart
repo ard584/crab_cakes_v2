@@ -1,4 +1,4 @@
-import 'package:ui_prototype/application/scanner/interfaces/scanner_connector.dart';
+import 'package:crab_cakes/application/scanner/interfaces/scanner_connector.dart';
 
 
 class DisconnectScanner {

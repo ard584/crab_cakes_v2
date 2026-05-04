@@ -1,5 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:ui_prototype/infrastructure/providers/external_backup_provider.dart';
+import 'package:crab_cakes/infrastructure/providers/external_backup_provider.dart';
 import 'package:flutter/foundation.dart';
 
 // This file specifically handles any startup orchestration that needs to happen 

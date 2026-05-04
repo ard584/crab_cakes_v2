@@ -7,33 +7,33 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 
 //importing dummy infrastructure used when the active platform is MAC-OS
-import 'package:ui_prototype/infrastructure/scanner/dummies/dummy_scanner_connector.dart';
-import 'package:ui_prototype/infrastructure/scanner/dummies/dummy_scanner_discovery.dart';
+import 'package:crab_cakes/infrastructure/scanner/dummies/dummy_scanner_connector.dart';
+import 'package:crab_cakes/infrastructure/scanner/dummies/dummy_scanner_discovery.dart';
 
 //importing use cases
-import 'package:ui_prototype/application/scanner/usecases/connect_scanner.dart';
-import 'package:ui_prototype/application/scanner/usecases/disconnect_scanner.dart';
-import 'package:ui_prototype/application/scanner/usecases/list_devices.dart';
+import 'package:crab_cakes/application/scanner/usecases/connect_scanner.dart';
+import 'package:crab_cakes/application/scanner/usecases/disconnect_scanner.dart';
+import 'package:crab_cakes/application/scanner/usecases/list_devices.dart';
 
 //importing interfaces 
-import 'package:ui_prototype/application/scanner/interfaces/scanner_connector.dart';
-import 'package:ui_prototype/application/scanner/interfaces/scanner_device_discovery.dart';
+import 'package:crab_cakes/application/scanner/interfaces/scanner_connector.dart';
+import 'package:crab_cakes/application/scanner/interfaces/scanner_device_discovery.dart';
 
 //importing DTO
-import 'package:ui_prototype/application/scanner/dtos/discovered_port.dart';
-import 'package:ui_prototype/domain/value_objects/parse_result.dart';
+import 'package:crab_cakes/application/scanner/dtos/discovered_port.dart';
+import 'package:crab_cakes/domain/value_objects/parse_result.dart';
 
 //importing concrete infrastructure implementations
-import 'package:ui_prototype/infrastructure/scanner/libserialport_adapter.dart';
-import 'package:ui_prototype/infrastructure/scanner/libserialport_device_discovery.dart';
+import 'package:crab_cakes/infrastructure/scanner/libserialport_adapter.dart';
+import 'package:crab_cakes/infrastructure/scanner/libserialport_device_discovery.dart';
 
 //importing domain-level tools
-import 'package:ui_prototype/domain/entities/scan_event.dart';
-import 'package:ui_prototype/domain/core/biomark_scan_parser.dart';
+import 'package:crab_cakes/domain/entities/scan_event.dart';
+import 'package:crab_cakes/domain/core/biomark_scan_parser.dart';
 
 //importing sound pieces for when connection occurs 
-import 'package:ui_prototype/infrastructure/providers/sound_provider.dart';
-import 'package:ui_prototype/domain/enums/app_sound.dart';
+import 'package:crab_cakes/infrastructure/providers/sound_provider.dart';
+import 'package:crab_cakes/domain/enums/app_sound.dart';
 
 //------------------------------------------------------------------------------
 

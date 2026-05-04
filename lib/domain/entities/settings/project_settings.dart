@@ -1,6 +1,6 @@
-import 'package:ui_prototype/domain/entities/settings/scanner_settings.dart';
-import 'package:ui_prototype/domain/entities/settings/field_config_settings.dart';
-import 'package:ui_prototype/domain/entities/settings/export_settings.dart';
+import 'package:crab_cakes/domain/entities/settings/scanner_settings.dart';
+import 'package:crab_cakes/domain/entities/settings/field_config_settings.dart';
+import 'package:crab_cakes/domain/entities/settings/export_settings.dart';
 
 class ProjectSettings {
   final ScannerSettings scanner;

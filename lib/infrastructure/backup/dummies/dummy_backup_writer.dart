@@ -1,4 +1,4 @@
-import 'package:ui_prototype/application/backup/interfaces/db_backup_writer.dart';
+import 'package:crab_cakes/application/backup/interfaces/db_backup_writer.dart';
 
 
 class DummyBackupWriter implements DbBackupWriter {

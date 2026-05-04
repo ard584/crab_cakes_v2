@@ -1,9 +1,9 @@
 import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:ui_prototype/infrastructure/providers/save_table_provider.dart';
-import 'package:ui_prototype/infrastructure/providers/settings_provider.dart';
-import 'package:ui_prototype/presentation/view_models/project_input.dart';
+import 'package:crab_cakes/infrastructure/providers/save_table_provider.dart';
+import 'package:crab_cakes/infrastructure/providers/settings_provider.dart';
+import 'package:crab_cakes/presentation/view_models/project_input.dart';
 
 final formSaveProvider = AsyncNotifierProvider<FormSaveNotifier, void>(() {
   return FormSaveNotifier();

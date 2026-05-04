@@ -1,9 +1,9 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:ui_prototype/application/backup/dtos/backup_plan.dart';
-import 'package:ui_prototype/application/backup/dtos/backup_request.dart';
-import 'package:ui_prototype/application/backup/interfaces/backup_manifest_writer.dart';
+import 'package:crab_cakes/application/backup/dtos/backup_plan.dart';
+import 'package:crab_cakes/application/backup/dtos/backup_request.dart';
+import 'package:crab_cakes/application/backup/interfaces/backup_manifest_writer.dart';
 
 class JsonManifestWriter implements BackupManifestWriter {
 

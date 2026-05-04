@@ -1,7 +1,7 @@
 
 import 'dart:typed_data';
 
-import 'package:ui_prototype/application/uuid/generate_uuid.dart';
+import 'package:crab_cakes/application/uuid/generate_uuid.dart';
 import 'package:uuid/uuid.dart';
 
 class GenerateUuidImpl implements GenerateUuid {

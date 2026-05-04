@@ -1,8 +1,8 @@
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:ui_prototype/infrastructure/backup/backup_settings_db.dart';
-import 'package:ui_prototype/infrastructure/backup/drift_drive_selection_repo.dart';
+import 'package:crab_cakes/infrastructure/backup/backup_settings_db.dart';
+import 'package:crab_cakes/infrastructure/backup/drift_drive_selection_repo.dart';
 
 void main() {
   group('DriftDriveSelectionRepository', () {

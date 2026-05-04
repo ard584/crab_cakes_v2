@@ -4,8 +4,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as path;
 import 'package:sqlite3/sqlite3.dart';
 
-import 'package:ui_prototype/infrastructure/export/sqlite_data_exporter.dart';
-import 'package:ui_prototype/infrastructure/providers/column_filter_provider.dart';
+import 'package:crab_cakes/infrastructure/export/sqlite_data_exporter.dart';
+import 'package:crab_cakes/infrastructure/providers/column_filter_provider.dart';
 
 void main() {
   group('SqliteDataExporter', () {

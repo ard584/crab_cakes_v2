@@ -1,12 +1,12 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
-import 'package:ui_prototype/application/active_project_repository.dart';
-import 'package:ui_prototype/domain/db_table.dart';
-import 'package:ui_prototype/domain/entities/row_identifier.dart';
-import 'package:ui_prototype/domain/models/attribute.dart';
-import 'package:ui_prototype/domain/models/db_row.dart';
-import 'package:ui_prototype/application/catch_history/catch_history.dart';
-import 'package:ui_prototype/presentation/view_models/project_input.dart';
+import 'package:crab_cakes/application/active_project_repository.dart';
+import 'package:crab_cakes/domain/db_table.dart';
+import 'package:crab_cakes/domain/entities/row_identifier.dart';
+import 'package:crab_cakes/domain/models/attribute.dart';
+import 'package:crab_cakes/domain/models/db_row.dart';
+import 'package:crab_cakes/application/catch_history/catch_history.dart';
+import 'package:crab_cakes/presentation/view_models/project_input.dart';
 
 class MockActiveProjectRepository extends Mock
     implements ActiveProjectRepository<RowIdentifier> {}

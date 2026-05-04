@@ -5,8 +5,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as path;
 import 'package:sqlite3/sqlite3.dart';
 
-import 'package:ui_prototype/infrastructure/providers/column_filter_provider.dart';
-import 'package:ui_prototype/infrastructure/sync/sqlite_project_sync_repo.dart';
+import 'package:crab_cakes/infrastructure/providers/column_filter_provider.dart';
+import 'package:crab_cakes/infrastructure/sync/sqlite_project_sync_repo.dart';
 
 void main() {
   group('SqliteProjectSyncRepository', () {

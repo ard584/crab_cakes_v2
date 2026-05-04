@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
-import 'package:ui_prototype/presentation/utils/logger.dart';
+import 'package:crab_cakes/presentation/utils/logger.dart';
 
 // Providers/use-cases wiring
-import 'package:ui_prototype/infrastructure/providers/external_backup_provider.dart';
-import 'package:ui_prototype/application/backup/dtos/backup_target.dart';
+import 'package:crab_cakes/infrastructure/providers/external_backup_provider.dart';
+import 'package:crab_cakes/application/backup/dtos/backup_target.dart';
 
 final _selectedDriveIdProvider = StateProvider<String?>((ref) => null);
 

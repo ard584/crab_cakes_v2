@@ -3,10 +3,10 @@ import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'dart:io' as io;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:ui_prototype/infrastructure/project/project_json_integrity_service.dart';
-import 'package:ui_prototype/infrastructure/providers/app_db_provider.dart';
-import 'package:ui_prototype/presentation/utils/logger.dart';
-import 'package:ui_prototype/presentation/services/projects/project_service.dart';
+import 'package:crab_cakes/infrastructure/project/project_json_integrity_service.dart';
+import 'package:crab_cakes/infrastructure/providers/app_db_provider.dart';
+import 'package:crab_cakes/presentation/utils/logger.dart';
+import 'package:crab_cakes/presentation/services/projects/project_service.dart';
 
 class ProjectCreationScreen extends ConsumerStatefulWidget {
   const ProjectCreationScreen({super.key});

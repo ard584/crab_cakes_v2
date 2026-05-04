@@ -2,7 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:ui_prototype/infrastructure/project/project_json_integrity_service.dart';
+import 'package:crab_cakes/infrastructure/project/project_json_integrity_service.dart';
 
 void main() {
   group('ProjectJsonIntegrityService', () {

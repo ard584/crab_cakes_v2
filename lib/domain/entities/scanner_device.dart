@@ -1,5 +1,5 @@
-import 'package:ui_prototype/domain/value_objects/scanner_id.dart';
-import 'package:ui_prototype/domain/value_objects/scanner_transport.dart';
+import 'package:crab_cakes/domain/value_objects/scanner_id.dart';
+import 'package:crab_cakes/domain/value_objects/scanner_transport.dart';
 
 // MVP for the app will assume that scanner devices will ALWAYS communicate through
 // serial via COM ports. Because of this, 'transport' only refers to serial methods

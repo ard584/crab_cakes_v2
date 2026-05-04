@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_context_menu/flutter_context_menu.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:ui_prototype/domain/models/project.dart';
-import 'package:ui_prototype/infrastructure/providers/app_db_provider.dart';
-import 'package:ui_prototype/presentation/dialogs/confirm_delete.dart';
-import 'package:ui_prototype/presentation/screens/data_entry_screen.dart';
-import 'package:ui_prototype/presentation/screens/project_creation.dart';
-import 'package:ui_prototype/presentation/screens/update_project_screen.dart';
+import 'package:crab_cakes/domain/models/project.dart';
+import 'package:crab_cakes/infrastructure/providers/app_db_provider.dart';
+import 'package:crab_cakes/presentation/dialogs/confirm_delete.dart';
+import 'package:crab_cakes/presentation/screens/data_entry_screen.dart';
+import 'package:crab_cakes/presentation/screens/project_creation.dart';
+import 'package:crab_cakes/presentation/screens/update_project_screen.dart';
 import '../components/project_widget.dart';
 
 class _ProjectSelectionState extends ConsumerState<ProjectSelection> {

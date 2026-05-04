@@ -1,5 +1,5 @@
-import 'package:ui_prototype/application/scanner/interfaces/scanner_device_discovery.dart';
-import 'package:ui_prototype/application/scanner/dtos/discovered_port.dart';
+import 'package:crab_cakes/application/scanner/interfaces/scanner_device_discovery.dart';
+import 'package:crab_cakes/application/scanner/dtos/discovered_port.dart';
 
 import 'dart:io';
 import 'dart:ffi';

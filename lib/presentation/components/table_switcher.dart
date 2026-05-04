@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:ui_prototype/infrastructure/providers/flex_form_provider.dart';
+import 'package:crab_cakes/infrastructure/providers/flex_form_provider.dart';
 
 class TableSwitcher extends ConsumerWidget {
   final Map<String, dynamic> tables;

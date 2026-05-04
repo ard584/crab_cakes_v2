@@ -4,11 +4,11 @@
 //      THIS DOES NOT PRESERVE THE ACTUAL DATA OF THE ORIGINAL PROJECT
 import 'dart:convert';
 
-import 'package:ui_prototype/application/project/interfaces/schema/project_database_builder.dart';
-import 'package:ui_prototype/application/project/interfaces/schema/schema_validator.dart';
-import 'package:ui_prototype/application/project/interfaces/schema/project_settings_importer.dart';
-import 'package:ui_prototype/application/project/use_cases/create_project.dart';
-import 'package:ui_prototype/infrastructure/project/project_json_integrity_service.dart';
+import 'package:crab_cakes/application/project/interfaces/schema/project_database_builder.dart';
+import 'package:crab_cakes/application/project/interfaces/schema/schema_validator.dart';
+import 'package:crab_cakes/application/project/interfaces/schema/project_settings_importer.dart';
+import 'package:crab_cakes/application/project/use_cases/create_project.dart';
+import 'package:crab_cakes/infrastructure/project/project_json_integrity_service.dart';
 
 class ImportProject {
   final SchemaValidator validator;

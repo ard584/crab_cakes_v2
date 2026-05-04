@@ -1,8 +1,8 @@
 import 'dart:io';
 
 import 'package:sqlite3/sqlite3.dart';
-import 'package:ui_prototype/application/backup/interfaces/backup_exporter.dart';
-import 'package:ui_prototype/infrastructure/export/sqlite_data_exporter.dart';
+import 'package:crab_cakes/application/backup/interfaces/backup_exporter.dart';
+import 'package:crab_cakes/infrastructure/export/sqlite_data_exporter.dart';
 
 class SqliteBackupExporter implements BackupExporter {
   @override

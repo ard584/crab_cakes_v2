@@ -1,5 +1,5 @@
-import 'package:ui_prototype/application/sync/dtos/sync_compat_result.dart';
-import 'package:ui_prototype/application/sync/interfaces/project_sync_repo.dart';
+import 'package:crab_cakes/application/sync/dtos/sync_compat_result.dart';
+import 'package:crab_cakes/application/sync/interfaces/project_sync_repo.dart';
 
 class CheckSyncCompat {
   final ProjectSyncRepo repo;

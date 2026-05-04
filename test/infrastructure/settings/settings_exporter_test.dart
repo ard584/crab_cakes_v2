@@ -4,8 +4,8 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqlite3/sqlite3.dart';
 
-import 'package:ui_prototype/infrastructure/project/project_json_integrity_service.dart';
-import 'package:ui_prototype/infrastructure/settings/settings_exporter.dart';
+import 'package:crab_cakes/infrastructure/project/project_json_integrity_service.dart';
+import 'package:crab_cakes/infrastructure/settings/settings_exporter.dart';
 
 void main() {
   group('SettingsExporter', () {

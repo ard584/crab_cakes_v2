@@ -2,9 +2,9 @@
 
 //in short it Expose the data to the UI and manage app state.
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:ui_prototype/application/services/battery_service.dart';
-import 'package:ui_prototype/infrastructure/device/battery_service.dart';
-import 'package:ui_prototype/domain/enums/battery_state.dart';
+import 'package:crab_cakes/application/services/battery_service.dart';
+import 'package:crab_cakes/infrastructure/device/battery_service.dart';
+import 'package:crab_cakes/domain/enums/battery_state.dart';
 
 final batteryServiceProvider = Provider<BatteryService>((ref) {
   return BatteryPlusService();

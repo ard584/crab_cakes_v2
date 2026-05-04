@@ -1,47 +1,47 @@
 import 'dart:convert';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:ui_prototype/application/backup/interfaces/backup_exporter.dart';
+import 'package:crab_cakes/application/backup/interfaces/backup_exporter.dart';
 
 
 //importing supporting provider files
-import 'package:ui_prototype/infrastructure/providers/active_database_connection_provider.dart';
-import 'package:ui_prototype/infrastructure/providers/app_db_provider.dart';
+import 'package:crab_cakes/infrastructure/providers/active_database_connection_provider.dart';
+import 'package:crab_cakes/infrastructure/providers/app_db_provider.dart';
 
 import 'dart:io' show Platform;
 
 
 //importing dummy Infrastructure used when Platform is MAC-OS
-import 'package:ui_prototype/infrastructure/backup/dummies/dummy_backup_writer.dart';
-import 'package:ui_prototype/infrastructure/backup/dummies/dummy_drive_discovery.dart';
-import 'package:ui_prototype/infrastructure/backup/dummies/dummy_drive_selection_repo.dart';
-import 'package:ui_prototype/infrastructure/backup/dummies/dummy_manifest_writer.dart';
+import 'package:crab_cakes/infrastructure/backup/dummies/dummy_backup_writer.dart';
+import 'package:crab_cakes/infrastructure/backup/dummies/dummy_drive_discovery.dart';
+import 'package:crab_cakes/infrastructure/backup/dummies/dummy_drive_selection_repo.dart';
+import 'package:crab_cakes/infrastructure/backup/dummies/dummy_manifest_writer.dart';
 
 //importing use cases
-import 'package:ui_prototype/application/backup/usecases/discover_drives.dart';
-import 'package:ui_prototype/application/backup/usecases/get_backup_targets.dart';
-import 'package:ui_prototype/application/backup/usecases/select_drives.dart';
-import 'package:ui_prototype/application/backup/usecases/write_backup.dart';
-import 'package:ui_prototype/application/backup/usecases/auto_select_backups.dart';
+import 'package:crab_cakes/application/backup/usecases/discover_drives.dart';
+import 'package:crab_cakes/application/backup/usecases/get_backup_targets.dart';
+import 'package:crab_cakes/application/backup/usecases/select_drives.dart';
+import 'package:crab_cakes/application/backup/usecases/write_backup.dart';
+import 'package:crab_cakes/application/backup/usecases/auto_select_backups.dart';
 
 //importing app-level dtos
-import 'package:ui_prototype/application/backup/dtos/backup_request.dart';
+import 'package:crab_cakes/application/backup/dtos/backup_request.dart';
 
 //importing interfaces
-import 'package:ui_prototype/application/backup/interfaces/drive_discovery.dart';
-import 'package:ui_prototype/application/backup/interfaces/drive_selection_repo.dart';
-import 'package:ui_prototype/application/backup/interfaces/backup_manifest_writer.dart';
-import 'package:ui_prototype/application/backup/interfaces/db_backup_writer.dart';
-import 'package:ui_prototype/application/backup/interfaces/backup_planner.dart';
+import 'package:crab_cakes/application/backup/interfaces/drive_discovery.dart';
+import 'package:crab_cakes/application/backup/interfaces/drive_selection_repo.dart';
+import 'package:crab_cakes/application/backup/interfaces/backup_manifest_writer.dart';
+import 'package:crab_cakes/application/backup/interfaces/db_backup_writer.dart';
+import 'package:crab_cakes/application/backup/interfaces/backup_planner.dart';
 
 //importing concrete infrastructure implementations
-import 'package:ui_prototype/infrastructure/backup/backup_settings_db.dart';
-import 'package:ui_prototype/infrastructure/backup/sqlite_db_backup_writer.dart';
-import 'package:ui_prototype/infrastructure/backup/drift_drive_selection_repo.dart';
-import 'package:ui_prototype/infrastructure/backup/win32_drive_discovery.dart';
-import 'package:ui_prototype/infrastructure/backup/json_manifest_writer.dart';
-import 'package:ui_prototype/infrastructure/backup/crab_cakes_backup_planner.dart';
-import 'package:ui_prototype/infrastructure/backup/sqlite_backup_exporter.dart';
+import 'package:crab_cakes/infrastructure/backup/backup_settings_db.dart';
+import 'package:crab_cakes/infrastructure/backup/sqlite_db_backup_writer.dart';
+import 'package:crab_cakes/infrastructure/backup/drift_drive_selection_repo.dart';
+import 'package:crab_cakes/infrastructure/backup/win32_drive_discovery.dart';
+import 'package:crab_cakes/infrastructure/backup/json_manifest_writer.dart';
+import 'package:crab_cakes/infrastructure/backup/crab_cakes_backup_planner.dart';
+import 'package:crab_cakes/infrastructure/backup/sqlite_backup_exporter.dart';
 
 //------------------------------------------------------------------------------------
 

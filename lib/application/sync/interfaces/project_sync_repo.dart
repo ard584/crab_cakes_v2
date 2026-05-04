@@ -1,4 +1,4 @@
-import 'package:ui_prototype/application/sync/dtos/projcet_sync_metadata.dart';
+import 'package:crab_cakes/application/sync/dtos/projcet_sync_metadata.dart';
 
 abstract class ProjectSyncRepo {
   Future<ProjectSyncMetadata> readSyncMetadata(String dbPath);

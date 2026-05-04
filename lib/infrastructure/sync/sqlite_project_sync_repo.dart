@@ -1,9 +1,9 @@
 import 'dart:convert';
 
 import 'package:sqlite3/sqlite3.dart';
-import 'package:ui_prototype/application/sync/dtos/projcet_sync_metadata.dart';
-import 'package:ui_prototype/application/sync/interfaces/project_sync_repo.dart';
-import 'package:ui_prototype/infrastructure/providers/column_filter_provider.dart';
+import 'package:crab_cakes/application/sync/dtos/projcet_sync_metadata.dart';
+import 'package:crab_cakes/application/sync/interfaces/project_sync_repo.dart';
+import 'package:crab_cakes/infrastructure/providers/column_filter_provider.dart';
 
 class SqliteProjectSyncRepository implements ProjectSyncRepo {
 

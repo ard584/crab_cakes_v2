@@ -1,6 +1,6 @@
 # Project-level configuration.
 cmake_minimum_required(VERSION 3.14)
-project(ui_prototype LANGUAGES CXX)
+project(crab_cakes LANGUAGES CXX)
 
 #get rid of compilation warnings for flutter soloud
 add_compile_options(/wd4244 /wd4267 /wd4456 /wd4457 /wd4996 /wd4458 /wd4018 
@@ -12,7 +12,7 @@ set(CMAKE_SHARED_LINKER_FLAGS_PROFILE "${CMAKE_SHARED_LINKER_FLAGS_PROFILE} /INC
 
 # The name of the executable created for the application. Change this to change
 # the on-disk name of your application.
-set(BINARY_NAME "ui_prototype")
+set(BINARY_NAME "crab_cakes")
 
 # Explicitly opt in to modern CMake behaviors to avoid warnings with recent
 # versions of CMake.

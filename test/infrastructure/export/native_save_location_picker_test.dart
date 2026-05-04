@@ -1,8 +1,8 @@
 import 'package:file_selector/file_selector.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:ui_prototype/domain/value_objects/save_file_type.dart';
-import 'package:ui_prototype/infrastructure/export/native_save_location_picker.dart';
+import 'package:crab_cakes/domain/value_objects/save_file_type.dart';
+import 'package:crab_cakes/infrastructure/export/native_save_location_picker.dart';
 
 void main() {
   group('NativeSaveLocationPicker', () {

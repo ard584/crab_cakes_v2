@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:ui_prototype/infrastructure/providers/sound_provider.dart';
+import 'package:crab_cakes/infrastructure/providers/sound_provider.dart';
 
 //constants that deal with spacing for the master toggle 
 const double kSoundPreviewButtonSpacing = 93.0;

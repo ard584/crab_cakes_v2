@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:ui_prototype/infrastructure/providers/schema_discovery_provider.dart';
-import 'package:ui_prototype/infrastructure/providers/settings_provider.dart';
-//import 'package:ui_prototype/domain/entities/settings/project_settings.dart';
-import 'package:ui_prototype/presentation/screens/settings_screen.dart';
-import 'package:ui_prototype/presentation/utils/logger.dart';
+import 'package:crab_cakes/infrastructure/providers/schema_discovery_provider.dart';
+import 'package:crab_cakes/infrastructure/providers/settings_provider.dart';
+//import 'package:crab_cakes/domain/entities/settings/project_settings.dart';
+import 'package:crab_cakes/presentation/screens/settings_screen.dart';
+import 'package:crab_cakes/presentation/utils/logger.dart';
 
 class ScannerTargetSection extends ConsumerStatefulWidget {
   const ScannerTargetSection({super.key});

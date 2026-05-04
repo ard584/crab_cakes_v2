@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqlite3/sqlite3.dart';
-import 'package:ui_prototype/infrastructure/project/sqlite/sql_insert_generator.dart';
-import 'package:ui_prototype/infrastructure/project/sqlite/sqlite_active_project_repository.dart';
+import 'package:crab_cakes/infrastructure/project/sqlite/sql_insert_generator.dart';
+import 'package:crab_cakes/infrastructure/project/sqlite/sqlite_active_project_repository.dart';
 
 void main() {
   late Database db;

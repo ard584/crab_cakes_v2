@@ -3,9 +3,9 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as path;
 
-import 'package:ui_prototype/application/backup/dtos/backup_request.dart';
-import 'package:ui_prototype/application/backup/dtos/backup_target.dart';
-import 'package:ui_prototype/infrastructure/backup/crab_cakes_backup_planner.dart';
+import 'package:crab_cakes/application/backup/dtos/backup_request.dart';
+import 'package:crab_cakes/application/backup/dtos/backup_target.dart';
+import 'package:crab_cakes/infrastructure/backup/crab_cakes_backup_planner.dart';
 
 void main() {
   group('CrabCakesBackupPlanner', () {

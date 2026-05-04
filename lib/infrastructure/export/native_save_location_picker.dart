@@ -1,6 +1,6 @@
-import 'package:ui_prototype/application/export/interfaces/save_location_picker.dart';
+import 'package:crab_cakes/application/export/interfaces/save_location_picker.dart';
 import 'package:file_selector/file_selector.dart';
-import 'package:ui_prototype/domain/value_objects/save_file_type.dart';
+import 'package:crab_cakes/domain/value_objects/save_file_type.dart';
 
 typedef SaveLocationSelector = Future<FileSaveLocation?> Function({
   required String suggestedName,

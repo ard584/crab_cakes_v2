@@ -1,9 +1,9 @@
 import 'dart:io';
 import 'package:sqlite3/sqlite3.dart';
-import 'package:ui_prototype/application/export/interfaces/data_exporter.dart';
-import 'package:ui_prototype/infrastructure/schema_discovery/schema_graph.dart';
+import 'package:crab_cakes/application/export/interfaces/data_exporter.dart';
+import 'package:crab_cakes/infrastructure/schema_discovery/schema_graph.dart';
 
-import 'package:ui_prototype/infrastructure/providers/column_filter_provider.dart';
+import 'package:crab_cakes/infrastructure/providers/column_filter_provider.dart';
 
 
 class SqliteDataExporter implements DataExporter {
