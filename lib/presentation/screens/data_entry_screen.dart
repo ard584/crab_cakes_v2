@@ -11,6 +11,7 @@ import 'package:ui_prototype/infrastructure/providers/form_save_notifier.dart';
 import 'package:ui_prototype/infrastructure/providers/pit_readers_providers.dart';
 import 'package:ui_prototype/infrastructure/providers/project_database_provider.dart';
 import 'package:ui_prototype/infrastructure/providers/field_config_providers.dart';
+import 'package:ui_prototype/infrastructure/providers/data_entry_title_project_provider.dart';
 
 import 'package:ui_prototype/presentation/screens/check_database_screen.dart';
 import 'package:ui_prototype/presentation/screens/export_screen.dart';
@@ -22,6 +23,7 @@ import 'package:ui_prototype/presentation/view_models/project_input.dart';
 import 'package:ui_prototype/presentation/components/catch_table_widget.dart';
 import 'package:ui_prototype/presentation/shortcuts/data_entry_shortcuts.dart';
 import 'package:ui_prototype/presentation/components/status_panel.dart';
+import 'package:ui_prototype/presentation/components/table_switcher.dart';
 
 import 'package:ui_prototype/infrastructure/providers/external_backup_provider.dart';
 import 'package:ui_prototype/infrastructure/providers/settings_provider.dart';
@@ -214,68 +216,106 @@ class _DataEntryState extends ConsumerState<DataEntryScreen> {
       );
     });
 
-  return DataEntryShortcuts(
-    onSave: _saveRecordAndRunBackups,
-    child: Scaffold(
-      appBar: AppBar(
-        title: projectAsync.when(
-          data: (project) => Text(activeTableName ?? 'Data Entry'),
-          error: (_, __) => const Text("Error"),
-          loading: () => const Text('Loading...'),
-        ),
-      ),
-      drawer: ProjectDrawer(),
-      body: Padding(
-        padding: const EdgeInsets.all(28.0),
-        child: projectAsync.when(
-          error: (err, stack) => Center(child: Text("Error: $err")),
-          data: (project) {
-            if (project.tables.isEmpty) {
-              return Center(child: Text("No project selected"));
-            }
+    return DataEntryShortcuts(
+      onSave: _saveRecordAndRunBackups,
+      onTableSwitch: (index) {
+        final projectMap = ref.read(projectViewModelProvider).value;
+        if (projectMap == null) return;
 
-            if (activeTableName == null) {
-              return Center(child: const CircularProgressIndicator());
-            }
+        final tableNames = projectMap.tables.keys.toList();
+        if (index < tableNames.length) {
+          ref
+              .read(activeTableProvider.notifier)
+              .setActiveTable(tableNames[index]);
+        }
+      },
+      child: FocusableActionDetector(
+        autofocus: true,
+        child: Scaffold(
+          appBar: AppBar(
+            title: Builder(
+              builder: (context) {
+                final projectName = ref.watch(currentProjectTitleProvider);
+                final tableName = activeTableName ?? '';
 
-            return Column(
-              children: [
-                //made it a row to show status on the left followed by table on the
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                return Text(
+                  tableName.isNotEmpty
+                      ? '$projectName - $tableName'
+                      : projectName,
+                );
+              },
+            ),
+          ),
+          drawer: ProjectDrawer(),
+          body: Padding(
+            padding: const EdgeInsets.all(28.0),
+            child: projectAsync.when(
+              error: (err, stack) => Center(child: Text("Error: $err")),
+              data: (project) {
+                if (project.tables.isEmpty) {
+                  return Center(child: Text("No project selected"));
+                }
+
+                if (activeTableName == null) {
+                  return Center(child: const CircularProgressIndicator());
+                }
+
+                return Column(
                   children: [
-                    const StatusPanel(),
-                    const SizedBox(width: 12),
-                    // push table to right
-                    const Spacer(), 
-                    CatchHistorySection(tableName: activeTableName),
+                    //made it a row to show status on the left followed by table on the
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Left side
+                        Flexible(
+                          flex: 1,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const StatusPanel(),
+                              const SizedBox(height: 12),
+                              // Table switching
+                              TableSwitcher(
+                                tables: project.tables,
+                                activeTableName: activeTableName,
+                                showFKeyBadges: true,
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Flexible(
+                          flex: 1,
+                          child: CatchHistorySection(tableName: activeTableName),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
 
-                  ]
-                ),
-                const SizedBox(height: 16),
-                
-                Expanded(
-                  child: Form(
-                    key: _formKey,
-                    child: TableFormSection(controller: scrollController,),
-                  ),
-                ),
-              ],
-            );
-          },
+                    Expanded(
+                      child: Form(
+                        key: _formKey,
+                        child: TableFormSection(controller: scrollController),
+                      ),
+                    ),
+                  ],
+                );
+              },
 
-          // Handle error and loading states
-          loading: () => const Center(child: CircularProgressIndicator()),
+              // Handle error and loading states
+              loading: () => const Center(child: CircularProgressIndicator()),
+            ),
+          ),
+
+          floatingActionButton: FloatingActionButton.extended(
+            focusNode: FocusNode(skipTraversal: true),
+            onPressed: _saveRecordAndRunBackups,
+            label: const Padding(
+              padding: EdgeInsets.all(20.0),
+              child: Text("Save Record (f12)"),
+            ),
+          ),
         ),
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        focusNode: FocusNode(skipTraversal: true),
-        onPressed: _saveRecordAndRunBackups,
-        label: const Padding(
-          padding: EdgeInsets.all(20.0),
-          child: Text("Save Record (f12)"),
-        ),
-      ),
       ),
     );
   }
