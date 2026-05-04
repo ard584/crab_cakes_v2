@@ -6,6 +6,11 @@ class SqliteSchemaDiscoveryRepo implements SchemaDiscoveryRepo {
   final Database db;
 
   const SqliteSchemaDiscoveryRepo(this.db);
+
+  String _quoteIdentifier(String identifier) {
+    final escaped = identifier.replaceAll('"', '""');
+    return '"$escaped"';
+  }
   
   @override
   Future<List<String>> getTables() async {
@@ -24,7 +29,9 @@ class SqliteSchemaDiscoveryRepo implements SchemaDiscoveryRepo {
 
   @override
   Future<List<String>> getColumns(String table) async {
-    final result = db.select('PRAGMA table_info($table)');
+    final quotedTable = _quoteIdentifier(table);
+
+    final result = db.select('PRAGMA table_info($quotedTable)');
 
     return result.map((row) => row['name'] as String).toList();
   }
