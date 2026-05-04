@@ -3,7 +3,6 @@ import 'dart:typed_data';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 import 'package:ui_prototype/application/device_storage/device_id_use_case.dart';
-import 'package:ui_prototype/application/project/interfaces/schema_structure_validator.dart';
 import 'package:ui_prototype/application/project/use_cases/create_project.dart';
 import 'package:ui_prototype/infrastructure/project/sqlite/sql_security_validator.dart';
 import 'package:ui_prototype/infrastructure/project/sqlite/sql_statement_parser.dart';
