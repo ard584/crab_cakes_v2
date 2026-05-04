@@ -2,29 +2,39 @@ import 'package:ui_prototype/application/export/interfaces/save_location_picker.
 import 'package:file_selector/file_selector.dart';
 import 'package:ui_prototype/domain/value_objects/save_file_type.dart';
 
+typedef SaveLocationSelector = Future<FileSaveLocation?> Function({
+  required String suggestedName,
+  required List<XTypeGroup> acceptedTypeGroups,
+});
+
 class NativeSaveLocationPicker implements SaveLocationPicker {
+  final SaveLocationSelector _getSaveLocation;
+
+  NativeSaveLocationPicker({
+    SaveLocationSelector? getSaveLocationOverride,
+  }) : _getSaveLocation = getSaveLocationOverride ?? getSaveLocation;
+
   @override
   Future<String?> getLocation({
     required String suggestedName,
     required SaveFileType type,
-  }) async { 
-
+  }) async {
     final typeGroup = _typeGroupFor(type);
 
-    final location = await getSaveLocation(
-    suggestedName: suggestedName,
-    acceptedTypeGroups: [
-      typeGroup
-    ],
-  );
+    final location = await _getSaveLocation(
+      suggestedName: suggestedName,
+      acceptedTypeGroups: [
+        typeGroup,
+      ],
+    );
 
-  if(location == null) return null;
+    if (location == null) return null;
 
-  return location.path;
+    return location.path;
   }
 
   XTypeGroup _typeGroupFor(SaveFileType type) {
-    switch(type) {
+    switch (type) {
       case SaveFileType.csv:
         return XTypeGroup(
           label: 'CSV Files',

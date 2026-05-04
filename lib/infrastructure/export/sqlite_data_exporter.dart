@@ -149,10 +149,11 @@ class SqliteDataExporter implements DataExporter {
     //resetting the index to the beginning of the list, now we iterate from the
     //beginning (leaf) to the table right before the selected table. These are
     //the descendents of the selected table (I.E. VIE marks is a descendent to Specimen)
-    index = 0;
-
-    //generating all descendent Joins (Some might be empty, left joining)
-    while(index < selectedIndex) {
+    // Important: ancestorPathFromLeaf is ordered leaf -> root, so descendant joins
+    
+    // must be emitted in reverse order. Otherwise SQLite can see an ON clause that
+    // references a table that has not been joined yet.
+    for (index = selectedIndex - 1; index >= 0; index--) {
       final edge = ancestorPathFromLeaf[index];
 
       buffer.writeln(
@@ -160,8 +161,6 @@ class SqliteDataExporter implements DataExporter {
         'ON ${edge.childTable}.${edge.childCol} = '
         '${edge.parentTable}.${edge.parentCol}'
       );
-
-      index++;
     }
 
     return buffer.toString();
