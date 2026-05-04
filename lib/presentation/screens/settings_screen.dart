@@ -36,26 +36,6 @@ class SettingsScreen extends ConsumerWidget {
 
               const ScannerTargetSection(),
 
-              const ReusableLeftAlignedText(text: 'Merge Data Files'),
-              Container(
-                decoration: reusableBoxDecoration,
-                padding: reusablePadding,
-                child: Row(
-                  children: <Widget>[
-                    const Icon(Icons.file_copy),
-                    const SizedBox(width: 8),
-                    const Text("Data File: 'project_5.db'"),
-                    const Spacer(),
-                    IconButton(
-                      tooltip: 'Import a data file to be merged.',
-                      onPressed: () {
-                        log.d('Tapped merge import');
-                      },
-                      icon: const Icon(Icons.file_upload),
-                    ),
-                  ],
-                ),
-              ),
               const ReusableLeftAlignedText(text: 'Project Configuration Export'),
               Container(
                 padding: reusablePadding,
