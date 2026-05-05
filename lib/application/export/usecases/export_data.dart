@@ -1,6 +1,6 @@
-import 'package:ui_prototype/application/export/interfaces/data_exporter.dart';
-import 'package:ui_prototype/application/export/interfaces/save_location_picker.dart';
-import 'package:ui_prototype/domain/value_objects/save_file_type.dart';
+import 'package:crab_cakes/application/export/interfaces/data_exporter.dart';
+import 'package:crab_cakes/application/export/interfaces/save_location_picker.dart';
+import 'package:crab_cakes/domain/value_objects/save_file_type.dart';
 
 class ExportData {
   final DataExporter exporter;

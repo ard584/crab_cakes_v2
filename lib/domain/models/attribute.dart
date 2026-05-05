@@ -7,6 +7,12 @@ class Attribute {
   final String? defaultValue;
   final bool isPrimaryKey;
 
+  //object to store foreign key information if the attribute is a foreign key
+  final ForeignKeyInfo? fkInfo;
+
+  //flag to identify if the field is an auto-increment field
+  bool isAutoIncrement;
+
   // Define initializer
   Attribute({
     required this.columnID,
@@ -15,7 +21,13 @@ class Attribute {
     required this.isNotNullable,
     this.defaultValue,
     required this.isPrimaryKey,
+    this.fkInfo,
+    this.isAutoIncrement = false,
   });
+
+  //defining a simple getter for whether or not his attribute is a foreign key
+  bool get isForeignKey => fkInfo != null;
+
 
   @override
   String toString() {
@@ -83,4 +95,15 @@ class AttributeList extends Iterable<Attribute> {
 
     return '[\n$attributesString\n]';
   }
+}
+
+
+class ForeignKeyInfo {
+  final String referencedTable;
+  final String referencedColumn;
+
+  const ForeignKeyInfo({
+    required this.referencedTable,
+    required this.referencedColumn,
+  });
 }

@@ -1,5 +1,5 @@
-import 'package:ui_prototype/application/project/use_cases/create_project.dart';
-import 'package:ui_prototype/presentation/utils/logger.dart';
+import 'package:crab_cakes/application/project/use_cases/create_project.dart';
+import 'package:crab_cakes/presentation/utils/logger.dart';
 
 class ProjectCreateRequest {
   final String title;

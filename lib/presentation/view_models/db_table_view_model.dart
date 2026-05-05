@@ -1,5 +1,5 @@
-import 'package:ui_prototype/domain/db_table.dart';
-import 'package:ui_prototype/domain/models/db_row.dart';
+import 'package:crab_cakes/domain/db_table.dart';
+import 'package:crab_cakes/domain/models/db_row.dart';
 
 class DbTableViewModel {
   final DbTable table;

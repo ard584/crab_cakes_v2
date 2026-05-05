@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:ui_prototype/domain/entities/settings/field_config.dart';
+import 'package:crab_cakes/domain/entities/settings/field_config.dart';
 
 class FlexFieldFactory {
   static Widget createField({
@@ -164,35 +164,53 @@ class _FlexAutocompleteFieldState extends State<_FlexAutocompleteField> {
   }
 
   List<String> _getFilteredOptions(String query) {
-    final q = query.trim().toLowerCase();
-    final all = widget.config.settings.options;
+  final q = query.trim().toLowerCase();
+  final normalizedQuery = _normalizeDropdownValue(query).toLowerCase();
+  final all = widget.config.settings.options;
 
-    if (q.isEmpty) return all;
+  if (q.isEmpty) return all;
 
-    final hasExactMatch = all.any(
-      (o) => _normalizeDropdownValue(o).toLowerCase() ==
-          _normalizeDropdownValue(query).toLowerCase(),
-    );
+  final hasExactMatch = all.any(
+    (o) =>
+        _normalizeDropdownValue(o).toLowerCase() == normalizedQuery ||
+        o.trim().toLowerCase() == q,
+  );
 
-    if (hasExactMatch) {
-      return [];
-    }
-
-    final starts = all.where((o) => o.toLowerCase().startsWith(q));
-    final contains = all.where(
-      (o) => !o.toLowerCase().startsWith(q) && o.toLowerCase().contains(q),
-    );
-
-    return [...starts, ...contains];
+  if (hasExactMatch) {
+    return [];
   }
 
+  bool optionStartsWith(String option) {
+    final rawOption = option.toLowerCase();
+    final normalizedOption = _normalizeDropdownValue(option).toLowerCase();
+
+    return rawOption.startsWith(q) || normalizedOption.startsWith(q);
+  }
+
+  bool optionContains(String option) {
+    final rawOption = option.toLowerCase();
+    final normalizedOption = _normalizeDropdownValue(option).toLowerCase();
+
+    return rawOption.contains(q) || normalizedOption.contains(q);
+  }
+
+  final starts = all.where(optionStartsWith);
+
+  final contains = all.where(
+    (o) => !optionStartsWith(o) && optionContains(o),
+  );
+
+  return [...starts, ...contains];
+}
+
   void _commitSelection(String value) {
+    final normalizedValue = _normalizeDropdownValue(value);
 
     _suppressOptions = true;
 
     widget.controller.value = TextEditingValue(
-      text: value,
-      selection: TextSelection.collapsed(offset: value.length),
+      text: normalizedValue,
+      selection: TextSelection.collapsed(offset: normalizedValue.length),
     );
   }
 

@@ -1,5 +1,5 @@
-import 'package:ui_prototype/application/backup/dtos/backup_target.dart';
-import 'package:ui_prototype/application/backup/interfaces/drive_discovery.dart';
+import 'package:crab_cakes/application/backup/dtos/backup_target.dart';
+import 'package:crab_cakes/application/backup/interfaces/drive_discovery.dart';
 
 class DiscoverDrives {
   final DriveDiscovery discoverer;

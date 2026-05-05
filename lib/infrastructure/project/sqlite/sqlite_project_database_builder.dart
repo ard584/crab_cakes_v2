@@ -1,17 +1,18 @@
-import 'package:ui_prototype/application/project/interfaces/schema/project_database_builder.dart';
+import 'package:crab_cakes/application/project/interfaces/schema/project_database_builder.dart';
 
 import 'package:path_provider/path_provider.dart';
 import 'package:sqlite3/sqlite3.dart';
-import 'package:ui_prototype/presentation/exceptions/project_db_exception.dart';
+import 'package:crab_cakes/presentation/exceptions/project_db_exception.dart';
 
 import 'dart:io';
 import 'package:path/path.dart' as path;
 
 import 'package:uuid/uuid.dart';
-import 'package:ui_prototype/presentation/utils/logger.dart';
+import 'package:crab_cakes/presentation/utils/logger.dart';
 
-import 'package:ui_prototype/infrastructure/providers/column_filter_provider.dart';
+import 'package:crab_cakes/infrastructure/providers/column_filter_provider.dart';
 import 'dart:convert';
+import 'package:crypto/crypto.dart';
 
 class SqliteProjectDatabaseBuilder implements ProjectDatabaseBuilder {
 
@@ -28,12 +29,88 @@ class SqliteProjectDatabaseBuilder implements ProjectDatabaseBuilder {
 
     // Needs to have at least one valid created table
     final tables = db.select("""
-  SELECT name FROM sqlite_master
-  WHERE type = 'table'
-  AND name NOT LIKE 'sqlite_%'
-  AND name != '__app_metadata'""");
+      SELECT name FROM sqlite_master
+      WHERE type = 'table'
+      AND name NOT LIKE 'sqlite_%'
+    """);
 
-    return tables.isNotEmpty;
+    final userTables = tables.where((row) {
+      final tableName = row['name'] as String;
+      return !_isInternalName(tableName);
+    }).toList();
+
+    return userTables.isNotEmpty;
+  }
+
+  bool _isInternalName(String name) {
+    return name.startsWith('__') || name.startsWith(kColumnPrefixToHide);
+  }
+
+  String _quoteIdentifier(String identifier) {
+    return '"${identifier.replaceAll('"', '""')}"';
+  }
+
+  void _addInternalColumnsIfMissing(Database db, String tableName) {
+    final quotedTableName = _quoteIdentifier(tableName);
+
+    final tableInfo = db.select('PRAGMA table_info($quotedTableName);');
+    final existingColumns = tableInfo
+        .map((row) => row['name'] as String)
+        .toSet();
+
+    void addColumnIfMissing(String columnName, String columnDefinition) {
+      if (existingColumns.contains(columnName)) return;
+
+      db.execute(
+        'ALTER TABLE $quotedTableName ADD COLUMN $columnName $columnDefinition;',
+      );
+
+      existingColumns.add(columnName);
+    }
+
+    // Existing app/catch-history metadata columns.
+    addColumnIfMissing(
+      '${kColumnPrefixToHide}created_at_time',
+      "TEXT DEFAULT (datetime('now', 'localtime'))",
+    );
+
+    addColumnIfMissing(
+      '${kColumnPrefixToHide}modified_in_program',
+      'INTEGER DEFAULT 0',
+    );
+
+    // Sync metadata columns.
+    addColumnIfMissing(
+      '${kColumnPrefixToHide}row_guid',
+      'TEXT',
+    );
+
+    addColumnIfMissing(
+      '${kColumnPrefixToHide}created_at',
+      'TEXT',
+    );
+
+    addColumnIfMissing(
+      '${kColumnPrefixToHide}updated_at',
+      'TEXT',
+    );
+
+    addColumnIfMissing(
+      '${kColumnPrefixToHide}deleted_at',
+      'TEXT',
+    );
+
+    final rowGuidIndexName = _quoteIdentifier(
+      '${tableName}_${kColumnPrefixToHide}row_guid_unique_idx',
+    );
+
+    final rowGuidColumn = '${kColumnPrefixToHide}row_guid';
+    final quotedRowGuidColumn = _quoteIdentifier(rowGuidColumn);
+
+    db.execute('''
+      CREATE UNIQUE INDEX IF NOT EXISTS $rowGuidIndexName
+      ON $quotedTableName ($quotedRowGuidColumn);
+    ''');
   }
 
   Map<String, Object?> getSecurityState(Database db) {
@@ -117,18 +194,11 @@ class SqliteProjectDatabaseBuilder implements ProjectDatabaseBuilder {
 
         for (final table in tables) {
           final tableName = table['name'] as String;
+
           if (tableName.startsWith('sqlite_')) continue;
-          // Get existing columns
-          final tableInfo = db.select("PRAGMA table_info($tableName);");
-          final existingColumns = tableInfo.map((row) => row['name'] as String).toSet();
-          
-          // Add system columns if missing
-          if (!existingColumns.contains('${kColumnPrefixToHide}created_at_time')) {
-            db.execute("ALTER TABLE $tableName ADD COLUMN ${kColumnPrefixToHide}created_at_time TEXT DEFAULT (datetime('now', 'localtime'));");
-          }
-          if (!existingColumns.contains('${kColumnPrefixToHide}modified_in_program')) {
-            db.execute("ALTER TABLE $tableName ADD COLUMN ${kColumnPrefixToHide}modified_in_program INTEGER DEFAULT 0;");
-          }
+          if (_isInternalName(tableName)) continue;
+
+          _addInternalColumnsIfMissing(db, tableName);
         }
 
         // check security state
@@ -161,10 +231,27 @@ class SqliteProjectDatabaseBuilder implements ProjectDatabaseBuilder {
 
       db.execute('COMMIT');
     } catch (e) {
-      db.execute('ROLLBACK;');
-      db.dispose();
-      // Clean up temp file
-      if (File(dbTempPath).existsSync()) File(dbTempPath).deleteSync();
+      try {
+        db.execute('ROLLBACK;');
+      } catch (_) {
+        // Ignore rollback failures so the original failure can still be rethrown.
+      }
+
+      try {
+        db.dispose();
+      } catch (_) {
+        // Ignore dispose failures during cleanup.
+      }
+
+      // Clean up temp file after closing the database connection.
+      try {
+        if (File(dbTempPath).existsSync()) {
+          File(dbTempPath).deleteSync();
+        }
+      } catch (_) {
+        // Ignore cleanup failure so the original error is preserved.
+      }
+
       rethrow;
     } finally {
       //closing the database connection to prevent windows complaints
@@ -176,10 +263,18 @@ class SqliteProjectDatabaseBuilder implements ProjectDatabaseBuilder {
 
   void createSystemTables(Database db, List<String> statements) {
 
+    //generating the GUID and schema hash for the project
+    final projectGuid = const Uuid().v4();
+    final schemaHash = computeSchemaHash(db);
+
     final initialJson = jsonEncode({
     'formatVersion': 1,
+    'projectGuid': projectGuid,
+    'schemaHash': schemaHash,
+    'syncVersion': 1,
     'schemaSql': statements,
-    'settings': {}
+    'settings': {},
+    'integrity': {},
     });
 
     //creating the Settings table (stores setting json), and inserting first row
@@ -194,5 +289,83 @@ class SqliteProjectDatabaseBuilder implements ProjectDatabaseBuilder {
       INSERT INTO __project_settings (id, settings_json)
       VALUES (1, ?);
     ''', [initialJson]);
+  }
+
+  String computeSchemaHash(Database db) {
+    final schemaParts = <Map<String, Object?>>[];
+
+
+    final tables = db.select('''
+      SELECT name
+      FROM sqlite_master
+      WHERE type = 'table'
+        AND name NOT LIKE 'sqlite_%'
+      ORDER BY name;
+    ''');
+
+    for (final tableRow in tables) {
+      final tableName = tableRow['name'] as String;
+
+      if (_isInternalName(tableName)) continue;
+
+      final quotedTableName = _quoteIdentifier(tableName);
+
+      final columns = db.select('PRAGMA table_info($quotedTableName);');
+
+      final normalizedColumns = columns
+          .where((column) {
+            final columnName = column['name'] as String;
+            return !_isInternalName(columnName);
+          })
+          .map((column) {
+            return {
+              'name': column['name'],
+              'type': (column['type'] as String?)?.toUpperCase().trim(),
+              'notnull': column['notnull'],
+              'default': column['dflt_value'],
+              'pk': column['pk'],
+            };
+          })
+          .toList();
+
+      final foreignKeys = db.select('PRAGMA foreign_key_list($quotedTableName);');
+
+      final normalizedForeignKeys = foreignKeys
+          .where((fk) {
+            final fromColumn = fk['from'] as String;
+            final referencedTable = fk['table'] as String;
+            final toColumn = fk['to'] as String?;
+
+            return !_isInternalName(fromColumn) &&
+                !_isInternalName(referencedTable) &&
+                (toColumn == null || !_isInternalName(toColumn));
+          })
+          .map((fk) {
+            return {
+              'from': fk['from'],
+              'toTable': fk['table'],
+              'to': fk['to'],
+              'onUpdate': fk['on_update'],
+              'onDelete': fk['on_delete'],
+              'match': fk['match'],
+            };
+          })
+          .toList();
+
+      normalizedForeignKeys.sort((a, b) {
+        final aKey = '${a['from']}|${a['toTable']}|${a['to']}';
+        final bKey = '${b['from']}|${b['toTable']}|${b['to']}';
+        return aKey.compareTo(bKey);
+      });
+
+      schemaParts.add({
+        'table': tableName,
+        'columns': normalizedColumns,
+        'foreignKeys': normalizedForeignKeys,
+      });
+    }
+
+    final canonicalSchemaJson = jsonEncode(schemaParts);
+    return sha256.convert(utf8.encode(canonicalSchemaJson)).toString();
   }
 }

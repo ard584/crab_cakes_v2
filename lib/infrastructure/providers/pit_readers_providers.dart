@@ -2,37 +2,38 @@ import 'dart:convert';
 
 import 'dart:io' show Platform;
 
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 
 //importing dummy infrastructure used when the active platform is MAC-OS
-import 'package:ui_prototype/infrastructure/scanner/dummies/dummy_scanner_connector.dart';
-import 'package:ui_prototype/infrastructure/scanner/dummies/dummy_scanner_discovery.dart';
+import 'package:crab_cakes/infrastructure/scanner/dummies/dummy_scanner_connector.dart';
+import 'package:crab_cakes/infrastructure/scanner/dummies/dummy_scanner_discovery.dart';
 
 //importing use cases
-import 'package:ui_prototype/application/scanner/usecases/connect_scanner.dart';
-import 'package:ui_prototype/application/scanner/usecases/disconnect_scanner.dart';
-import 'package:ui_prototype/application/scanner/usecases/list_devices.dart';
+import 'package:crab_cakes/application/scanner/usecases/connect_scanner.dart';
+import 'package:crab_cakes/application/scanner/usecases/disconnect_scanner.dart';
+import 'package:crab_cakes/application/scanner/usecases/list_devices.dart';
 
 //importing interfaces 
-import 'package:ui_prototype/application/scanner/interfaces/scanner_connector.dart';
-import 'package:ui_prototype/application/scanner/interfaces/scanner_device_discovery.dart';
+import 'package:crab_cakes/application/scanner/interfaces/scanner_connector.dart';
+import 'package:crab_cakes/application/scanner/interfaces/scanner_device_discovery.dart';
 
 //importing DTO
-import 'package:ui_prototype/application/scanner/dtos/discovered_port.dart';
-import 'package:ui_prototype/domain/value_objects/parse_result.dart';
+import 'package:crab_cakes/application/scanner/dtos/discovered_port.dart';
+import 'package:crab_cakes/domain/value_objects/parse_result.dart';
 
 //importing concrete infrastructure implementations
-import 'package:ui_prototype/infrastructure/scanner/libserialport_adapter.dart';
-import 'package:ui_prototype/infrastructure/scanner/libserialport_device_discovery.dart';
+import 'package:crab_cakes/infrastructure/scanner/libserialport_adapter.dart';
+import 'package:crab_cakes/infrastructure/scanner/libserialport_device_discovery.dart';
 
 //importing domain-level tools
-import 'package:ui_prototype/domain/entities/scan_event.dart';
-import 'package:ui_prototype/domain/core/biomark_scan_parser.dart';
+import 'package:crab_cakes/domain/entities/scan_event.dart';
+import 'package:crab_cakes/domain/core/biomark_scan_parser.dart';
 
 //importing sound pieces for when connection occurs 
-import 'package:ui_prototype/infrastructure/providers/sound_provider.dart';
-import 'package:ui_prototype/domain/enums/app_sound.dart';
+import 'package:crab_cakes/infrastructure/providers/sound_provider.dart';
+import 'package:crab_cakes/domain/enums/app_sound.dart';
 
 //------------------------------------------------------------------------------
 
@@ -50,12 +51,15 @@ final scannerDiscoveryProvider = Provider<ScannerDeviceDiscovery>((ref) {
 });
 
 final scannerConnectorProvider = Provider<ScannerConnector>((ref) {
-  // Construct the concrete connector implementation
-  if(Platform.isWindows) {
-    return LibserialportAdapter();
-  } else {
-    return DummyScannerConnector();
-  }
+  final connector = Platform.isWindows
+      ? LibserialportAdapter()
+      : DummyScannerConnector();
+
+  ref.onDispose(() {
+    connector.disconnect();
+  });
+
+  return connector;
 });
 
 
@@ -148,10 +152,13 @@ class PitConnectionState {
     bool? isConnecting,
     String? connectedDeviceId,
     Object? error,
+    bool clearConnectedDeviceId = false,
   }) {
     return PitConnectionState(
       isConnecting: isConnecting ?? this.isConnecting,
-      connectedDeviceId: connectedDeviceId,
+      connectedDeviceId: clearConnectedDeviceId
+          ? null
+          : (connectedDeviceId ?? this.connectedDeviceId),
       error: error,
     );
   }
@@ -170,6 +177,10 @@ class PitConnectionController extends StateNotifier<PitConnectionState> {
 
   final Ref _ref;
 
+  void clearError() {
+    state = state.copyWith(error: null);
+  }
+
   Future<void> connectSelected() async {
     final selectedId = _ref.read(selectedDeviceIdProvider); 
     if (selectedId == null) {
@@ -184,26 +195,37 @@ class PitConnectionController extends StateNotifier<PitConnectionState> {
 
     state = state.copyWith(isConnecting: true, error: null);
 
+    // Give the UI a chance to show the loading spinner.
+    await Future<void>.delayed(const Duration(milliseconds: 50));
+
     try {
       final connect = _ref.read(connectScannerUsecaseProvider);
 
       // Adjust to your use case API:
       // await connect(deviceId: selectedId);
-      await connect.execute(selectedId);
+      final connectionSuccess = await connect.execute(selectedId);
 
-      final wasConnected = state.isConnected;
+      if(connectionSuccess) {
+        final wasConnected = state.isConnected;
 
-      state = PitConnectionState(
-        isConnecting: false,
-        connectedDeviceId: selectedId,
-        error: null,
-      );
+        state = PitConnectionState(
+          isConnecting: false,
+          connectedDeviceId: selectedId,
+          error: null,
+        );
 
-      //play the sound after reader has been successfully connected
-      //a guard that makes sure it does not replay on redundant reconnects
-      //NOTE: I dont have the pittag scanner to test if it works
-      if(!wasConnected){
-        _ref.read(soundServiceProvider).play(AppSound.readerDiscovered);
+        //play the sound after reader has been successfully connected
+        //a guard that makes sure it does not replay on redundant reconnects
+        //NOTE: I dont have the pittag scanner to test if it works
+        if(!wasConnected){
+          _ref.read(soundServiceProvider).play(AppSound.readerDiscovered);
+        }
+      } else {
+        state = PitConnectionState(
+          isConnecting: false,
+          connectedDeviceId: null,
+          error: Exception("Could not connect to Scanner"),
+        );
       }
 
 
@@ -259,4 +281,19 @@ final selectedDeviceProvider = Provider<DiscoveredPort?>((ref) {
   );
 });
 
+/// Live scanner connection status reported by the active scanner connector.
+///
+/// This reflects app-initiated connect/disconnect events and any disconnects
+/// detected by the connector's read stream/error handling. It does not perform
+/// active heartbeat polling.
+final scannerConnectionStatusProvider = StreamProvider<bool>((ref) async* {
+  final connector = ref.watch(scannerConnectorProvider);
 
+  // Emit the current connection status immediately.
+  yield connector.isConnected;
+
+  // Then emit future status changes from the connector.
+  await for (final isConnected in connector.connectionStatusStream) {
+    yield isConnected;
+  }
+});

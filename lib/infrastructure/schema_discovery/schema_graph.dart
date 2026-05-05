@@ -143,6 +143,10 @@ class SchemaGraph {
   }
 }
 
+String _quoteIdentifier(String identifier) {
+  return '"${identifier.replaceAll('"', '""')}"';
+}
+
 
 SchemaGraph buildGraph( Database db ) {
 
@@ -161,7 +165,8 @@ SchemaGraph buildGraph( Database db ) {
     final tableName = row['name'] as String;
     tables.add(tableName);
 
-    final fkRows = db.select('PRAGMA foreign_key_list($tableName);');
+    final quotedTableName = _quoteIdentifier(tableName);
+    final fkRows = db.select('PRAGMA foreign_key_list($quotedTableName);');
 
     for(final fk in fkRows) {
       relationships.add(

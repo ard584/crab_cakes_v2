@@ -1,9 +1,9 @@
 import 'dart:io';
 import 'package:sqlite3/sqlite3.dart';
-import 'package:ui_prototype/application/export/interfaces/data_exporter.dart';
-import 'package:ui_prototype/infrastructure/schema_discovery/schema_graph.dart';
+import 'package:crab_cakes/application/export/interfaces/data_exporter.dart';
+import 'package:crab_cakes/infrastructure/schema_discovery/schema_graph.dart';
 
-import 'package:ui_prototype/infrastructure/providers/column_filter_provider.dart';
+import 'package:crab_cakes/infrastructure/providers/column_filter_provider.dart';
 
 
 class SqliteDataExporter implements DataExporter {
@@ -17,7 +17,10 @@ class SqliteDataExporter implements DataExporter {
   Future<List<String>> getTables() async {
     final graph = buildGraph(db);
 
-    return graph.allTables();
+    final tableList = graph.allTables();
+
+    return _filterTableList(tableList);
+
   }
 
 
@@ -68,6 +71,18 @@ class SqliteDataExporter implements DataExporter {
     } finally {
       await sink.close();
     }  
+  }
+
+  List<String> _filterTableList( List<String> list ) {
+    final filtered = list.where((t) {
+      final rows = db.select('''
+        SELECT 1 FROM "$t" LIMIT 1
+      ''');
+
+        return rows.isNotEmpty;
+    }).toList();
+
+    return filtered;
   }
 
 
@@ -134,10 +149,11 @@ class SqliteDataExporter implements DataExporter {
     //resetting the index to the beginning of the list, now we iterate from the
     //beginning (leaf) to the table right before the selected table. These are
     //the descendents of the selected table (I.E. VIE marks is a descendent to Specimen)
-    index = 0;
-
-    //generating all descendent Joins (Some might be empty, left joining)
-    while(index < selectedIndex) {
+    // Important: ancestorPathFromLeaf is ordered leaf -> root, so descendant joins
+    
+    // must be emitted in reverse order. Otherwise SQLite can see an ON clause that
+    // references a table that has not been joined yet.
+    for (index = selectedIndex - 1; index >= 0; index--) {
       final edge = ancestorPathFromLeaf[index];
 
       buffer.writeln(
@@ -145,8 +161,6 @@ class SqliteDataExporter implements DataExporter {
         'ON ${edge.childTable}.${edge.childCol} = '
         '${edge.parentTable}.${edge.parentCol}'
       );
-
-      index++;
     }
 
     return buffer.toString();

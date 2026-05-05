@@ -1,31 +1,42 @@
+import 'dart:convert';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:crab_cakes/application/settings/usecases/update_export_settings.dart';
 
 //importing the active database (project) provider
-import 'package:ui_prototype/infrastructure/providers/active_database_connection_provider.dart';
+import 'package:crab_cakes/infrastructure/providers/active_database_connection_provider.dart';
 
 //importing use cases
-import 'package:ui_prototype/application/settings/usecases/get_settings.dart';
-import 'package:ui_prototype/application/settings/usecases/update_settings.dart';
-import 'package:ui_prototype/application/settings/usecases/update_scanner_target.dart';  
-import 'package:ui_prototype/application/settings/usecases/export_settings.dart';
+import 'package:crab_cakes/application/settings/usecases/get_settings.dart';
+import 'package:crab_cakes/application/settings/usecases/update_settings.dart';
+import 'package:crab_cakes/application/settings/usecases/update_scanner_target.dart';  
+import 'package:crab_cakes/application/settings/usecases/export_settings.dart';
 
 //importing interfaces 
-import 'package:ui_prototype/application/settings/interfaces/project_settings_repo.dart';
-import 'package:ui_prototype/application/settings/interfaces/project_settings_exporter.dart';
-import 'package:ui_prototype/application/export/interfaces/save_location_picker.dart';
+import 'package:crab_cakes/application/settings/interfaces/project_settings_repo.dart';
+import 'package:crab_cakes/application/settings/interfaces/project_settings_exporter.dart';
+import 'package:crab_cakes/application/export/interfaces/save_location_picker.dart';
 
 //importing concrete infrastructure implementations
-import 'package:ui_prototype/infrastructure/settings/project_settings_sqlite_repo.dart';
-import 'package:ui_prototype/infrastructure/settings/settings_exporter.dart';
-import 'package:ui_prototype/infrastructure/export/native_save_location_picker.dart';
+import 'package:crab_cakes/infrastructure/settings/project_settings_sqlite_repo.dart';
+import 'package:crab_cakes/infrastructure/settings/settings_exporter.dart';
+import 'package:crab_cakes/infrastructure/export/native_save_location_picker.dart';
+import 'package:crab_cakes/infrastructure/project/project_json_integrity_service.dart';
+
 
 //importing domain-level types
-import 'package:ui_prototype/domain/entities/settings/project_settings.dart';
+import 'package:crab_cakes/domain/entities/settings/project_settings.dart';
 
 
-import 'package:ui_prototype/application/catch_history/usecases/update_column_order_usecase.dart';
+import 'package:crab_cakes/application/catch_history/usecases/update_column_order_usecase.dart';
 
 //wiring infrastructure providers
+
+final jsonIntegrityServiceProvider = Provider<ProjectJsonIntegrityService>((ref) {
+  return ProjectJsonIntegrityService(
+    hmacKey: utf8.encode('this-is-THE-super-duper-secret-safe-key-for-import-integrity-validation'),
+  );
+});
 
 final saveLocationPickerProvider = Provider<SaveLocationPicker>((ref) {
   return NativeSaveLocationPicker();
@@ -41,10 +52,11 @@ final projectSettingsRepoProvider = Provider<ProjectSettingsRepo?>((ref) {
 
 final projcetSettingsExporterProvider = Provider<ProjectSettingsExporter?>((ref) {
   final projectDb = ref.watch(activeDatabaseConnectionProvider);
+  final integrityService = ref.watch(jsonIntegrityServiceProvider);
 
   if(projectDb == null) return null;
 
-  return SettingsExporter(projectDb);
+  return SettingsExporter(projectDb, integrityService);
 });
 
 
@@ -73,6 +85,14 @@ final updateScannerTargetUsecaseProvider = Provider<UpdateScannerTarget?>((ref) 
   return UpdateScannerTarget(repo);
 });
 
+final updateExportSettingsUsecaseProvider = Provider<UpdateExportSettings?>((ref) {
+  final repo = ref.watch(projectSettingsRepoProvider);
+
+  if(repo == null) return null;
+
+  return UpdateExportSettings(repo);
+});
+
 final exportSettingsUsecaseProvider = Provider<ExportSettings?>((ref) {
   final saveLocationPicker = ref.watch(saveLocationPickerProvider);
   final exporter = ref.watch(projcetSettingsExporterProvider);
@@ -80,6 +100,11 @@ final exportSettingsUsecaseProvider = Provider<ExportSettings?>((ref) {
   if(exporter == null) return null;
 
   return ExportSettings(exporter, saveLocationPicker);
+});
+
+final updateColumnOrderUsecaseProvider = Provider<UpdateColumnOrderUsecase?>((ref) {
+  final repo = ref.watch(projectSettingsRepoProvider);
+  return repo != null ? UpdateColumnOrderUsecase(repo) : null;
 });
 
 
@@ -97,7 +122,3 @@ final projectSettingsProvider = FutureProvider<ProjectSettings>((ref) async {
 
 
 
-final updateColumnOrderUsecaseProvider = Provider<UpdateColumnOrderUsecase?>((ref) {
-  final repo = ref.watch(projectSettingsRepoProvider);
-  return repo != null ? UpdateColumnOrderUsecase(repo) : null;
-});

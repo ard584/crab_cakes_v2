@@ -1,5 +1,5 @@
-import 'package:ui_prototype/domain/value_objects/fish_identifier.dart';
-import 'package:ui_prototype/domain/value_objects/species.dart';
+import 'package:crab_cakes/domain/value_objects/fish_identifier.dart';
+import 'package:crab_cakes/domain/value_objects/species.dart';
 
 
 /*

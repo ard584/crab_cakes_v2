@@ -1,5 +1,5 @@
-import 'package:ui_prototype/application/device_storage/device_storage.dart';
-import 'package:ui_prototype/application/uuid/generate_uuid.dart';
+import 'package:crab_cakes/application/device_storage/device_storage.dart';
+import 'package:crab_cakes/application/uuid/generate_uuid.dart';
 import 'dart:typed_data';
 
 class DeviceIDUseCase {

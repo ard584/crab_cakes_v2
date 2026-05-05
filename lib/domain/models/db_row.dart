@@ -1,4 +1,4 @@
-import 'package:ui_prototype/domain/entities/row_identifier.dart';
+import 'package:crab_cakes/domain/entities/row_identifier.dart';
 
 class DbRow<T extends RowIdentifier> {
   final Map<String, dynamic> values;

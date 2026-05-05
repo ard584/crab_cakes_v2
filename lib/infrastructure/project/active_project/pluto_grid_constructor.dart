@@ -1,11 +1,11 @@
 import 'package:flutter/foundation.dart';
 import 'package:pluto_grid/pluto_grid.dart';
-import 'package:ui_prototype/application/project/interfaces/active_project/grid_constructor.dart';
-import 'package:ui_prototype/domain/db_table.dart';
-import 'package:ui_prototype/domain/entities/row_identifier.dart';
-import 'package:ui_prototype/domain/models/db_row.dart';
+import 'package:crab_cakes/application/project/interfaces/active_project/grid_constructor.dart';
+import 'package:crab_cakes/domain/db_table.dart';
+import 'package:crab_cakes/domain/entities/row_identifier.dart';
+import 'package:crab_cakes/domain/models/db_row.dart';
 
-import 'package:ui_prototype/infrastructure/providers/column_filter_provider.dart';
+import 'package:crab_cakes/infrastructure/providers/column_filter_provider.dart';
 
 class PlutoGridConstructor
     implements

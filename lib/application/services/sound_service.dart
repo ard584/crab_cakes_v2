@@ -1,4 +1,4 @@
-import 'package:ui_prototype/domain/enums/app_sound.dart';
+import 'package:crab_cakes/domain/enums/app_sound.dart';
 
 //an abstract class for playing the sounds
 abstract class SoundService 

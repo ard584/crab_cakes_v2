@@ -1,4 +1,4 @@
-import 'package:ui_prototype/infrastructure/project/sqlite/sql_statement_parser.dart';
+import 'package:crab_cakes/infrastructure/project/sqlite/sql_statement_parser.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 var parser = SqlSchemaParser();

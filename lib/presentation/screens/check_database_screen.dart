@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pluto_grid/pluto_grid.dart';
-import 'package:ui_prototype/domain/db_table.dart';
-import 'package:ui_prototype/infrastructure/project/active_project/pluto_grid_constructor.dart';
-import 'package:ui_prototype/infrastructure/providers/delete_rows_provider.dart';
-import 'package:ui_prototype/infrastructure/providers/flex_form_provider.dart';
-import 'package:ui_prototype/infrastructure/providers/pluto_update_rows_provider.dart';
-import 'package:ui_prototype/infrastructure/providers/project_database_provider.dart';
-import 'package:ui_prototype/presentation/dialogs/confirm_delete.dart';
-import 'package:ui_prototype/presentation/adapters/pluto_grid_adapter.dart';
-import 'package:ui_prototype/presentation/dialogs/confirm_update_edit_grid.dart';
+import 'package:crab_cakes/domain/db_table.dart';
+import 'package:crab_cakes/infrastructure/project/active_project/pluto_grid_constructor.dart';
+import 'package:crab_cakes/infrastructure/providers/delete_rows_provider.dart';
+import 'package:crab_cakes/infrastructure/providers/flex_form_provider.dart';
+import 'package:crab_cakes/infrastructure/providers/pluto_update_rows_provider.dart';
+import 'package:crab_cakes/infrastructure/providers/project_database_provider.dart';
+import 'package:crab_cakes/presentation/dialogs/confirm_delete.dart';
+import 'package:crab_cakes/presentation/adapters/pluto_grid_adapter.dart';
+import 'package:crab_cakes/presentation/dialogs/confirm_update_edit_grid.dart';
 
 Widget getTablesChoiceChips(WidgetRef ref) {
   final projectAsync = ref.watch(projectViewModelProvider);

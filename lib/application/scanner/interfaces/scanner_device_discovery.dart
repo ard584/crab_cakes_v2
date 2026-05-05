@@ -1,4 +1,4 @@
-import 'package:ui_prototype/application/scanner/dtos/discovered_port.dart';
+import 'package:crab_cakes/application/scanner/dtos/discovered_port.dart';
 
 abstract class ScannerDeviceDiscovery {
   

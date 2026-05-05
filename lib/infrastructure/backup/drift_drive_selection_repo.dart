@@ -1,5 +1,5 @@
-import 'package:ui_prototype/application/backup/interfaces/drive_selection_repo.dart';
-import 'package:ui_prototype/infrastructure/backup/backup_settings_db.dart';
+import 'package:crab_cakes/application/backup/interfaces/drive_selection_repo.dart';
+import 'package:crab_cakes/infrastructure/backup/backup_settings_db.dart';
 
 class DriftDriveSelectionRepository implements DriveSelectionRepository {
   DriftDriveSelectionRepository(this.db);

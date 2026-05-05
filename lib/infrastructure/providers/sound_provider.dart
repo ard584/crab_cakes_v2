@@ -1,7 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:ui_prototype/application/services/sound_service.dart';
-import 'package:ui_prototype/domain/enums/app_sound.dart';
-import 'package:ui_prototype/infrastructure/sound/audio_player_service.dart';
+import 'package:crab_cakes/application/services/sound_service.dart';
+import 'package:crab_cakes/domain/enums/app_sound.dart';
+import 'package:crab_cakes/infrastructure/sound/audio_player_service.dart';
 
 
 // Default behavior: if a sound has no stored setting,

@@ -1,4 +1,4 @@
-import 'package:ui_prototype/infrastructure/project/sqlite/sql_lexer.dart';
+import 'package:crab_cakes/infrastructure/project/sqlite/sql_lexer.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void expectToken(Token token, TokenType type, String text) {

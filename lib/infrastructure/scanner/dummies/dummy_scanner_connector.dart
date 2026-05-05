@@ -1,8 +1,14 @@
-import 'package:ui_prototype/application/scanner/interfaces/scanner_connector.dart';
+import 'package:crab_cakes/application/scanner/interfaces/scanner_connector.dart';
 import 'dart:typed_data';
 
 
 class DummyScannerConnector implements ScannerConnector {
+
+  @override
+    Stream<bool> get connectionStatusStream => Stream.empty();
+
+    @override
+    bool get isConnected => false;
 
   @override
   Stream<Uint8List> get byteStream => Stream.empty();  

@@ -1,4 +1,4 @@
-import 'package:ui_prototype/domain/entities/settings/field_config.dart';
+import 'package:crab_cakes/domain/entities/settings/field_config.dart';
 
 class FieldConfigSettings {
  

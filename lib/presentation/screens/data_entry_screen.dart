@@ -1,39 +1,40 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:ui_prototype/domain/value_objects/parse_result.dart';
+import 'package:crab_cakes/domain/value_objects/parse_result.dart';
 
-import 'package:ui_prototype/domain/entities/scan_event.dart';
-import 'package:ui_prototype/domain/entities/settings/field_config.dart';
+import 'package:crab_cakes/domain/entities/scan_event.dart';
+import 'package:crab_cakes/domain/entities/settings/field_config.dart';
 
-import 'package:ui_prototype/infrastructure/providers/flex_form_provider.dart';
-import 'package:ui_prototype/infrastructure/providers/form_save_notifier.dart';
-import 'package:ui_prototype/infrastructure/providers/pit_readers_providers.dart';
-import 'package:ui_prototype/infrastructure/providers/project_database_provider.dart';
-import 'package:ui_prototype/infrastructure/providers/field_config_providers.dart';
-import 'package:ui_prototype/infrastructure/providers/data_entry_title_project_provider.dart';
+import 'package:crab_cakes/infrastructure/providers/flex_form_provider.dart';
+import 'package:crab_cakes/infrastructure/providers/form_save_notifier.dart';
+import 'package:crab_cakes/infrastructure/providers/pit_readers_providers.dart';
+import 'package:crab_cakes/infrastructure/providers/project_database_provider.dart';
+import 'package:crab_cakes/infrastructure/providers/field_config_providers.dart';
+import 'package:crab_cakes/infrastructure/providers/data_entry_title_project_provider.dart';
 
-import 'package:ui_prototype/presentation/screens/check_database_screen.dart';
-import 'package:ui_prototype/presentation/screens/export_screen.dart';
-import 'package:ui_prototype/presentation/screens/field_config_screen.dart';
+import 'package:crab_cakes/presentation/screens/check_database_screen.dart';
+import 'package:crab_cakes/presentation/screens/export_screen.dart';
+import 'package:crab_cakes/presentation/screens/field_config_screen.dart';
 
-import 'package:ui_prototype/presentation/screens/project_selection.dart';
-import 'package:ui_prototype/presentation/services/flex_field/flex_field_factory.dart';
-import 'package:ui_prototype/presentation/view_models/project_input.dart';
-import 'package:ui_prototype/presentation/components/catch_table_widget.dart';
-import 'package:ui_prototype/presentation/shortcuts/data_entry_shortcuts.dart';
-import 'package:ui_prototype/presentation/components/status_panel.dart';
-import 'package:ui_prototype/presentation/components/table_switcher.dart';
+import 'package:crab_cakes/presentation/screens/project_selection.dart';
+import 'package:crab_cakes/presentation/services/flex_field/flex_field_factory.dart';
+import 'package:crab_cakes/presentation/view_models/project_input.dart';
+import 'package:crab_cakes/presentation/components/catch_table_widget.dart';
+import 'package:crab_cakes/presentation/shortcuts/data_entry_shortcuts.dart';
+import 'package:crab_cakes/presentation/components/status_panel.dart';
+import 'package:crab_cakes/presentation/components/table_switcher.dart';
 
-import 'package:ui_prototype/infrastructure/providers/external_backup_provider.dart';
-import 'package:ui_prototype/infrastructure/providers/active_database_connection_provider.dart';
-import 'package:ui_prototype/infrastructure/providers/settings_provider.dart';
-import 'package:ui_prototype/infrastructure/providers/column_filter_provider.dart';
+import 'package:crab_cakes/infrastructure/providers/external_backup_provider.dart';
+import 'package:crab_cakes/infrastructure/providers/settings_provider.dart';
+import 'package:crab_cakes/infrastructure/providers/column_filter_provider.dart';
 
-import 'package:ui_prototype/infrastructure/providers/sound_provider.dart';
-import 'package:ui_prototype/domain/enums/app_sound.dart';
+import 'package:crab_cakes/infrastructure/providers/sound_provider.dart';
+import 'package:crab_cakes/domain/enums/app_sound.dart';
 
 import 'settings_screen.dart';
+
+
 
 class DataEntryScreen extends ConsumerStatefulWidget {
   const DataEntryScreen({super.key});
@@ -60,6 +61,61 @@ class _DataEntryState extends ConsumerState<DataEntryScreen> {
 
   void jumpToTop() {
     scrollController.animateTo(0, duration: Duration(milliseconds: 150), curve: Curves.fastOutSlowIn);
+  }
+
+  /// Method to centralize the save flow and allow it to be called from anywhere
+  /// regardless of if its via the button or a short cut. 
+  Future<void> _saveRecordAndRunBackups() async {
+    //validating the form before submission. Invalid should already be 
+    //marked in read 
+    final isValid = _formKey.currentState?.validate() ?? false;
+    if (!isValid) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please correct the highlighted fields before saving.'),
+        ),
+      );
+      return;
+    }
+
+    final projectMap = ref.read(projectViewModelProvider).value;
+
+    if (projectMap == null) return;
+
+    final activeTableName = ref.read(activeTableProvider);
+
+    if (activeTableName == null) return;
+
+    final table = projectMap.tables[activeTableName];
+    if (table == null) return;
+
+    // 1) Save record (this is where INSERT happens, inside saveTable)
+    jumpToTop();
+
+    //mark as user initiated save
+    _saveTriggeredByUser = true;
+    await ref.read(formSaveProvider.notifier).saveTable(table);
+
+    // 2) Immediately run backup to selected drives
+    // Force settings to reload so backup uses the latest saved export settings.
+    ref.invalidate(projectSettingsProvider);
+
+    final settings = await ref.read(projectSettingsProvider.future);
+
+    final exportBaseTable = settings.export.baseTable;
+    final exportDelimiter = settings.export.delimiter ?? '\t';
+
+    await ref.read(backupActionsProvider.notifier).backupCurrentProject(
+      includeTextExport: exportBaseTable != null,
+      baseTable: exportBaseTable,
+      exportDelimiter: exportDelimiter,
+    );
+
+    scrollController.animateTo(
+      0,
+      duration: const Duration(milliseconds: 150),
+      curve: Curves.fastOutSlowIn,
+    );
   }
 
   @override
@@ -162,169 +218,116 @@ class _DataEntryState extends ConsumerState<DataEntryScreen> {
       );
     });
 
-  return DataEntryShortcuts(
-    onSave: () async {
-      final projectMap = ref.read(projectViewModelProvider).value;
-      if (projectMap == null) return;
-      final table = projectMap.tables[activeTableName];
-      if (table == null) return;
+    return DataEntryShortcuts(
+      onSave: _saveRecordAndRunBackups,
+      onTableSwitch: (index) {
+        final projectMap = ref.read(projectViewModelProvider).value;
+        if (projectMap == null) return;
 
-      //validate: ensure no required or incorrect fields are present
-      final isValid = _formKey.currentState?.validate() ?? false;
-      if (!isValid) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Please correct the highlighted fields before saving.'),
+        final tableNames = projectMap.tables.keys.toList();
+        if (index < tableNames.length) {
+          ref
+              .read(activeTableProvider.notifier)
+              .setActiveTable(tableNames[index]);
+        }
+      },
+      child: FocusableActionDetector(
+        autofocus: true,
+        child: Scaffold(
+          appBar: AppBar(
+            title: Builder(
+              builder: (context) {
+                final projectName = ref.watch(currentProjectTitleProvider);
+                final tableName = activeTableName ?? '';
+
+                return Text(
+                  tableName.isNotEmpty
+                      ? '$projectName - $tableName'
+                      : projectName,
+                );
+              },
+            ),
           ),
-        );
-        return;
-      }
+          drawer: ProjectDrawer(),
+          body: Padding(
+            padding: const EdgeInsets.all(28.0),
+            child: projectAsync.when(
+              error: (err, stack) => Center(child: Text("Error: $err")),
+              data: (project) {
+                if (project.tables.isEmpty) {
+                  return Center(child: Text("No project selected"));
+                }
 
-      //mark the save as user initiated
-      _saveTriggeredByUser = true;
-      await ref.read(formSaveProvider.notifier).saveTable(table);
-      jumpToTop();
-    },
-    onTableSwitch: (index) {
-      final projectMap = ref.read(projectViewModelProvider).value;
-      if (projectMap == null) return;
+                if (activeTableName == null) {
+                  return Center(child: const CircularProgressIndicator());
+                }
 
-      final tableNames = projectMap.tables.keys.toList();
-      if (index < tableNames.length) {
-        ref
-            .read(activeTableProvider.notifier)
-            .setActiveTable(tableNames[index]);
-      }
-    },
-    child: FocusableActionDetector(
-      autofocus: true,
-      child: Scaffold(
-        appBar: AppBar(
-          title: Builder(
-            builder: (context) {
-              final projectName = ref.watch(currentProjectTitleProvider);
-              final tableName = activeTableName ?? '';
-              
-              return Text(
-                tableName.isNotEmpty 
-                  ? '$projectName - $tableName' 
-                  : projectName
-              );
-            },
-          ),
-        ),
-        drawer: ProjectDrawer(),
-        body: Padding(
-          padding: const EdgeInsets.all(28.0),
-          child: projectAsync.when(
-          error: (err, stack) => Center(child: Text("Error: $err")),
-          data: (project) {
-            if (project.tables.isEmpty) {
-              return Center(child: Text("No project selected"));
-            }
-
-            if (activeTableName == null) {
-              return Center(child: const CircularProgressIndicator());
-            }
-
-            return Column(
-              children: [
-                //made it a row to show status on the left followed by table on the
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                return Column(
                   children: [
-                    // Left side
-                    Flexible(
-                      flex: 1,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const StatusPanel(),
-                          const SizedBox(height: 12),
-                          // Table switching
-                          TableSwitcher(
-                            tables: project.tables,
-                            activeTableName: activeTableName,
-                            showFKeyBadges: true,
+                    //made it a row to show status on the left followed by table on the
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Left side
+                        Flexible(
+                          flex: 1,
+                          child: ConstrainedBox(
+                            constraints: const BoxConstraints(
+                              minWidth: 320,
+                              maxWidth: 520,
+                            ),
+                            child: const StatusPanel(),
                           ),
-                        ],
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          flex: 2,
+                          child: Align(
+                            alignment: Alignment.topRight,
+                            child: CatchHistorySection(tableName: activeTableName),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+
+                    // Table switching
+                    TableSwitcher(
+                      tables: project.tables,
+                      activeTableName: activeTableName,
+                      showFKeyBadges: true,
+                    ),
+                    const SizedBox(height: 12),
+
+                    Expanded(
+                      child: Form(
+                        key: _formKey,
+                        child: TableFormSection(controller: scrollController),
                       ),
                     ),
-                    const SizedBox(width: 12),
-                    Flexible(
-                      flex: 1,
-                      child: CatchHistorySection(tableName: activeTableName),
-                    ),
                   ],
-                ),
-                const SizedBox(height: 16),
-                
-                Expanded(
-                  child: Form(
-                    key: _formKey,
-                    child: TableFormSection(controller: scrollController,),
-                  ),
-                ),
-              ],
-            );
-          },
+                );
+              },
 
-          // Handle error and loading states
-          loading: () => const Center(child: CircularProgressIndicator()),
-        ),
-      ),
-      
-      floatingActionButton: FloatingActionButton.extended(
-        focusNode: FocusNode(skipTraversal: true),
-        onPressed: () async {
+              // Handle error and loading states
+              loading: () => const Center(child: CircularProgressIndicator()),
+            ),
+          ),
 
-          //validating the form before submission. Invalid should already be 
-          //marked in read 
-          final isValid = _formKey.currentState?.validate() ?? false;
-          if (!isValid) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Please correct the highlighted fields before saving.'),
-              ),
-            );
-            return;
-          }
-
-          final projectMap = ref.read(projectViewModelProvider).value;
-
-          if (projectMap == null) return;
-          if (activeTableName == null) return;
-
-          final table = projectMap.tables[activeTableName];
-          if (table == null) return;
-
-          // 1) Save record (this is where INSERT happens, inside saveTable)
-          jumpToTop();
-          //mark as user initiated save
-          _saveTriggeredByUser = true;
-          await ref.read(formSaveProvider.notifier).saveTable(table);
-
-          // 2) Immediately run backup to selected drives
-          final dbPath = ref.read(activeDatabasePathProvider);
-          if (dbPath != null) {
-            await ref.read(writeBackupProvider).execute(sourceDbPath: dbPath);
-          }
-
-          scrollController.animateTo(
-              0,
-              duration: Duration(milliseconds: 150),
-              curve: Curves.fastOutSlowIn,
-            );
-        },
-        label: Padding(
-          padding: const EdgeInsets.all(20.0),
-          child: Text("Save Record (f12)"),
+          floatingActionButton: FloatingActionButton.extended(
+            focusNode: FocusNode(skipTraversal: true),
+            onPressed: _saveRecordAndRunBackups,
+            label: const Padding(
+              padding: EdgeInsets.all(20.0),
+              child: Text("Save Record (f12)"),
             ),
           ),
         ),
-   ) );
+      ),
+    );
   }
 }
+
 
 class _TableFormSectionState extends ConsumerState<TableFormSection> {
   late final ScrollController? _scrollController;
@@ -393,6 +396,7 @@ class DynamicFlexField extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     // final controllers = ref.watch(flexTableControllersProvider(tableName));
 
+
     //Fetch the domain-level configuration for this specific field
     final fieldConfigAsync =  ref.watch(
       effectiveFieldConfigProvider(
@@ -403,11 +407,38 @@ class DynamicFlexField extends ConsumerWidget {
       ),
     );
 
-    final fieldConfig = fieldConfigAsync.when(
+    var fieldConfig = fieldConfigAsync.when(
       data: (config) => config,
       loading: () => FieldConfig.defaultInstance(),
       error: (_, __) => FieldConfig.defaultInstance(),
     );
+
+    //checking if this field is meant to be hidden
+    if (fieldConfig.isHidden) {
+      return const SizedBox.shrink();
+    }
+
+    //gathering reference table options only if the specific field is a Foreign Key (FK)
+    final fkInfo = attribute.fields.fkInfo;
+    if(fkInfo != null) {
+      final repo = ref.watch(projectDatabaseProvider);
+      final rows = repo.getAllRows(fkInfo.referencedTable);
+
+      final options = rows
+      .map((row) => row.values[fkInfo.referencedColumn])
+      .where((value) => value != null)
+      .map((value) => value.toString())
+      .toSet() // removes duplicates
+      .toList();
+
+      //copying the field config created earlier, but with the parent drop down options
+      fieldConfig = fieldConfig.copyWith(
+        options: options, 
+        useDropdown: true,
+        allowCustomValues: true,
+        isSticky: true,
+      );
+    }
 
     //defining the FlexFieldConfig object with the domain-level config added 
     final config = FlexFieldConfig(
@@ -446,38 +477,29 @@ class DrawerSubmenu extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Column(
       children: [
         ListTile(
-          leading: const Icon(Icons.settings),
-          title: const Text("Settings"),
-          onTap: () {
-            Navigator.pop(context);
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const SettingsScreen()),
-            );
-          },
-        ),
-        ListTile(
-          leading: const Icon(Icons.file_open),
-          title: const Text("Switch Project"),
+          leading: Icon(
+            Icons.home,
+            color: colorScheme.primary,
+          ),
+          title: Text(
+            "Switch Project",
+            style: TextStyle(
+              fontWeight: FontWeight.w600,
+              color: colorScheme.primary,
+            ),
+          ),
+          subtitle: const Text("Return to project selection"),
+          tileColor: colorScheme.primaryContainer.withOpacity(0.35),
           onTap: () {
             Navigator.pop(context);
             Navigator.push(
               context,
               MaterialPageRoute(builder: (context) => const ProjectSelection()),
-            );
-          },
-        ),
-        ListTile(
-          leading: const Icon(Icons.file_download),
-          title: const Text("Export Data"),
-          onTap: () {
-            Navigator.pop(context);
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const ExportScreen()),
             );
           },
         ),
@@ -495,6 +517,17 @@ class DrawerSubmenu extends StatelessWidget {
           },
         ),
         ListTile(
+          leading: const Icon(Icons.file_download),
+          title: const Text("Export Data"),
+          onTap: () {
+            Navigator.pop(context);
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const ExportScreen()),
+            );
+          },
+        ),
+        ListTile(
           leading: const Icon(Icons.build),
           title: const Text("Field Config"),
           onTap: () {
@@ -504,6 +537,17 @@ class DrawerSubmenu extends StatelessWidget {
               MaterialPageRoute(
                 builder: (context) => FieldConfigScreen(),
               ),
+            );
+          },
+        ),
+        ListTile(
+          leading: const Icon(Icons.settings),
+          title: const Text("Settings"),
+          onTap: () {
+            Navigator.pop(context);
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const SettingsScreen()),
             );
           },
         ),

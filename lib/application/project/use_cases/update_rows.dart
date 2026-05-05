@@ -1,6 +1,6 @@
-import 'package:ui_prototype/application/table_repository.dart';
-import 'package:ui_prototype/domain/entities/row_identifier.dart';
-import 'package:ui_prototype/domain/models/db_row.dart';
+import 'package:crab_cakes/application/active_project_repository.dart';
+import 'package:crab_cakes/domain/entities/row_identifier.dart';
+import 'package:crab_cakes/domain/models/db_row.dart';
 
 class UpdateRowsUseCase<TIdentifier extends RowIdentifier> {
   final ActiveProjectRepository repo;

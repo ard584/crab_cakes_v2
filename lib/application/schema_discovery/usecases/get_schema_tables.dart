@@ -1,4 +1,4 @@
-import 'package:ui_prototype/application/schema_discovery/interfaces/schema_discovery_repo.dart';
+import 'package:crab_cakes/application/schema_discovery/interfaces/schema_discovery_repo.dart';
 
 class GetSchemaTables {
   final SchemaDiscoveryRepo repo;

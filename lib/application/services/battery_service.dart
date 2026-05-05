@@ -1,4 +1,4 @@
-import 'package:ui_prototype/domain/enums/battery_state.dart';
+import 'package:crab_cakes/domain/enums/battery_state.dart';
 
 abstract class BatteryService {
   Future<int> getBatteryLevel();

@@ -1,9 +1,9 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_soloud/flutter_soloud.dart';
-import 'package:ui_prototype/application/services/sound_service.dart';
-import 'package:ui_prototype/domain/enums/app_sound.dart';
-import 'package:ui_prototype/infrastructure/providers/sound_provider.dart';
-import 'package:ui_prototype/infrastructure/sound/sound_mapper.dart';
+import 'package:crab_cakes/application/services/sound_service.dart';
+import 'package:crab_cakes/domain/enums/app_sound.dart';
+import 'package:crab_cakes/infrastructure/providers/sound_provider.dart';
+import 'package:crab_cakes/infrastructure/sound/sound_mapper.dart';
 
 //class that is used to play the applications sounds
 //the rest of the app does not need to know how sounds are played 

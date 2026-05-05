@@ -1,4 +1,4 @@
-import 'package:ui_prototype/application/project/interfaces/schema/schema_parser.dart';
+import 'package:crab_cakes/application/project/interfaces/schema/schema_parser.dart';
 
 class SqlSchemaParser implements SchemaParser {
   final Set<(String, String)> _delimiters = {

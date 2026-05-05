@@ -1,12 +1,12 @@
-import 'package:ui_prototype/application/backup/interfaces/backup_writer.dart';
+import 'package:crab_cakes/application/backup/interfaces/db_backup_writer.dart';
 
 
-class DummyBackupWriter implements BackupWriter {
+class DummyBackupWriter implements DbBackupWriter {
 
    @override
-  Future<void> backup({
+  Future<void> writeDatabaseBackup({
     required String sourceDbPath,
-    required String targetRoot,
+    required String destinationDbPath,
   }) async {
         throw UnsupportedError('Backup is only supported on Windows right now.');
   }

@@ -1,18 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:ui_prototype/presentation/components/usb_backups_section.dart';
-import 'package:ui_prototype/presentation/components/scanner_target_section.dart';
-import 'package:ui_prototype/presentation/utils/logger.dart';
-import 'package:ui_prototype/domain/enums/app_sound.dart';
-import 'package:ui_prototype/presentation/components/sound_setting_row.dart';
-import 'package:ui_prototype/presentation/components/master_sound_toggle_row.dart';
+import 'package:crab_cakes/presentation/components/usb_backups_section.dart';
+import 'package:crab_cakes/presentation/components/scanner_target_section.dart';
+import 'package:crab_cakes/domain/enums/app_sound.dart';
+import 'package:crab_cakes/presentation/components/sound_setting_row.dart';
+import 'package:crab_cakes/presentation/components/master_sound_toggle_row.dart';
 
 //importing the specific scanner connection component
-import 'package:ui_prototype/presentation/components/pit_reader_section.dart';
+import 'package:crab_cakes/presentation/components/pit_reader_section.dart';
 
 // import your settings providers file
-import 'package:ui_prototype/infrastructure/providers/settings_provider.dart';
+import 'package:crab_cakes/infrastructure/providers/settings_provider.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -36,26 +35,6 @@ class SettingsScreen extends ConsumerWidget {
 
               const ScannerTargetSection(),
 
-              const ReusableLeftAlignedText(text: 'Merge Data Files'),
-              Container(
-                decoration: reusableBoxDecoration,
-                padding: reusablePadding,
-                child: Row(
-                  children: <Widget>[
-                    const Icon(Icons.file_copy),
-                    const SizedBox(width: 8),
-                    const Text("Data File: 'project_5.db'"),
-                    const Spacer(),
-                    IconButton(
-                      tooltip: 'Import a data file to be merged.',
-                      onPressed: () {
-                        log.d('Tapped merge import');
-                      },
-                      icon: const Icon(Icons.file_upload),
-                    ),
-                  ],
-                ),
-              ),
               const ReusableLeftAlignedText(text: 'Project Configuration Export'),
               Container(
                 padding: reusablePadding,

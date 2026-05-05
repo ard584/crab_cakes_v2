@@ -1,6 +1,6 @@
 // projects_repository.dart
 
-import 'package:ui_prototype/application/uuid/generate_uuid.dart';
+import 'package:crab_cakes/application/uuid/generate_uuid.dart';
 
 import 'database/projects_database.dart';
 import 'package:drift/drift.dart';

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:ui_prototype/domain/enums/app_sound.dart';
-import 'package:ui_prototype/infrastructure/providers/sound_provider.dart';
+import 'package:crab_cakes/domain/enums/app_sound.dart';
+import 'package:crab_cakes/infrastructure/providers/sound_provider.dart';
 
 //front end of how the sound system will look in the settings
 class SoundSettingRow extends ConsumerWidget {

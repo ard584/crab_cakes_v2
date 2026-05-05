@@ -1,17 +1,17 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 //importing the active database (project) provider
-import 'package:ui_prototype/infrastructure/providers/active_database_connection_provider.dart';
+import 'package:crab_cakes/infrastructure/providers/active_database_connection_provider.dart';
 
 //importing use cases
-import 'package:ui_prototype/application/schema_discovery/usecases/get_schema_tables.dart';
-import 'package:ui_prototype/application/schema_discovery/usecases/get_table_columns.dart';
+import 'package:crab_cakes/application/schema_discovery/usecases/get_schema_tables.dart';
+import 'package:crab_cakes/application/schema_discovery/usecases/get_table_columns.dart';
 
 //importing interfaces 
-import 'package:ui_prototype/application/schema_discovery/interfaces/schema_discovery_repo.dart';
+import 'package:crab_cakes/application/schema_discovery/interfaces/schema_discovery_repo.dart';
 
 //importing concrete infrastructure implementations
-import 'package:ui_prototype/infrastructure/schema_discovery/sqlite_schema_discovery_repo.dart';
+import 'package:crab_cakes/infrastructure/schema_discovery/sqlite_schema_discovery_repo.dart';
 
 
 //wiring infrastructure

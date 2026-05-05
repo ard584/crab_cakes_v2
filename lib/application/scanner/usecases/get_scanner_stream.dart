@@ -1,4 +1,4 @@
-import 'package:ui_prototype/application/scanner/interfaces/scanner_stream_repo.dart';
+import 'package:crab_cakes/application/scanner/interfaces/scanner_stream_repo.dart';
 
 class GetScannerStream {
   final ScannerStreamRepo streamRepo;

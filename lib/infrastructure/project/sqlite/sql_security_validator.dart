@@ -1,5 +1,5 @@
-import 'package:ui_prototype/application/project/interfaces/schema/schema_validator.dart';
-import 'package:ui_prototype/infrastructure/project/sqlite/sql_lexer.dart';
+import 'package:crab_cakes/application/project/interfaces/schema/schema_validator.dart';
+import 'package:crab_cakes/infrastructure/project/sqlite/sql_lexer.dart';
 /*
 ATTACH is harmful as it attaches another database
 DETACH only makes sense to be used with ATTACH

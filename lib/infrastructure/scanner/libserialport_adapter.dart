@@ -2,7 +2,7 @@
 import 'dart:async';
 
 import 'package:flutter_libserialport/flutter_libserialport.dart';
-import 'package:ui_prototype/application/scanner/interfaces/scanner_connector.dart';
+import 'package:crab_cakes/application/scanner/interfaces/scanner_connector.dart';
 import 'dart:typed_data';
 
   class LibserialportAdapter implements ScannerConnector {
@@ -15,6 +15,15 @@ import 'dart:typed_data';
       StreamController<Uint8List>.broadcast();
     
     bool connected = false; 
+
+    final StreamController<bool> _statusController =
+      StreamController<bool>.broadcast();
+
+    @override
+    Stream<bool> get connectionStatusStream => _statusController.stream;
+
+    @override
+    bool get isConnected => connected;
 
     //stream handoff point (just a getter)
     @override
@@ -33,10 +42,10 @@ import 'dart:typed_data';
         final port = SerialPort( portName );
         _port = port;
 
-        final goodResult = port.openReadWrite();
+        final opened = port.openReadWrite();
 
         //verify read/write stream opened success
-        if(!goodResult) {
+        if(!opened || !port.isOpen) {
           //handle connection failure
           //TODO: LOG / DISPLAY FAILURE
 
@@ -55,7 +64,21 @@ import 'dart:typed_data';
         ..stopBits = 1
         ..setFlowControl(SerialPortFlowControl.none));
 
+        //Test and validate the scanner connection
+        final validScanner = await _validateConnection(port);
+
+        //handle invalid scanner (port opened but no communication established)
+        if(!validScanner) {
+          port.close();
+          port.dispose();
+
+          _port = null;
+
+          return false;
+        } 
+
         connected = true;
+        _statusController.add(true);
 
         //setting a reader to get access to the byte stream
         final reader = SerialPortReader(port);
@@ -66,8 +89,12 @@ import 'dart:typed_data';
           (data) {
             _controller.add(data);
           },
-          onError: (error, stackTrace) {
+          onError: (error, stackTrace) async {
             _controller.addError(error, stackTrace);
+            await disconnect();
+          },
+          onDone: () async {
+            await disconnect();
           },
         );
         //return success
@@ -103,12 +130,69 @@ import 'dart:typed_data';
         }
 
         connected = false;
+        _statusController.add(false);
         return true;
 
       } catch (error) {
         //log/display error
         connected = false;
         return false;
+      }
+    }
+
+    //helper function to verify that the scanner is actually communicating with 
+    //the computer
+    Future<bool> _validateConnection(SerialPort port) async {
+      SerialPortReader? reader;
+      StreamSubscription<Uint8List>? sub;
+
+      final completer = Completer<String>();
+      final buffer = StringBuffer();
+
+      try {
+        reader = SerialPortReader(port);
+
+        sub = reader.stream.listen(
+          (data) {
+            // Convert incoming bytes into text.
+            buffer.write(String.fromCharCodes(data));
+
+            // Check whether we have received a complete line yet.
+            final lines = buffer.toString().split(RegExp(r'\r\n|\n|\r'));
+
+            for (final line in lines) {
+              final trimmed = line.trim();
+
+              // RID should respond with something like "01".
+              final isReaderId = RegExp(r'^[0-9A-Fa-f]{2}$').hasMatch(trimmed);
+
+              if (isReaderId && !completer.isCompleted) {
+                completer.complete(trimmed);
+                return;
+              }
+            }
+          },
+          onError: (error, stackTrace) {
+            if (!completer.isCompleted) {
+              completer.completeError(error, stackTrace);
+            }
+          },
+        );
+
+        // Ask scanner to report its reader ID.
+        port.write(Uint8List.fromList('RID\r\n'.codeUnits));
+
+        // Wait for the stream listener above to complete the Future.
+        final response = await completer.future.timeout(
+          const Duration(seconds: 2),
+        );
+
+        return RegExp(r'^[0-9A-Fa-f]{2}$').hasMatch(response.trim());
+      } catch (_) {
+        return false;
+      } finally {
+        await sub?.cancel();
+        reader?.close();
       }
     }
   }

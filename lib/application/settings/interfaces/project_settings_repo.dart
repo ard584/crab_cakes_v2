@@ -1,4 +1,4 @@
-import 'package:ui_prototype/domain/entities/settings/project_settings.dart';
+import 'package:crab_cakes/domain/entities/settings/project_settings.dart';
 
 abstract class ProjectSettingsRepo {
   Future<ProjectSettings> getSettings();

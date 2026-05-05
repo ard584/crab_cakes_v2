@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:ui_prototype/presentation/intents/save_intent.dart';
-import 'package:ui_prototype/presentation/screens/check_database_screen.dart';
+import 'package:crab_cakes/presentation/intents/save_intent.dart';
+import 'package:crab_cakes/presentation/screens/check_database_screen.dart';
 
 class DataEntryShortcuts extends StatelessWidget {
   final Widget child;

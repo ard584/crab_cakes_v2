@@ -19,6 +19,9 @@ class SelectedBackupTargets extends Table {
 class BackupSettingsDb extends _$BackupSettingsDb {
   BackupSettingsDb() : super(_openConnection());
 
+  // Test/injection constructor.
+  BackupSettingsDb.forTesting(QueryExecutor executor) : super(executor);
+
   @override
   int get schemaVersion => 1;
 }

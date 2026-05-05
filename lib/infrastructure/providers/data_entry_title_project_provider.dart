@@ -1,7 +1,7 @@
 // Add this provider to your providers file
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:ui_prototype/infrastructure/providers/active_database_connection_provider.dart';
-import 'package:ui_prototype/infrastructure/providers/app_db_provider.dart';
+import 'package:crab_cakes/infrastructure/providers/active_database_connection_provider.dart';
+import 'package:crab_cakes/infrastructure/providers/app_db_provider.dart';
 
 final currentProjectTitleProvider = Provider<String>((ref) {
   final dbPath = ref.watch(activeDatabasePathProvider);

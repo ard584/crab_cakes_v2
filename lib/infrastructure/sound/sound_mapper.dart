@@ -1,4 +1,4 @@
-import 'package:ui_prototype/domain/enums/app_sound.dart';
+import 'package:crab_cakes/domain/enums/app_sound.dart';
 
 //converts the AppSound enum values into the correct file paths
 const Map<AppSound, String> kSoundAssetPaths = {

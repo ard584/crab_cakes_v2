@@ -1,4 +1,4 @@
-import 'package:ui_prototype/domain/enums/app_sound.dart';
+import 'package:crab_cakes/domain/enums/app_sound.dart';
 //abstract class for loading and saving sound settings
 //separates business and storage logic
 abstract class SoundSettingsRepository 

@@ -1,7 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 import 'package:sqlite3/sqlite3.dart';
-import 'package:ui_prototype/infrastructure/project/sqlite_database_connection.dart';
+import 'package:crab_cakes/infrastructure/project/sqlite_database_connection.dart';
 
 final databaseConnectionProvider = Provider<SqliteDatabaseConnection>((ref) {
   return SqliteDatabaseConnection();

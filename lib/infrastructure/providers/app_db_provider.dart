@@ -1,20 +1,26 @@
 import 'dart:typed_data';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:ui_prototype/application/device_storage/device_id_use_case.dart';
-import 'package:ui_prototype/application/project/use_cases/create_project.dart';
-import 'package:ui_prototype/infrastructure/project/sqlite/sql_security_validator.dart';
-import 'package:ui_prototype/infrastructure/project/sqlite/sql_statement_parser.dart';
-import 'package:ui_prototype/infrastructure/project/sqlite/sqlite_project_database_builder.dart';
-import 'package:ui_prototype/infrastructure/providers/active_database_connection_provider.dart';
-import 'package:ui_prototype/domain/models/project.dart';
-import 'package:ui_prototype/infrastructure/providers/device_id_use_case_provider.dart';
-import 'package:ui_prototype/infrastructure/providers/device_storage_provider.dart';
-import 'package:ui_prototype/infrastructure/providers/generate_uuid_provider.dart';
-import 'package:ui_prototype/presentation/services/projects/database/projects_database.dart';
-import 'package:ui_prototype/presentation/services/projects/projects_repository.dart';
-import 'package:ui_prototype/presentation/services/projects/project_service.dart';
-import 'package:ui_prototype/application/uuid/generate_uuid.dart';
+import 'package:flutter_riverpod/legacy.dart';
+import 'package:crab_cakes/application/device_storage/device_id_use_case.dart';
+import 'package:crab_cakes/application/project/use_cases/create_project.dart';
+import 'package:crab_cakes/infrastructure/project/sqlite/sql_security_validator.dart';
+import 'package:crab_cakes/infrastructure/project/sqlite/sql_statement_parser.dart';
+import 'package:crab_cakes/infrastructure/project/sqlite/sqlite_project_database_builder.dart';
+import 'package:crab_cakes/infrastructure/project/sqlite/sqlite_schema_structure_validator.dart';
+import 'package:crab_cakes/infrastructure/providers/active_database_connection_provider.dart';
+import 'package:crab_cakes/domain/models/project.dart';
+import 'package:crab_cakes/infrastructure/providers/device_id_use_case_provider.dart';
+import 'package:crab_cakes/infrastructure/providers/device_storage_provider.dart';
+import 'package:crab_cakes/infrastructure/providers/generate_uuid_provider.dart';
+import 'package:crab_cakes/presentation/services/projects/database/projects_database.dart';
+import 'package:crab_cakes/presentation/services/projects/projects_repository.dart';
+import 'package:crab_cakes/presentation/services/projects/project_service.dart';
+import 'package:crab_cakes/application/uuid/generate_uuid.dart';
+
+import 'package:crab_cakes/infrastructure/providers/json_import_providers.dart';
+
+
 
 final _deviceIdProvider = FutureProvider<Uint8List>((ref) async {
   // Get the UUID function
@@ -48,10 +54,15 @@ final _projectsRepositoryProvider = Provider<ProjectsRepository?>((ref) {
 final _createProjectUseCaseProvider = Provider<CreateProjectUseCase>((ref) {
 
   final parser = SqlSchemaParser();
-  final validator = SqlSecurityValidator();
+  final statementValidator = SqlSecurityValidator();
   final dbBuilder = SqliteProjectDatabaseBuilder();
+  final structureValidator = SqliteSchemaStructureValidator();
 
-  return CreateProjectUseCase(validator: validator, dbBuilder: dbBuilder, parser: parser);
+  return CreateProjectUseCase(
+    statementValidator: statementValidator, 
+    structureValidator: structureValidator,
+    dbBuilder: dbBuilder, 
+    parser: parser);
   
 },);
 
@@ -59,6 +70,16 @@ final projectListProvider =
     AsyncNotifierProvider<ProjectsListNotifier, List<ProjectModel>>(() {
       return ProjectsListNotifier();
     });
+
+
+/// Holds the currently selected app-level project.
+///
+/// This is different from [activeDatabaseConnectionProvider].
+///
+/// - [activeProjectProvider] stores metadata such as project ID, title, and dbPath.
+/// - [activeDatabaseConnectionProvider] stores the open SQLite connection.
+/// - [activeDatabasePathProvider] stores the path to the active project DB.
+final activeProjectProvider = StateProvider<ProjectModel?>((ref) => null);
 
 // Notifiers control state as well as provide data
 class ProjectsListNotifier extends AsyncNotifier<List<ProjectModel>> {
@@ -105,12 +126,39 @@ class ProjectsListNotifier extends AsyncNotifier<List<ProjectModel>> {
     }
   }
 
+  //importing a project from json
+  Future<void> importProject({
+    required String title,
+    String? description,
+    required String jsonString,
+  }) async {
+    final repo = ref.read(_projectsRepositoryProvider);
+    if(repo == null) return;
+
+    final service = ref.read(importProjectUseCaseProvider);
+
+    try {
+      final path = await service.execute(jsonString);
+
+      await repo.createProject(
+        title: title,
+        dbPath: path,
+        description: description,
+      );
+
+      ref.invalidateSelf();
+    } catch (error) {
+      rethrow;
+    }
+  }
+
   // Read
-  Future<void> selectProject({required String dbPath}) async {
-    // await ref.read(currentFlexProjectProvider.notifier).loadProject(dbPath);
+  Future<void> selectProject({required ProjectModel project}) async {
     ref
         .read(activeDatabaseConnectionProvider.notifier)
-        .setActiveProjectDatabase(dbPath);
+        .setActiveProjectDatabase(project.dbPath);
+
+    ref.read(activeProjectProvider.notifier).state = project;
   }
 
   // Update
