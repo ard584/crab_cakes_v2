@@ -7,14 +7,18 @@ import 'package:ffi/ffi.dart';
 import 'package:win32/win32.dart';
 
 
-// Interface that allows access to a list of ALL COM ports established by the 
-// local machine. This means that the outgoing AND incoming ports are included
-// within the list.
-// 
+/// Interface that allows access to a list of ALL COM ports established by the 
+/// local machine. This means that the outgoing AND incoming ports are included
+/// within the list.
+/// 
 class LibserialportDeviceDiscovery implements ScannerDeviceDiscovery {
 
   @override
   Future<List<DiscoveredPort>> listDevices() async {
+
+    if (!Platform.isWindows) {
+      return [];
+    }
 
     final ports = enumerateSerialPorts();
     List<DiscoveredPort> devices = [];
@@ -22,20 +26,26 @@ class LibserialportDeviceDiscovery implements ScannerDeviceDiscovery {
     //iterating over disovered ports
     for(int i=0; i<ports.length; i++) {
       final port = ports[i];
-      var isBt = false;
 
+      final instanceIdUpper = port.instanceId.toUpperCase();
+      final looksBluetooth = instanceIdUpper.startsWith("BTHENUM");
+      
       final btAddr = bluetoothAddressFromInstanceId(port.instanceId);
-      final deviceName;
+      final hasBtAddr = btAddr != null && btAddr != 0;
+      
 
       //checking to see if the port is an OUTGOING bluetooth port
-      if(btAddr != null && btAddr != 0) {
-        deviceName = bluetoothDeviceNameFromAddress(btAddr);
-        isBt = true;
-      } else {
-        deviceName = "";
-      }
+      final deviceName = hasBtAddr
+        ? (bluetoothDeviceNameFromAddress(btAddr) ?? "")
+        : "";
 
-      var candidate = DiscoveredPort(deviceName as String, port.comName, port.friendlyName, isBt);
+      final candidate = DiscoveredPort(
+        deviceName, 
+        port.comName, 
+        port.friendlyName, 
+        looksBluetooth,
+      );
+
       devices.add(candidate);
     }
      
@@ -68,23 +78,27 @@ List<SerialPortInfo> enumerateSerialPorts({
   final results = <SerialPortInfo>[];
 
   // GUID_DEVCLASS_PORTS = {4D36E978-E325-11CE-BFC1-08002BE10318}
+  // ^This GUID specifies the "COM and LPT" port class
   // We create a GUID and set it from the string form.
   final classGuid = calloc<GUID>();
   classGuid.ref.setGUID('{4D36E978-E325-11CE-BFC1-08002BE10318}');
 
+  //Get
   final deviceInfoSet = SetupDiGetClassDevs(
-    classGuid,
-    nullptr, // Enumerator
-    0, // hwndParent
-    DIGCF_PRESENT,
+    classGuid, // The GUID that represents all COM and LPT ports
+    nullptr, // Enumerator ~ Tells windows not to filter by port type
+    0, // hwndParent ~ Tells windows not to activate any windows UI
+    DIGCF_PRESENT,  // Filters the list to only currently present devices
   );
 
+  //verify result set is valid
   if (deviceInfoSet == INVALID_HANDLE_VALUE) {
     final err = GetLastError();
     calloc.free(classGuid);
     throw WindowsException(HRESULT_FROM_WIN32(err));
   }
 
+  //allocating windows stucture used to hold information for one device at a time
   final devInfo = calloc<SP_DEVINFO_DATA>();
   devInfo.ref.cbSize = sizeOf<SP_DEVINFO_DATA>();
 
@@ -105,7 +119,9 @@ List<SerialPortInfo> enumerateSerialPorts({
 
       if (friendly == null) continue;
 
-      final comName = _extractComNameFromFriendly(friendly);
+      final comName = _getPortNameFromRegistry(deviceInfoSet, devInfo) ??
+        _extractComNameFromFriendly(friendly);
+        
       if (comName == null) {
         if (!includeNonComFriendlyNames) continue;
       }
@@ -138,6 +154,89 @@ List<SerialPortInfo> enumerateSerialPorts({
   }
 
   return results;
+}
+
+/// Reads the actual COM port name from the device registry key.
+///
+/// This is more reliable than parsing "(COMx)" from the friendly name,
+/// because Windows stores the real port name in a registry value called
+/// "PortName".
+///
+/// Common result: "COM3", "COM4", "COM17", etc.
+///
+/// Returns null if the registry key cannot be opened, the value is missing,
+/// or the value does not look like a COM port.
+String? _getPortNameFromRegistry(
+  int deviceInfoSet,
+  Pointer<SP_DEVINFO_DATA> devInfo,
+) {
+  final hKey = SetupDiOpenDevRegKey(
+    deviceInfoSet,
+    devInfo,
+    DICS_FLAG_GLOBAL,
+    0,
+    DIREG_DEV,
+    KEY_READ,
+  );
+
+  if (hKey == INVALID_HANDLE_VALUE) {
+    return null;
+  }
+
+  final valueName = 'PortName'.toNativeUtf16();
+  final dataType = calloc<Uint32>();
+  final requiredSize = calloc<Uint32>();
+
+  try {
+    // First call: ask Windows how many bytes are needed.
+    var result = RegQueryValueEx(
+      hKey,
+      valueName,
+      nullptr,
+      dataType,
+      nullptr,
+      requiredSize,
+    );
+
+    if (result != ERROR_SUCCESS || requiredSize.value == 0) {
+      return null;
+    }
+
+    final buffer = calloc<Uint8>(requiredSize.value);
+
+    try {
+      // Second call: actually read the value.
+      result = RegQueryValueEx(
+        hKey,
+        valueName,
+        nullptr,
+        dataType,
+        buffer,
+        requiredSize,
+      );
+
+      if (result != ERROR_SUCCESS) {
+        return null;
+      }
+
+      final portName = buffer.cast<Utf16>().toDartString();
+
+      // Defensive check: only accept real COM names.
+      final match = RegExp(r'^COM\d+$', caseSensitive: false).firstMatch(portName);
+      if (match == null) {
+        return null;
+      }
+
+      return portName.toUpperCase();
+    } finally {
+      calloc.free(buffer);
+    }
+  } finally {
+    RegCloseKey(hKey);
+    calloc.free(valueName);
+    calloc.free(dataType);
+    calloc.free(requiredSize);
+  }
 }
 
 /// Reads a REG_SZ-ish string property from SetupAPI (FriendlyName, DeviceDesc, HardwareID, etc.).
@@ -268,7 +367,7 @@ String? _extractComNameFromFriendly(String friendlyName) {
 /// Returns null if not a Bluetooth BTHENUM devnode.
 /// Returns 0 if the instance id encodes "no remote address" (commonly incoming SPP port).
 int? bluetoothAddressFromInstanceId(String instanceId) {
-  if (!instanceId.startsWith('BTHENUM')) return null;
+  if (!instanceId.toUpperCase().startsWith('BTHENUM')) return null;
 
   final lastAmp = instanceId.lastIndexOf('&');
   final lastUnderscore = instanceId.lastIndexOf('_');
@@ -427,22 +526,24 @@ String? bluetoothDeviceNameFromAddress(int btAddressUll) {
     while (true) {
       final hRadio = phRadio.value;
       if (hRadio != 0) {
-        final info = calloc<BLUETOOTH_DEVICE_INFO>();
-        try {
-          info.ref.dwSize = sizeOf<BLUETOOTH_DEVICE_INFO>();
-          info.ref.Address.u.ullLong = btAddressUll;
 
-          final result = _BluetoothGetDeviceInfo(hRadio, info);
-          if (result == ERROR_SUCCESS) {
-            final name = _wcharArrayToString(info.ref.szName, 248);
-            if (name.isNotEmpty) return name;
+        try {
+          final info = calloc<BLUETOOTH_DEVICE_INFO>();
+          try {
+            info.ref.dwSize = sizeOf<BLUETOOTH_DEVICE_INFO>();
+            info.ref.Address.u.ullLong = btAddressUll;
+
+            final result = _BluetoothGetDeviceInfo(hRadio, info);
+            if (result == ERROR_SUCCESS) {
+              final name = _wcharArrayToString(info.ref.szName, 248);
+              if (name.isNotEmpty) return name;
+            }
+          } finally {
+            calloc.free(info);
           }
         } finally {
-          calloc.free(info);
+          CloseHandle(hRadio);
         }
-
-        // Close the radio handle (it's a HANDLE)
-        CloseHandle(hRadio);
       }
 
       // Next radio (most PCs have only one)
