@@ -133,19 +133,43 @@ class _PitReadersSectionState extends ConsumerState<PitReadersSection> {
                   data: (devices) {
                     if (devices.isEmpty) return const Text('No devices found');
 
+                    final sortedDevices = [...devices];
+
+                    sortedDevices.sort((a, b) {
+                      final aHasName = a.displayName.trim().isNotEmpty;
+                      final bHasName = b.displayName.trim().isNotEmpty;
+
+                      // Named devices first.
+                      if (aHasName != bHasName) {
+                        return aHasName ? -1 : 1;
+                      }
+
+                      // Then sort by display name.
+                      final displayCompare = a.displayName
+                          .toLowerCase()
+                          .compareTo(b.displayName.toLowerCase());
+
+                      if (displayCompare != 0) {
+                        return displayCompare;
+                      }
+
+                      // Final fallback: sort by COM port.
+                      return a.port.toLowerCase().compareTo(b.port.toLowerCase());
+                    });
+
                     final effectiveSelectionStillExists =
                       effectiveSelectedDeviceId != null &&
-                      devices.any((device) => device.port == effectiveSelectedDeviceId);
+                      sortedDevices.any((device) => device.port == effectiveSelectedDeviceId);
 
                     final value = effectiveSelectionStillExists
                       ? effectiveSelectedDeviceId
-                      : devices.first.port;
+                      : sortedDevices.first.port;
 
                     return DropdownButtonHideUnderline(
                       child: DropdownButton<String>(
                         isExpanded: true,
                         value: value,
-                        items: devices.map((d) {
+                        items: sortedDevices.map((d) {
                           return DropdownMenuItem(
                             value: d.port,
                             child: Text(d.displayName, overflow: TextOverflow.ellipsis),
@@ -158,12 +182,6 @@ class _PitReadersSectionState extends ConsumerState<PitReadersSection> {
 
                               ref.read(selectedDeviceIdProvider.notifier).state = newId;
 
-                              // Clear old connection error when the user picks another device.
-                              //
-                              // NOTE: This intentionally does not clear the last displayed
-                              // connected device. The dropdown selection represents the next
-                              // target device, while the status text represents the last
-                              // confirmed successful scanner connection.
                               ref.read(pitConnectionControllerProvider.notifier).clearError();
                             },
                       ),
