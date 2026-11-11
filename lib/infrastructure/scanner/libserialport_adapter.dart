@@ -5,7 +5,6 @@ import 'package:flutter/foundation.dart';
 
 import 'package:flutter_libserialport/flutter_libserialport.dart';
 import 'package:crab_cakes/application/scanner/interfaces/scanner_connector.dart';
-import 'dart:typed_data';
 
   class LibserialportAdapter implements ScannerConnector {
 

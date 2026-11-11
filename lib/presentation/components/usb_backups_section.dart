@@ -134,7 +134,7 @@ class _UsbBackupDrivesSectionState extends ConsumerState<UsbBackupDrivesSection>
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   DropdownButtonFormField<String>(
-                    value: safeSelectedId,
+                    initialValue: safeSelectedId,
                     isExpanded: true,
                     decoration: InputDecoration(
                       labelText: 'Select a drive',

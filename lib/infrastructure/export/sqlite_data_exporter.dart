@@ -29,7 +29,7 @@ class SqliteDataExporter implements DataExporter {
     DELIMITER = delimiter;
 
     //add extension to the end of the file name
-    filePath = "$filePath";
+    filePath = filePath;
 
     final file = File(filePath);
     final sink = file.openWrite();

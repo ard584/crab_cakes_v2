@@ -2,7 +2,7 @@ import 'dart:typed_data';
 
 abstract class ScannerConnector {
 
-  Stream<Uint8List> _byteStream = const Stream.empty();
+  final Stream<Uint8List> _byteStream = const Stream.empty();
   Stream<Uint8List> get byteStream => _byteStream;
 
   Stream<bool> get connectionStatusStream;

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pluto_grid/pluto_grid.dart';
+import 'package:crab_cakes/domain/entities/row_identifier.dart';
 import 'package:crab_cakes/domain/db_table.dart';
 import 'package:crab_cakes/infrastructure/project/active_project/pluto_grid_constructor.dart';
 import 'package:crab_cakes/infrastructure/providers/delete_rows_provider.dart';
@@ -42,7 +43,10 @@ Widget getTablesChoiceChips(WidgetRef ref) {
 }
 
 class CheckDatabaseScreen extends ConsumerStatefulWidget {
-  const CheckDatabaseScreen({super.key});
+  const CheckDatabaseScreen({super.key, this.selectedFishId});
+
+  // IDs of fish selected from the QA/QC graph
+  final int? selectedFishId;
 
   @override
   ConsumerState<ConsumerStatefulWidget> createState() {
@@ -169,6 +173,24 @@ class _CheckDatabaseScreenState extends ConsumerState<CheckDatabaseScreen> {
     // Create columns
     columns = constructor.constructColumns(table);
 
+    // Only show the selected fish when opened from QA/QC
+    final visibleRows = widget.selectedFishId == null
+        ? rows
+        : rows.where((row) {
+            final key = row.key;
+
+            // Get the database ID stored in the row's key
+            if (key is ValueKey) {
+              final rowId = key.value;
+
+              if (rowId is SqliteRowIdentifier) {
+                return rowId.value == widget.selectedFishId;
+              }
+            }
+
+            return false;
+          }).toList();
+
     return Scaffold(
       appBar: AppBar(title: const Text('View Entries')),
       floatingActionButton: AnimatedSize(
@@ -176,65 +198,64 @@ class _CheckDatabaseScreenState extends ConsumerState<CheckDatabaseScreen> {
         curve: Curves.easeInOutCubicEmphasized,
         clipBehavior: Clip.none,
         child: TweenAnimationBuilder<Color?>(
-        duration: Duration(milliseconds: 500),
-        tween: ColorTween(
-          end: rowCount > 0
-              ? scheme.primaryContainer
-              : scheme.surfaceContainerHighest,
-        ),
-        builder: (context, color, child) {
-
+          duration: Duration(milliseconds: 500),
+          tween: ColorTween(
+            end: rowCount > 0
+                ? scheme.primaryContainer
+                : scheme.surfaceContainerHighest,
+          ),
+          builder: (context, color, child) {
             final rowString = (rowCount == 1) ? "row" : "rows";
             final prompt = "Update $rowCount $rowString";
-          return FloatingActionButton.extended(
-            onPressed: rowCount > 0
-                ? () async {
-                    final currentStateManager = stateManager;
-                    if (currentStateManager == null) return;
+            return FloatingActionButton.extended(
+              onPressed: rowCount > 0
+                  ? () async {
+                      final currentStateManager = stateManager;
+                      if (currentStateManager == null) return;
 
-                    String promptRows = "rows";
-                    final selectedRowKeys = currentUpdatedKeys.toList();
+                      String promptRows = "rows";
+                      final selectedRowKeys = currentUpdatedKeys.toList();
 
-                    if (selectedRowKeys.length == 1) {
-                      promptRows = "row";
-                    }
+                      if (selectedRowKeys.length == 1) {
+                        promptRows = "row";
+                      }
 
-                    final result = await confirmUpdateEditGrid(
-                      context,
-                      "Are you sure you want to update ${selectedRowKeys.length} $promptRows?",
-                    );
-
-                    if (result == EditGridAction.update) {
-                      // Get state manager
-                      final stateManager = currentStateManager;
-
-                      // Get all updated row identifiers
-                      final List<Key> editedRowIdentifiers = currentUpdatedKeys
-                          .toList();
-
-                      // Get edited rows
-                      final editedRows = extractPlutoRowsByKeys(
-                        editedRowIdentifiers,
-                        stateManager,
+                      final result = await confirmUpdateEditGrid(
+                        context,
+                        "Are you sure you want to update ${selectedRowKeys.length} $promptRows?",
                       );
 
-                      final updater = ref.read(plutoUpdateRowsProvider);
-                      updater.updateFromPluto(rows: editedRows, table: table);
+                      if (result == EditGridAction.update) {
+                        // Get state manager
+                        final stateManager = currentStateManager;
 
-                      // Clear cached keys
-                      setState(() {
-                        currentUpdatedKeys.clear();
-                      });
-                    } else if (result == EditGridAction.abandon) {
-                      resetTable(table);
+                        // Get all updated row identifiers
+                        final List<Key> editedRowIdentifiers =
+                            currentUpdatedKeys.toList();
+
+                        // Get edited rows
+                        final editedRows = extractPlutoRowsByKeys(
+                          editedRowIdentifiers,
+                          stateManager,
+                        );
+
+                        final updater = ref.read(plutoUpdateRowsProvider);
+                        updater.updateFromPluto(rows: editedRows, table: table);
+
+                        // Clear cached keys
+                        setState(() {
+                          currentUpdatedKeys.clear();
+                        });
+                      } else if (result == EditGridAction.abandon) {
+                        resetTable(table);
+                      }
                     }
-                  }
-                : null,
+                  : null,
               label: Text(prompt),
-            backgroundColor: color,
-          );
-        },
-      ),
+              backgroundColor: color,
+            );
+          },
+        ),
       ),
       body: Center(
         child: Padding(
@@ -320,11 +341,13 @@ class _CheckDatabaseScreenState extends ConsumerState<CheckDatabaseScreen> {
                 child: PlutoGrid(
                   key: ValueKey(tableName),
                   columns: [checkCol, ...columns],
-                  rows: rows,
+                  rows: visibleRows,
                   mode: PlutoGridMode.normal,
+
                   onLoaded: (PlutoGridOnLoadedEvent event) {
                     stateManager = event.stateManager;
                   },
+
                   onChanged: (event) {
                     WidgetsBinding.instance.addPostFrameCallback((_) {
                       if (!mounted) return;

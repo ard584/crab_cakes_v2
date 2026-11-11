@@ -257,11 +257,7 @@ class _ExportScreenState extends ConsumerState<ExportScreen> {
     final dataDir = dbFile.parent;
     final projectDir = dataDir.parent;
 
-    return projectDir.path +
-        Platform.pathSeparator +
-        'export' +
-        Platform.pathSeparator +
-        'data.txt';
+    return '${projectDir.path}${Platform.pathSeparator}export${Platform.pathSeparator}data.txt';
   }
 
   @override

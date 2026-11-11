@@ -3,6 +3,7 @@ import 'package:crab_cakes/application/backup/dtos/backup_request.dart';
 import 'package:crab_cakes/application/backup/interfaces/backup_manifest_writer.dart';
 
 class DummyManifestWriter implements BackupManifestWriter {
+  @override
   Future<void> writeManifest({
     required BackupRequest request,
     required BackupPlan plan,

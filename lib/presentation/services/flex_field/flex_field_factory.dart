@@ -422,7 +422,7 @@ class _AutocompleteOptionTile extends StatelessWidget {
       onTap: () => onSelected(option),
       child: Container(
         color: highlighted
-            ? Theme.of(context).focusColor.withOpacity(0.20)
+            ? Theme.of(context).focusColor.withValues(alpha: 0.20)
             : null,
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         child: Text(option),
