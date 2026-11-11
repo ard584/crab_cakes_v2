@@ -115,7 +115,7 @@ class _ScannerTargetSectionState extends ConsumerState<ScannerTargetSection> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         DropdownButtonFormField<String>(
-                          value: visibleTable,
+                          initialValue: visibleTable,
                           decoration: const InputDecoration(
                             labelText: 'Target Table',
                             border: OutlineInputBorder(),
@@ -151,7 +151,7 @@ class _ScannerTargetSectionState extends ConsumerState<ScannerTargetSection> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           DropdownButtonFormField<String>(
-                            value: visibleTable,
+                            initialValue: visibleTable,
                             decoration: const InputDecoration(
                               labelText: 'Target Table',
                               border: OutlineInputBorder(),
@@ -197,7 +197,7 @@ class _ScannerTargetSectionState extends ConsumerState<ScannerTargetSection> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           DropdownButtonFormField<String>(
-                            value: visibleTable,
+                            initialValue: visibleTable,
                             decoration: const InputDecoration(
                               labelText: 'Target Table',
                               border: OutlineInputBorder(),
@@ -226,7 +226,7 @@ class _ScannerTargetSectionState extends ConsumerState<ScannerTargetSection> {
                           ),
                           const SizedBox(height: 16),
                           DropdownButtonFormField<String>(
-                            value: visibleColumn,
+                            initialValue: visibleColumn,
                             decoration: const InputDecoration(
                               labelText: 'Target Column',
                               border: OutlineInputBorder(),

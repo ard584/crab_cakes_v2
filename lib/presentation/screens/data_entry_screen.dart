@@ -14,6 +14,7 @@ import 'package:crab_cakes/infrastructure/providers/field_config_providers.dart'
 import 'package:crab_cakes/infrastructure/providers/data_entry_title_project_provider.dart';
 
 import 'package:crab_cakes/presentation/screens/check_database_screen.dart';
+import 'package:crab_cakes/presentation/screens/qaqc_screen.dart';
 import 'package:crab_cakes/presentation/screens/export_screen.dart';
 import 'package:crab_cakes/presentation/screens/field_config_screen.dart';
 
@@ -494,7 +495,7 @@ class DrawerSubmenu extends StatelessWidget {
             ),
           ),
           subtitle: const Text("Return to project selection"),
-          tileColor: colorScheme.primaryContainer.withOpacity(0.35),
+          tileColor: colorScheme.primaryContainer.withValues(alpha: 0.35),
           onTap: () {
             Navigator.pop(context);
             Navigator.push(
@@ -512,6 +513,19 @@ class DrawerSubmenu extends StatelessWidget {
               context,
               MaterialPageRoute(
                 builder: (context) => CheckDatabaseScreen(),
+              ),
+            );
+          },
+        ),
+        ListTile(
+          leading: const Icon(Icons.bar_chart),
+          title: const Text("QA/QC Graphs"),
+          onTap: () {
+            Navigator.pop(context);
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const QaqcScreen(),
               ),
             );
           },
