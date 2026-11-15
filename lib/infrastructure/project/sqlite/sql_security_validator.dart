@@ -1,5 +1,6 @@
 import 'package:crab_cakes/application/project/interfaces/schema/schema_validator.dart';
 import 'package:crab_cakes/infrastructure/project/sqlite/sql_lexer.dart';
+
 /*
 ATTACH is harmful as it attaches another database
 DETACH only makes sense to be used with ATTACH
@@ -221,7 +222,6 @@ class SqlSecurityValidator implements SchemaValidator {
 
   @override
   bool isSafe(List<String> statements) {
-
     // Iterate through statements
     for (final statement in statements) {
       List<Token> tokens;

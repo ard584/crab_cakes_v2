@@ -2,7 +2,6 @@ import 'package:crab_cakes/application/settings/interfaces/project_settings_repo
 import 'package:crab_cakes/domain/entities/settings/project_settings.dart';
 
 class UpdateSettings {
-
   final ProjectSettingsRepo repo;
 
   UpdateSettings(this.repo);

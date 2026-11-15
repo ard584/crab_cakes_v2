@@ -10,6 +10,5 @@ class DiscoverDrives {
     final List<BackupTarget> driveList = await discoverer.discover();
 
     return driveList;
-
   }
 }

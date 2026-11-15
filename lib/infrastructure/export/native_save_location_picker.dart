@@ -2,17 +2,17 @@ import 'package:crab_cakes/application/export/interfaces/save_location_picker.da
 import 'package:file_selector/file_selector.dart';
 import 'package:crab_cakes/domain/value_objects/save_file_type.dart';
 
-typedef SaveLocationSelector = Future<FileSaveLocation?> Function({
-  required String suggestedName,
-  required List<XTypeGroup> acceptedTypeGroups,
-});
+typedef SaveLocationSelector =
+    Future<FileSaveLocation?> Function({
+      required String suggestedName,
+      required List<XTypeGroup> acceptedTypeGroups,
+    });
 
 class NativeSaveLocationPicker implements SaveLocationPicker {
   final SaveLocationSelector _getSaveLocation;
 
-  NativeSaveLocationPicker({
-    SaveLocationSelector? getSaveLocationOverride,
-  }) : _getSaveLocation = getSaveLocationOverride ?? getSaveLocation;
+  NativeSaveLocationPicker({SaveLocationSelector? getSaveLocationOverride})
+    : _getSaveLocation = getSaveLocationOverride ?? getSaveLocation;
 
   @override
   Future<String?> getLocation({
@@ -23,9 +23,7 @@ class NativeSaveLocationPicker implements SaveLocationPicker {
 
     final location = await _getSaveLocation(
       suggestedName: suggestedName,
-      acceptedTypeGroups: [
-        typeGroup,
-      ],
+      acceptedTypeGroups: [typeGroup],
     );
 
     if (location == null) return null;

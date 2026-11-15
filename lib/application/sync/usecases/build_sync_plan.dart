@@ -6,10 +6,7 @@ class BuildSyncPlan {
   final ProjectSyncRepo repo;
   final CheckSyncCompat checkCompat;
 
-  BuildSyncPlan({
-    required this.repo,
-    required this.checkCompat,
-  });
+  BuildSyncPlan({required this.repo, required this.checkCompat});
 
   Future<SyncPlan> call({
     required String activeDbPath,
@@ -67,10 +64,7 @@ class BuildSyncPlan {
     final updatesToCandidate = <Map<String, dynamic>>[];
     final conflicts = <SyncConflict>[];
 
-    final allGuids = {
-      ...activeByGuid.keys,
-      ...candidateByGuid.keys,
-    };
+    final allGuids = {...activeByGuid.keys, ...candidateByGuid.keys};
 
     for (final guid in allGuids) {
       final activeRow = activeByGuid[guid];
@@ -161,10 +155,7 @@ class BuildSyncPlan {
     return DateTime.tryParse(value);
   }
 
-  bool _rowsEquivalent(
-    Map<String, dynamic> left,
-    Map<String, dynamic> right,
-  ) {
+  bool _rowsEquivalent(Map<String, dynamic> left, Map<String, dynamic> right) {
     if (left.length != right.length) {
       return false;
     }

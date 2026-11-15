@@ -5,7 +5,8 @@ class FieldConfig {
   final bool showInCatchHistory;
   final bool isSticky;
   final bool isHidden;
-  final List<String> options; //these are the values added by the user to be selected from in the field
+  final List<String>
+  options; //these are the values added by the user to be selected from in the field
   final num? minValue;
   final num? maxValue;
   final String? helpText;
@@ -21,21 +22,19 @@ class FieldConfig {
     required this.minValue,
     required this.maxValue,
     required this.helpText,
-    }) : options = options ?? [];
+  }) : options = options ?? [];
 
   Map<String, dynamic> toJson() => {
-
-    'useDropdown':useDropdown,
-    'allowCustomValues':allowCustomValues,
-    'isRequired':isRequired,
-    'showInCatchHistory':showInCatchHistory,
-    'isSticky':isSticky,
-    'isHidden':isHidden,
-    'options':options,
-    'minValue':minValue,
-    'maxValue':maxValue,
-    'helpText':helpText,
-    
+    'useDropdown': useDropdown,
+    'allowCustomValues': allowCustomValues,
+    'isRequired': isRequired,
+    'showInCatchHistory': showInCatchHistory,
+    'isSticky': isSticky,
+    'isHidden': isHidden,
+    'options': options,
+    'minValue': minValue,
+    'maxValue': maxValue,
+    'helpText': helpText,
   };
 
   //defining how the config class reads the json and creates an instance of itself
@@ -56,12 +55,12 @@ class FieldConfig {
 
   //copywith helper to allow caller to create a new instance changing only the specified attributes
   FieldConfig copyWith({
-     bool? useDropdown,
-     bool? allowCustomValues,
-     bool? isRequired,
-     bool? showInCatchHistory,
-     bool? isSticky,
-     bool? isHidden,
+    bool? useDropdown,
+    bool? allowCustomValues,
+    bool? isRequired,
+    bool? showInCatchHistory,
+    bool? isSticky,
+    bool? isHidden,
     List<String>? options,
     num? minValue,
     num? maxValue,
@@ -96,7 +95,7 @@ class FieldConfig {
     options: const [],
     minValue: null,
     maxValue: null,
-    helpText: null,    
+    helpText: null,
   );
 
   factory FieldConfig.defaultInstance() {

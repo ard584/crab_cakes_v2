@@ -2,10 +2,7 @@ class ExportSettings {
   final String? baseTable;
   final String? delimiter;
 
-  ExportSettings({
-    this.baseTable,
-    this.delimiter,
-  });
+  ExportSettings({this.baseTable, this.delimiter});
 
   Map<String, dynamic> toJson() => {
     'baseTable': baseTable,
@@ -22,8 +19,8 @@ class ExportSettings {
   ExportSettings copyWith({
     String? baseTable,
     String? delimiter,
-    bool clearBaseTable=false,
-    bool clearDelimiter=false,
+    bool clearBaseTable = false,
+    bool clearDelimiter = false,
   }) {
     return ExportSettings(
       baseTable: clearBaseTable ? null : (baseTable ?? this.baseTable),

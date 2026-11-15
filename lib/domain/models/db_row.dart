@@ -10,8 +10,9 @@ class DbRow<T extends RowIdentifier> {
 
   @override
   String toString() {
-    String string = "DbRow (\n"
-    "RowIdentifier: $identifier \n";
+    String string =
+        "DbRow (\n"
+        "RowIdentifier: $identifier \n";
     for (final value in values.entries) {
       string += "  [${value.key}: ${value.value}]\n";
     }

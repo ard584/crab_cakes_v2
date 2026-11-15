@@ -21,10 +21,9 @@ class DbTable {
 
   @override
   String toString() {
-
     String string = "DbTable ($name)\n(\n";
 
-    for (final col in columns ) {
+    for (final col in columns) {
       string += "  $col";
     }
 
@@ -58,7 +57,6 @@ class DbTable {
   int get columnCount => columns.length;
 
   List<DbColumn> getPrimaryKey() {
-
     List<DbColumn> pk = [];
 
     for (final col in columns) {
@@ -68,7 +66,6 @@ class DbTable {
     }
 
     return pk;
-
   }
 }
 
@@ -94,7 +91,7 @@ class DbColumn {
     String string = "COLUMN ($name [$type]";
 
     if (primaryKey) string += " PK";
-    if(nullable == false) string += " NOT NULL";
+    if (nullable == false) string += " NOT NULL";
 
     string += ")\n";
 

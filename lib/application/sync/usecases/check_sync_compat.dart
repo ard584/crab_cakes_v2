@@ -13,7 +13,7 @@ class CheckSyncCompat {
     final active = await repo.readSyncMetadata(activeDbPath);
     final candidate = await repo.readSyncMetadata(candidateDbPath);
 
-    if(active.syncVersion != candidate.syncVersion) {
+    if (active.syncVersion != candidate.syncVersion) {
       return const SyncCompatibilityResult.incompatible(
         'These projects use different sync metadata versions',
       );

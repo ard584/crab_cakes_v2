@@ -5,21 +5,15 @@ import 'package:crab_cakes/infrastructure/providers/sound_provider.dart';
 
 //front end of how the sound system will look in the settings
 class SoundSettingRow extends ConsumerWidget {
-  //shows the sound name, on/off switch and a play button for preview 
+  //shows the sound name, on/off switch and a play button for preview
   //and its in a row widget
-  const SoundSettingRow
-  ({
-    super.key,
-    required this.sound,
-    required this.label,
-  });
+  const SoundSettingRow({super.key, required this.sound, required this.label});
 
   final AppSound sound;
   final String label;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) 
-  {
+  Widget build(BuildContext context, WidgetRef ref) {
     final enabled = ref.watch(soundEnabledProvider(sound));
 
     return Container(
@@ -31,12 +25,7 @@ class SoundSettingRow extends ConsumerWidget {
       ),
       child: Row(
         children: [
-          Expanded(
-            child: Text(
-              label,
-              style: const TextStyle(fontSize: 16),
-            ),
-          ),
+          Expanded(child: Text(label, style: const TextStyle(fontSize: 16))),
           Row(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -51,7 +40,9 @@ class SoundSettingRow extends ConsumerWidget {
               Switch(
                 value: enabled,
                 onChanged: (value) {
-                  ref.read(soundSettingsProvider.notifier).setEnabled(sound, value);
+                  ref
+                      .read(soundSettingsProvider.notifier)
+                      .setEnabled(sound, value);
                 },
               ),
               const SizedBox(width: 8),

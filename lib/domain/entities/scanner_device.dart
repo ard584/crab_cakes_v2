@@ -6,7 +6,6 @@ import 'package:crab_cakes/domain/value_objects/scanner_transport.dart';
 // of communication, and 'port' refers to the specific COM port number in the format
 // COM# (i.e. COM7)
 
-
 class ScannerDevice {
   final ScannerId id;
   final String displayName;
@@ -14,9 +13,9 @@ class ScannerDevice {
   final String port;
 
   const ScannerDevice({
-    required this.id, 
+    required this.id,
     required this.displayName,
     required this.transport,
-    required this.port});
-
+    required this.port,
+  });
 }

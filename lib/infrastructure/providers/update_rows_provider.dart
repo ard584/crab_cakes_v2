@@ -6,5 +6,4 @@ final updateRowsProvider = Provider<UpdateRowsUseCase>((ref) {
   final repo = ref.watch(projectDatabaseProvider);
   final useCase = UpdateRowsUseCase(repo: repo);
   return useCase;
-
 });

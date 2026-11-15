@@ -1,7 +1,6 @@
 import 'package:crab_cakes/application/settings/interfaces/project_settings_repo.dart';
 import 'package:crab_cakes/domain/entities/settings/field_config.dart';
 
-
 class GetFieldConfig {
   final ProjectSettingsRepo repo;
 
@@ -17,5 +16,4 @@ class GetFieldConfig {
 
     return config ?? FieldConfig.defaultInstance();
   }
-
 }

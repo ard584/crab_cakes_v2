@@ -1,7 +1,6 @@
 import 'package:crab_cakes/application/backup/interfaces/drive_selection_repo.dart';
 
 class DummyDriveSelectionRepo implements DriveSelectionRepository {
-
   @override
   Future<Set<String>> loadSelectedIds() async {
     return {};
@@ -11,5 +10,4 @@ class DummyDriveSelectionRepo implements DriveSelectionRepository {
   Future<void> saveSelectedIds(Set<String> ids) async {
     throw UnsupportedError('Backup is only supported on Windows right now.');
   }
-
 }

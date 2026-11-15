@@ -1,5 +1,1 @@
-enum SaveFileType {
-  csv,
-  txt,
-  json,
-}
+enum SaveFileType { csv, txt, json }

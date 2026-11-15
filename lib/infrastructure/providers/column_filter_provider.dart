@@ -28,6 +28,7 @@ class ColumnSelectionNotifier extends Notifier<Map<String, List<String>>> {
   }
 }
 
-final columnSelectionProvider = NotifierProvider<ColumnSelectionNotifier, Map<String, List<String>>>(
-  ColumnSelectionNotifier.new,
-);
+final columnSelectionProvider =
+    NotifierProvider<ColumnSelectionNotifier, Map<String, List<String>>>(
+      ColumnSelectionNotifier.new,
+    );

@@ -3,20 +3,18 @@ import 'package:crab_cakes/application/export/interfaces/save_location_picker.da
 import 'package:crab_cakes/domain/value_objects/save_file_type.dart';
 
 class ExportSettings {
-
   final ProjectSettingsExporter exporter;
   final SaveLocationPicker saveLocationPicker;
 
   ExportSettings(this.exporter, this.saveLocationPicker);
 
   Future<void> execute() async {
-
     final filePath = await saveLocationPicker.getLocation(
-        suggestedName: 'project_settings.json',
-        type: SaveFileType.json,
+      suggestedName: 'project_settings.json',
+      type: SaveFileType.json,
     );
 
-    if(filePath == null) return;
+    if (filePath == null) return;
 
     exporter.export(filePath);
   }

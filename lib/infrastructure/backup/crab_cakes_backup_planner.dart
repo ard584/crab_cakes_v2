@@ -7,15 +7,21 @@ import 'package:crab_cakes/application/backup/dtos/backup_target.dart';
 import 'package:crab_cakes/application/backup/interfaces/backup_planner.dart';
 
 class CrabCakesBackupPlanner implements BackupPlanner {
-
   @override
-  Future<BackupPlan> prepareBackup(BackupRequest req, BackupTarget target) async {
+  Future<BackupPlan> prepareBackup(
+    BackupRequest req,
+    BackupTarget target,
+  ) async {
     final safeProjectFolderName =
-    '${_safeFolderName(req.projectName)}_${_safeFolderName(req.projectId)}';
+        '${_safeFolderName(req.projectName)}_${_safeFolderName(req.projectId)}';
 
     final backupRoot = path.join(target.drivePath, 'CRABCAKES');
 
-    final projectRoot = path.join(backupRoot, 'projects', safeProjectFolderName);
+    final projectRoot = path.join(
+      backupRoot,
+      'projects',
+      safeProjectFolderName,
+    );
     final dataDir = path.join(projectRoot, 'data');
     final exportDir = path.join(projectRoot, 'export');
 
@@ -50,5 +56,4 @@ class CrabCakesBackupPlanner implements BackupPlanner {
 
     return cleaned;
   }
-
 }

@@ -2,7 +2,6 @@ import 'package:sqlite3/sqlite3.dart';
 import 'package:crab_cakes/application/schema_discovery/interfaces/schema_discovery_repo.dart';
 
 class SqliteSchemaDiscoveryRepo implements SchemaDiscoveryRepo {
-
   final Database db;
 
   const SqliteSchemaDiscoveryRepo(this.db);
@@ -11,7 +10,7 @@ class SqliteSchemaDiscoveryRepo implements SchemaDiscoveryRepo {
     final escaped = identifier.replaceAll('"', '""');
     return '"$escaped"';
   }
-  
+
   @override
   Future<List<String>> getTables() async {
     final result = db.select('''
@@ -24,7 +23,6 @@ class SqliteSchemaDiscoveryRepo implements SchemaDiscoveryRepo {
     ''');
 
     return result.map((row) => row['name'] as String).toList();
-
   }
 
   @override

@@ -5,22 +5,23 @@ import 'package:path_provider/path_provider.dart';
 part 'projects_database.g.dart';
 
 class Projects extends Table {
-  BlobColumn get id => 
-    blob().customConstraint('NOT NULL CHECK(length(id) = 16)')();
+  BlobColumn get id =>
+      blob().customConstraint('NOT NULL CHECK(length(id) = 16)')();
 
   TextColumn get title => text()();
   TextColumn get description => text().nullable()();
   TextColumn get createdAt => text()();
   TextColumn get updatedAt => text()();
-  BlobColumn get createdByDevice => 
-    blob().customConstraint('NOT NULL CHECK(length(created_by_device) = 16)')();
-  BlobColumn get updatedByDevice => 
-    blob().customConstraint('NOT NULL CHECK(length(updated_by_device) = 16)')();
+  BlobColumn get createdByDevice => blob().customConstraint(
+    'NOT NULL CHECK(length(created_by_device) = 16)',
+  )();
+  BlobColumn get updatedByDevice => blob().customConstraint(
+    'NOT NULL CHECK(length(updated_by_device) = 16)',
+  )();
   TextColumn get dbPath => text().unique()();
 
   @override
   Set<Column> get primaryKey => {id};
-
 }
 
 @DriftDatabase(tables: [Projects])
@@ -32,17 +33,16 @@ class AppDatabase extends _$AppDatabase {
 
   @override
   int get schemaVersion => 1;
-
 }
 
-  QueryExecutor openConnection() {
-    return driftDatabase(
-      name: 'projects_database',
-      native: const DriftNativeOptions(
-        // By default, `driftDatabase` from `package:drift_flutter` stores the
-        // database files in `getApplicationDocumentsDirectory()`.
-        databaseDirectory: getApplicationSupportDirectory,
-      ),
-      // If you need web support, see https://drift.simonbinder.eu/platforms/web/
-    );
-  }
+QueryExecutor openConnection() {
+  return driftDatabase(
+    name: 'projects_database',
+    native: const DriftNativeOptions(
+      // By default, `driftDatabase` from `package:drift_flutter` stores the
+      // database files in `getApplicationDocumentsDirectory()`.
+      databaseDirectory: getApplicationSupportDirectory,
+    ),
+    // If you need web support, see https://drift.simonbinder.eu/platforms/web/
+  );
+}

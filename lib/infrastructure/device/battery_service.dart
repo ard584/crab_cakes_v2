@@ -13,7 +13,7 @@ class BatteryPlusService implements BatteryService {
 
   //return current battery level as percentage
   @override
-  Future<int> getBatteryLevel()  {
+  Future<int> getBatteryLevel() {
     return _battery.batteryLevel;
   }
 
@@ -22,15 +22,17 @@ class BatteryPlusService implements BatteryService {
   Stream<int> batteryLevelStream() async* {
     yield await _battery.batteryLevel;
 
-    yield* Stream.periodic(const Duration(minutes: 2))
-        .asyncMap((_) => _battery.batteryLevel);
+    yield* Stream.periodic(
+      const Duration(minutes: 2),
+    ).asyncMap((_) => _battery.batteryLevel);
   }
+
   //listen for battery state chnge
   @override
   Stream<BatteryState> batteryStateStream() {
     return _battery.onBatteryStateChanged.map(_mapState);
   }
-  
+
   BatteryState _mapState(bp.BatteryState state) {
     switch (state) {
       case bp.BatteryState.charging:
@@ -43,6 +45,4 @@ class BatteryPlusService implements BatteryService {
         return BatteryState.unknown;
     }
   }
-  
-
 }

@@ -10,7 +10,6 @@ class BackupPlan {
 
   final String manifestPath;
 
-
   const BackupPlan({
     required this.backupRootPath,
     required this.projectRootPath,

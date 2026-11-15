@@ -40,12 +40,12 @@ class CreateProjectUseCase {
 
   CreateProjectUseCase({
     required this.statementValidator,
-    required this.structureValidator, 
-    required this.dbBuilder, 
-    required this.parser});
+    required this.structureValidator,
+    required this.dbBuilder,
+    required this.parser,
+  });
 
   Future<ProjectFilePath> execute(String userSchema) async {
-
     // Parse sql
     final List<String> statements = parser.getStatements(userSchema);
 
@@ -58,7 +58,8 @@ class CreateProjectUseCase {
     final bool validStructure = await structureValidator.isValid(statements);
     if (!validStructure) {
       throw InvalidSchemaException(
-        "Schemas should only be individual tables or chain structures!");
+        "Schemas should only be individual tables or chain structures!",
+      );
     }
 
     return dbBuilder.buildFromSchema(statements);

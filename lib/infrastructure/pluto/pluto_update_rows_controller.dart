@@ -10,7 +10,6 @@ class PlutoUpdateRowsController {
   PlutoUpdateRowsController({required this.useCase});
 
   void updateFromPluto({required List<PlutoRow> rows, required DbTable table}) {
-
     // Extract names from DbTable
     final Set<String> columnNames = table.columns.map((column) {
       return column.name;
@@ -25,5 +24,4 @@ class PlutoUpdateRowsController {
     // Call use case
     useCase.call(tableName: table.name, rows: dbRows);
   }
-
 }

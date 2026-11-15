@@ -22,15 +22,18 @@ Future<EditGridAction> confirmUpdateEditGrid(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
                     TextButton(
-                      onPressed: () => Navigator.pop(context, EditGridAction.cancel),
+                      onPressed: () =>
+                          Navigator.pop(context, EditGridAction.cancel),
                       child: const Text("Cancel"),
                     ),
                     TextButton(
-                      onPressed: () => Navigator.pop(context, EditGridAction.update),
+                      onPressed: () =>
+                          Navigator.pop(context, EditGridAction.update),
                       child: const Text("Update"),
                     ),
                     TextButton(
-                      onPressed: () => Navigator.pop(context, EditGridAction.abandon),
+                      onPressed: () =>
+                          Navigator.pop(context, EditGridAction.abandon),
                       child: const Text("Abandon Changes"),
                     ),
                   ],

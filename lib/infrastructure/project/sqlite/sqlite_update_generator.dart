@@ -5,13 +5,14 @@ class SqliteUpdateGenerator implements UpdateGenerator {
     String table,
     Map<String, dynamic> data,
     dynamic identifier,
-    dynamic key
+    dynamic key,
   ) {
     String sql = "UPDATE $table SET ";
 
     List<String> sets = [];
 
-    final Map<String, dynamic> columnsToUpdate = Map.from(data)..remove("_rowid_");
+    final Map<String, dynamic> columnsToUpdate = Map.from(data)
+      ..remove("_rowid_");
 
     for (final String columnName in columnsToUpdate.keys) {
       sets.add("$columnName = ?");
@@ -35,7 +36,7 @@ class SqliteUpdateGenerator implements UpdateGenerator {
     String table,
     Map<String, dynamic> data,
     dynamic identifier,
-    dynamic key
+    dynamic key,
   ) {
     final sql = _generateUpdateStatement(table, data, identifier, key);
     final values = _generateValues(data);

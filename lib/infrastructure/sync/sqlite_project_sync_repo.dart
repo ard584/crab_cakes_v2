@@ -6,14 +6,13 @@ import 'package:crab_cakes/application/sync/interfaces/project_sync_repo.dart';
 import 'package:crab_cakes/infrastructure/providers/column_filter_provider.dart';
 
 class SqliteProjectSyncRepository implements ProjectSyncRepo {
-
   /// This function takes in a string path to the database in question, it then
   /// queries the __project_settings table and parses out:
-  /// 
+  ///
   /// 1) Project GUID
   /// 2) SchemaHash
   /// 3) Sync Version
-  /// 
+  ///
   /// This information is packaged into a ProjectSyncMetadata object and returned
   @override
   Future<ProjectSyncMetadata> readSyncMetadata(String dbPath) async {
@@ -163,7 +162,7 @@ class SqliteProjectSyncRepository implements ProjectSyncRepo {
     return name.startsWith('__') || name.startsWith(kColumnPrefixToHide);
   }
 
-//------------------------ IMPLEMENTING WRITES ------------------------------
+  //------------------------ IMPLEMENTING WRITES ------------------------------
   @override
   Future<void> insertRowForSync({
     required String dbPath,
@@ -186,13 +185,10 @@ class SqliteProjectSyncRepository implements ProjectSyncRepo {
       final placeholders = List.filled(columns.length, '?').join(', ');
       final values = columns.map((column) => filteredRow[column]).toList();
 
-      db.execute(
-        '''
+      db.execute('''
         INSERT INTO $quotedTableName ($quotedColumns)
         VALUES ($placeholders)
-        ''',
-        values,
-      );
+        ''', values);
     } finally {
       db.dispose();
     }
@@ -229,19 +225,13 @@ class SqliteProjectSyncRepository implements ProjectSyncRepo {
           .map((column) => '${_quoteIdentifier(column)} = ?')
           .join(', ');
 
-      final values = [
-        ...columns.map((column) => filteredRow[column]),
-        rowGuid,
-      ];
+      final values = [...columns.map((column) => filteredRow[column]), rowGuid];
 
-      db.execute(
-        '''
+      db.execute('''
         UPDATE $quotedTableName
         SET $assignments
         WHERE "__row_guid" = ?
-        ''',
-        values,
-      );
+        ''', values);
 
       if (db.updatedRows == 0) {
         throw Exception(
@@ -264,5 +254,4 @@ class SqliteProjectSyncRepository implements ProjectSyncRepo {
 
     return filtered;
   }
-
 }

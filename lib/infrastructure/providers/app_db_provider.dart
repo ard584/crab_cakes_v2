@@ -20,14 +20,15 @@ import 'package:crab_cakes/application/uuid/generate_uuid.dart';
 
 import 'package:crab_cakes/infrastructure/providers/json_import_providers.dart';
 
-
-
 final _deviceIdProvider = FutureProvider<Uint8List>((ref) async {
   // Get the UUID function
   final uuidFunc = ref.watch(generateUuidProvider);
   final storage = ref.watch(deviceStorageProvider);
   final DeviceIDUseCase deviceIDUseCase = ref.watch(deviceIDUseCaseProvider);
-  return await deviceIDUseCase.getOrCreateDeviceID(uuidGen: uuidFunc, storage: storage);
+  return await deviceIDUseCase.getOrCreateDeviceID(
+    uuidGen: uuidFunc,
+    storage: storage,
+  );
 });
 
 // App database provider (holds all the projects)
@@ -46,31 +47,30 @@ final _projectsRepositoryProvider = Provider<ProjectsRepository?>((ref) {
   final GenerateUuid uuidGen = ref.watch(generateUuidProvider);
 
   return deviceIdAsync.maybeWhen(
-    data: (id) => ProjectsRepository(db: db, deviceId: id, generateUuid: uuidGen),
+    data: (id) =>
+        ProjectsRepository(db: db, deviceId: id, generateUuid: uuidGen),
     orElse: () => null,
   );
 });
 
 final _createProjectUseCaseProvider = Provider<CreateProjectUseCase>((ref) {
-
   final parser = SqlSchemaParser();
   final statementValidator = SqlSecurityValidator();
   final dbBuilder = SqliteProjectDatabaseBuilder();
   final structureValidator = SqliteSchemaStructureValidator();
 
   return CreateProjectUseCase(
-    statementValidator: statementValidator, 
+    statementValidator: statementValidator,
     structureValidator: structureValidator,
-    dbBuilder: dbBuilder, 
-    parser: parser);
-  
-},);
+    dbBuilder: dbBuilder,
+    parser: parser,
+  );
+});
 
 final projectListProvider =
     AsyncNotifierProvider<ProjectsListNotifier, List<ProjectModel>>(() {
       return ProjectsListNotifier();
     });
-
 
 /// Holds the currently selected app-level project.
 ///
@@ -133,7 +133,7 @@ class ProjectsListNotifier extends AsyncNotifier<List<ProjectModel>> {
     required String jsonString,
   }) async {
     final repo = ref.read(_projectsRepositoryProvider);
-    if(repo == null) return;
+    if (repo == null) return;
 
     final service = ref.read(importProjectUseCaseProvider);
 

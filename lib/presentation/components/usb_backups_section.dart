@@ -17,7 +17,8 @@ class UsbBackupDrivesSection extends ConsumerStatefulWidget {
       _UsbBackupDrivesSectionState();
 }
 
-class _UsbBackupDrivesSectionState extends ConsumerState<UsbBackupDrivesSection> {
+class _UsbBackupDrivesSectionState
+    extends ConsumerState<UsbBackupDrivesSection> {
   late Future<List<BackupTarget>> _drivesFuture;
 
   @override
@@ -106,15 +107,18 @@ class _UsbBackupDrivesSectionState extends ConsumerState<UsbBackupDrivesSection>
                 );
               }
 
-              final drives =
-                  _uniqueDrivesById(snapshot.data ?? const <BackupTarget>[]);
+              final drives = _uniqueDrivesById(
+                snapshot.data ?? const <BackupTarget>[],
+              );
 
               if (drives.isEmpty) {
                 return Row(
                   children: [
                     const Icon(Icons.usb_off),
                     const SizedBox(width: 8),
-                    const Expanded(child: Text('No removable drives detected.')),
+                    const Expanded(
+                      child: Text('No removable drives detected.'),
+                    ),
                     IconButton(
                       tooltip: 'Refresh',
                       onPressed: _refreshDrives,
@@ -127,8 +131,9 @@ class _UsbBackupDrivesSectionState extends ConsumerState<UsbBackupDrivesSection>
               // DropdownButtonFormField requires that its value appears exactly
               // once in the item list. If a drive was unplugged/replaced, the
               // selected id may no longer exist in the refreshed drive list.
-              final safeSelectedId =
-                  drives.any((d) => d.id == selectedId) ? selectedId : null;
+              final safeSelectedId = drives.any((d) => d.id == selectedId)
+                  ? selectedId
+                  : null;
 
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -167,8 +172,9 @@ class _UsbBackupDrivesSectionState extends ConsumerState<UsbBackupDrivesSection>
                           ? null
                           : () async {
                               try {
-                                final current =
-                                    await ref.read(getBackupTargetsProvider).execute();
+                                final current = await ref
+                                    .read(getBackupTargetsProvider)
+                                    .execute();
 
                                 final updated = {...current, safeSelectedId};
 
@@ -183,14 +189,18 @@ class _UsbBackupDrivesSectionState extends ConsumerState<UsbBackupDrivesSection>
                                 if (!mounted) return;
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   const SnackBar(
-                                    content: Text('Drive added to backup pool.'),
+                                    content: Text(
+                                      'Drive added to backup pool.',
+                                    ),
                                   ),
                                 );
                               } catch (e) {
                                 log.e('Failed to add drive: $e');
                                 if (!mounted) return;
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(content: Text('Failed to add drive: $e')),
+                                  SnackBar(
+                                    content: Text('Failed to add drive: $e'),
+                                  ),
                                 );
                               }
                             },
@@ -214,10 +224,7 @@ class _UsbBackupDrivesSectionState extends ConsumerState<UsbBackupDrivesSection>
 }
 
 class _SelectedBackupPool extends ConsumerWidget {
-  const _SelectedBackupPool({
-    required this.drives,
-    required this.onChanged,
-  });
+  const _SelectedBackupPool({required this.drives, required this.onChanged});
 
   final List<BackupTarget> drives;
   final Future<void> Function() onChanged;
@@ -237,9 +244,7 @@ class _SelectedBackupPool extends ConsumerWidget {
           return const Text('No drives selected for backup yet.');
         }
 
-        final drivesById = {
-          for (final drive in drives) drive.id: drive,
-        };
+        final drivesById = {for (final drive in drives) drive.id: drive};
 
         final selectedAvailableDrives = selectedIds
             .where((id) => drivesById.containsKey(id))
@@ -269,8 +274,9 @@ class _SelectedBackupPool extends ConsumerWidget {
                       icon: const Icon(Icons.eject),
                       onPressed: () async {
                         try {
-                          final current =
-                              await ref.read(getBackupTargetsProvider).execute();
+                          final current = await ref
+                              .read(getBackupTargetsProvider)
+                              .execute();
                           final updated = {...current}..remove(d.id);
 
                           await ref.read(selectDrivesProvider)(updated);
@@ -283,7 +289,9 @@ class _SelectedBackupPool extends ConsumerWidget {
                           );
                         } catch (e) {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text('Failed to remove drive: $e')),
+                            SnackBar(
+                              content: Text('Failed to remove drive: $e'),
+                            ),
                           );
                         }
                       },
@@ -311,8 +319,9 @@ class _SelectedBackupPool extends ConsumerWidget {
                       icon: const Icon(Icons.delete_outline),
                       onPressed: () async {
                         try {
-                          final current =
-                              await ref.read(getBackupTargetsProvider).execute();
+                          final current = await ref
+                              .read(getBackupTargetsProvider)
+                              .execute();
                           final updated = {...current}..remove(id);
 
                           await ref.read(selectDrivesProvider)(updated);
@@ -353,9 +362,6 @@ class _LeftAlignedHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Align(
-      alignment: Alignment.centerLeft,
-      child: Text(text),
-    );
+    return Align(alignment: Alignment.centerLeft, child: Text(text));
   }
 }

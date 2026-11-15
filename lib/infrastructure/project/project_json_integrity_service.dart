@@ -3,9 +3,8 @@ import 'dart:convert';
 import 'package:crypto/crypto.dart';
 
 class ProjectJsonIntegrityService {
-  ProjectJsonIntegrityService({
-    required List<int> hmacKey,
-  }) : _hmacKey = hmacKey;
+  ProjectJsonIntegrityService({required List<int> hmacKey})
+    : _hmacKey = hmacKey;
 
   static const String algorithm = 'HMAC-SHA256';
 
@@ -37,10 +36,7 @@ class ProjectJsonIntegrityService {
 
     return {
       'payload': payload,
-      'integrity': {
-        'algorithm': algorithm,
-        'signature': signature,
-      },
+      'integrity': {'algorithm': algorithm, 'signature': signature},
     };
   }
 
@@ -70,10 +66,7 @@ class ProjectJsonIntegrityService {
       );
     }
 
-    verifyPayload(
-      payload: rawPayload,
-      integrity: rawIntegrity,
-    );
+    verifyPayload(payload: rawPayload, integrity: rawIntegrity);
 
     return rawPayload;
   }

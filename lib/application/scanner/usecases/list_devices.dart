@@ -2,7 +2,6 @@ import 'package:crab_cakes/application/scanner/interfaces/scanner_device_discove
 import 'package:crab_cakes/application/scanner/dtos/discovered_port.dart';
 
 class ListDevices {
-
   final ScannerDeviceDiscovery discoverer;
 
   ListDevices(this.discoverer);
@@ -14,6 +13,6 @@ class ListDevices {
   Future<List<DiscoveredPort>> likely() async {
     final ports = await discoverer.listDevices();
 
-    return ports.where((p)=>p.isBluetooth).toList();
+    return ports.where((p) => p.isBluetooth).toList();
   }
 }

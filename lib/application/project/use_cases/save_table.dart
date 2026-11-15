@@ -13,7 +13,6 @@ class SaveTable {
     return name.startsWith('__') || name.startsWith(kColumnPrefixToHide);
   }
 
-
   List<DbRow>? call(TableInput table, {int? limit, int? offset}) {
     final String tableName = table.name;
 

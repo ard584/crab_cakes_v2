@@ -4,5 +4,4 @@ class FishIdentifier {
   IdentifierTypes type;
 
   FishIdentifier({required this.type});
-
 }

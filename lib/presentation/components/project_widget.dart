@@ -19,49 +19,46 @@ class ProjectWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-
     final colorScheme = Theme.of(context).colorScheme;
-
-    
-
 
     Widget child = InkWell(
       onTap: onPressed,
       child: Ink(
-      decoration: BoxDecoration(
-        color: colorScheme.surfaceContainerHighest, // Light background color
-        borderRadius: BorderRadius.circular(10.0),
-        border: Border.all(color: colorScheme.inversePrimary),
+        decoration: BoxDecoration(
+          color: colorScheme.surfaceContainerHighest, // Light background color
+          borderRadius: BorderRadius.circular(10.0),
+          border: Border.all(color: colorScheme.inversePrimary),
+        ),
+        padding: reusablePadding,
+        child: Row(
+          children: <Widget>[
+            Icon(Icons.file_open),
+            const SizedBox(width: 8),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(projectTitle, textScaler: TextScaler.linear(1.3)),
+                Text(
+                  projectDescription ?? '',
+                  textScaler: TextScaler.linear(1.0),
+                  style: TextStyle(color: colorScheme.onSurfaceVariant),
+                ),
+                Text(
+                  projectUpdatedAt.toString(),
+                  textScaler: TextScaler.linear(1.0),
+                  style: TextStyle(color: colorScheme.secondary),
+                ),
+              ],
+            ),
+            Spacer(),
+            IconButton(
+              onPressed: onPressed,
+              icon: const Icon(Icons.arrow_forward_ios),
+            ),
+          ],
+        ),
       ),
-      padding: reusablePadding,
-      child: Row(
-        children: <Widget>[
-          Icon(Icons.file_open),
-          const SizedBox(width: 8),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(projectTitle, textScaler: TextScaler.linear(1.3)),
-              Text(
-                projectDescription ?? '',
-                textScaler: TextScaler.linear(1.0),
-                style: TextStyle(color: colorScheme.onSurfaceVariant),
-              ),
-              Text(
-                projectUpdatedAt.toString(),
-                textScaler: TextScaler.linear(1.0),
-                style: TextStyle(color: colorScheme.secondary),
-              ),
-            ],
-          ),
-          Spacer(),
-          IconButton(
-            onPressed: onPressed,
-            icon: const Icon(Icons.arrow_forward_ios),
-          ),
-        ],
-      ),
-    ));
+    );
 
     if (contextMenu == null) return child;
 

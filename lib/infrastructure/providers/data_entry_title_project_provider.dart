@@ -6,11 +6,11 @@ import 'package:crab_cakes/infrastructure/providers/app_db_provider.dart';
 final currentProjectTitleProvider = Provider<String>((ref) {
   final dbPath = ref.watch(activeDatabasePathProvider);
   final projectList = ref.watch(projectListProvider).value;
-  
+
   if (dbPath == null || projectList == null || projectList.isEmpty) {
     return 'Data Entry';
   }
-  
+
   try {
     final project = projectList.firstWhere((p) => p.dbPath == dbPath);
     return project.title;

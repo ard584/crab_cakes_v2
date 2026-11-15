@@ -4,6 +4,6 @@ class SelectDrives {
   final DriveSelectionRepository repo;
 
   SelectDrives(this.repo);
-  
+
   Future<void> call(Set<String> ids) => repo.saveSelectedIds(ids);
 }

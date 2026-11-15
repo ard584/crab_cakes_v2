@@ -8,9 +8,10 @@ import 'package:crab_cakes/infrastructure/project/sqlite/sql_settings_importer.d
 import 'package:crab_cakes/infrastructure/project/sqlite/sqlite_project_database_builder.dart';
 import 'package:crab_cakes/infrastructure/providers/settings_provider.dart';
 
-
 //wiring infra providers
-final projectSettingsImporterProvider = Provider<ProjectSettingsImporter>((ref) {
+final projectSettingsImporterProvider = Provider<ProjectSettingsImporter>((
+  ref,
+) {
   return SqlSettingsImporter();
 });
 
@@ -23,5 +24,3 @@ final importProjectUseCaseProvider = Provider<ImportProject>((ref) {
 
   return ImportProject(validator, dbBuilder, importer, integrityService);
 });
-
-

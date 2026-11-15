@@ -8,6 +8,6 @@ class DiscoveredPort {
     this.displayName,
     this.port,
     this.description,
-    this.isBluetooth
+    this.isBluetooth,
   );
 }

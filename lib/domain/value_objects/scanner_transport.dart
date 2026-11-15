@@ -1,4 +1,1 @@
-enum Transport {
-  btSerial,
-  usbSerial
-}
+enum Transport { btSerial, usbSerial }

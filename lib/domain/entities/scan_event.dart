@@ -16,5 +16,4 @@ class ScanEvent {
     this.id,
     this.temp,
   );
-
 }

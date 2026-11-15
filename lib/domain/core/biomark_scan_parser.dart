@@ -1,16 +1,11 @@
 import 'package:crab_cakes/domain/entities/scan_event.dart';
 import 'package:crab_cakes/domain/value_objects/parse_result.dart';
 
-
 class BiomarkScanParser {
-
   final _expectedMinTokens = 5;
   final _expectedMaxTokens = 7;
 
-
-
   ParseResult<ScanEvent> parse(String rawLine) {
-
     //variables that will be used to build the ScanEvent object.
     String? date;
     String? time;
@@ -18,7 +13,6 @@ class BiomarkScanParser {
     String? id;
     bool isDownloaded = false;
     double? temp;
-
 
     var expectedField = 0; //we are expecting the first field to be DATE
 
@@ -31,18 +25,18 @@ class BiomarkScanParser {
     // 4 ....... Asterisk or ID (depending on whether or not its downloaded)
     // 5 ....... ID or Temp (depending on previous field)
     // 6 ....... Temperature
-    
 
     //splitting the line on every whitespace
     List<String> tokens = rawLine.trim().split(RegExp(r'\s+'));
 
     //verifying the number of tokens is correct
-    if(tokens.length > _expectedMaxTokens || tokens.length < _expectedMinTokens) {
+    if (tokens.length > _expectedMaxTokens ||
+        tokens.length < _expectedMinTokens) {
       return ParseErr("Invalid PIT Tag Format Detected!");
     }
 
-    for(final token in tokens) {
-      switch(expectedField) {
+    for (final token in tokens) {
+      switch (expectedField) {
         case 0:
           date = token;
           break;
@@ -57,13 +51,13 @@ class BiomarkScanParser {
 
         case 3:
           //verifying the TAG keyword is present (verifying BioMark format)
-          if(token.trim() != "TAG") {
+          if (token.trim() != "TAG") {
             return ParseErr("Invalid Tag Format");
           }
           break;
 
         case 4:
-          if(token == "*") {
+          if (token == "*") {
             isDownloaded = true;
           } else {
             //if the token isn't an asterisk, it is definitely the PIT id
@@ -72,17 +66,17 @@ class BiomarkScanParser {
           break;
 
         case 5:
-          // if the tag is downloaded, then THIS is the PIT id 
+          // if the tag is downloaded, then THIS is the PIT id
           // (because the last token was the asterisk)
-          // However, if it WASN'T downloaded, then the id was already captured 
+          // However, if it WASN'T downloaded, then the id was already captured
           // and this is the temperature value
-          if(isDownloaded) {
+          if (isDownloaded) {
             id = token;
           } else {
             temp = double.tryParse(token);
           }
           break;
-        
+
         case 6:
           temp = double.tryParse(token);
           break;
@@ -95,23 +89,23 @@ class BiomarkScanParser {
       //move on to the next expected data field
       expectedField++;
     }
-  
-  //verifying important parameters weren't left empty
-  if(date == null || time == null || id == null) {
-    return ParseErr("Missing Required Fields");
-  }
 
-  //constructing the NewScan object containing 
-  final newScan = ScanEvent(
-    rawLine,
-    date,
-    time,
-    readerId,
-    isDownloaded,
-    id,
-    temp
-  );
+    //verifying important parameters weren't left empty
+    if (date == null || time == null || id == null) {
+      return ParseErr("Missing Required Fields");
+    }
 
-  return ParseOk(newScan);
+    //constructing the NewScan object containing
+    final newScan = ScanEvent(
+      rawLine,
+      date,
+      time,
+      readerId,
+      isDownloaded,
+      id,
+      temp,
+    );
+
+    return ParseOk(newScan);
   }
 }

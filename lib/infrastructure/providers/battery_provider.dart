@@ -11,16 +11,13 @@ final batteryServiceProvider = Provider<BatteryService>((ref) {
 });
 
 // Riverpod StreamProvider that periodically emits the device battery level
-final batteryLevelProvider =
-    StreamProvider.autoDispose<int>((ref) {
-
+final batteryLevelProvider = StreamProvider.autoDispose<int>((ref) {
   final service = ref.watch(batteryServiceProvider);
   return service.batteryLevelStream();
 });
 
 // Riverpod StreamProvider that listens for battery state changes
-final batteryStateProvider =
-    StreamProvider.autoDispose<BatteryState>((ref) {
+final batteryStateProvider = StreamProvider.autoDispose<BatteryState>((ref) {
   final service = ref.watch(batteryServiceProvider);
   return service.batteryStateStream();
 });

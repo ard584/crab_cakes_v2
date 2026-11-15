@@ -1,9 +1,7 @@
 class SyncPlan {
   final List<TableSyncPlan> tablePlans;
 
-  SyncPlan({
-    required this.tablePlans,
-  });
+  SyncPlan({required this.tablePlans});
 
   int get totalInsertsToActive =>
       tablePlans.fold(0, (sum, plan) => sum + plan.insertsToActive.length);
