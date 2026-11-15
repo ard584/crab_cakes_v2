@@ -11,6 +11,7 @@ import 'package:crab_cakes/infrastructure/providers/project_database_provider.da
 import 'package:crab_cakes/presentation/dialogs/confirm_delete.dart';
 import 'package:crab_cakes/presentation/adapters/pluto_grid_adapter.dart';
 import 'package:crab_cakes/presentation/dialogs/confirm_update_edit_grid.dart';
+import 'package:crab_cakes/presentation/screens/qaqc_screen.dart';
 
 Widget getTablesChoiceChips(WidgetRef ref) {
   final projectAsync = ref.watch(projectViewModelProvider);
@@ -168,11 +169,26 @@ class _CheckDatabaseScreenState extends ConsumerState<CheckDatabaseScreen> {
       readOnly: false,
       enableRowChecked: true,
       width: 80,
+      minWidth: 80,
     );
 
     // Create columns
     columns = constructor.constructColumns(table);
 
+    // Make database columns narrower
+    for (final column in columns) {
+      if (column.field == 'ID') {
+        column.width = 90;
+      } else if (column.field == 'SAMPLE_ID') {
+        column.width = 120;
+      } else if (column.field == 'SPECIES') {
+        column.width = 200;
+      } else if (column.field == 'FORK_LENGTH_MM') {
+        column.width = 170;
+      } else {
+        column.width = 135;
+      }
+    }
     // Only show the selected fish when opened from QA/QC
     final visibleRows = widget.selectedFishId == null
         ? rows
@@ -192,7 +208,34 @@ class _CheckDatabaseScreenState extends ConsumerState<CheckDatabaseScreen> {
           }).toList();
 
     return Scaffold(
-      appBar: AppBar(title: const Text('View Entries')),
+      appBar: AppBar(
+        title: const Text('View Entries'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, semanticLabel: 'Back'),
+          onPressed: () {
+            Navigator.of(context).maybePop();
+          },
+        ),
+        actions: [
+          if (widget.selectedFishId == null)
+            Padding(
+              padding: const EdgeInsets.only(right: 16),
+              child: OutlinedButton.icon(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const QaqcScreen()),
+                  );
+                },
+                icon: const Icon(Icons.bar_chart),
+                label: const Text('QA/QC Graphs'),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: const Color(0xFF08345A),
+                ),
+              ),
+            ),
+        ],
+      ),
       floatingActionButton: AnimatedSize(
         duration: Duration(milliseconds: 400),
         curve: Curves.easeInOutCubicEmphasized,

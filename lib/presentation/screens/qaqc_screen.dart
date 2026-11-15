@@ -44,6 +44,10 @@ class _QaqcScreenState extends ConsumerState<QaqcScreen> {
         labelText: label,
         border: const OutlineInputBorder(),
         isDense: true,
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 12,
+          vertical: 10,
+        ),
       ),
       items: options.map((option) {
         return DropdownMenuItem(
@@ -74,20 +78,25 @@ class _QaqcScreenState extends ConsumerState<QaqcScreen> {
   }
 
   // creates box to display summary value
+  // creates box to display summary value
   Widget buildSummaryCard(String title, String value) {
     return Expanded(
       child: Card(
         child: Padding(
-          padding: const EdgeInsets.all(12),
+          padding: const EdgeInsets.all(8),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(title, textAlign: TextAlign.center),
-              const SizedBox(height: 6),
+              Text(
+                title,
+                textAlign: TextAlign.center,
+                style: const TextStyle(fontSize: 13),
+              ),
+              const SizedBox(height: 3),
               Text(
                 value,
                 style: const TextStyle(
-                  fontSize: 18,
+                  fontSize: 16,
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -181,6 +190,7 @@ class _QaqcScreenState extends ConsumerState<QaqcScreen> {
           final type = column.type.toUpperCase();
 
           return !column.primaryKey &&
+              column.name != 'SAMPLE_ID' &&
               !column.name.startsWith('__') &&
               (type.contains('INT') ||
                   type.contains('REAL') ||
@@ -267,6 +277,20 @@ class _QaqcScreenState extends ConsumerState<QaqcScreen> {
       }
     }
 
+    // Choose readable spacing for the fish count axis
+    final highestCount = speciesCounts.values.isEmpty
+        ? 0
+        : speciesCounts.values.reduce(math.max);
+
+    // Choose easy-to-read intervals for the Y-axis
+    final countStep = highestCount <= 25
+        ? 5.0
+        : highestCount <= 50
+        ? 10.0
+        : highestCount <= 100
+        ? 20.0
+        : 50.0; // Add space above the tallest bar
+    final barMaxY = countStep * ((highestCount / countStep).ceil() + 1);
     // creates bar for each species
     final barGroups = <BarChartGroupData>[];
 
@@ -280,8 +304,9 @@ class _QaqcScreenState extends ConsumerState<QaqcScreen> {
           barRods: [
             BarChartRodData(
               toY: count.toDouble(),
-              color: Colors.blue,
-              width: 25,
+              color: const Color(0xFF287EAF),
+              width: 20,
+              borderRadius: BorderRadius.circular(4),
             ),
           ],
         ),
@@ -424,8 +449,8 @@ class _QaqcScreenState extends ConsumerState<QaqcScreen> {
             xValue.toDouble(),
             yValue.toDouble(),
             dotPainter: FlDotCirclePainter(
-              radius: 5,
-              color: isUnusual ? Colors.red : Colors.blue,
+              radius: 3,
+              color: isUnusual ? Colors.red : const Color(0xFF287EAF),
             ),
           ),
         );
@@ -470,29 +495,53 @@ class _QaqcScreenState extends ConsumerState<QaqcScreen> {
         : fishPoints.map((p) => p.y).reduce(math.max);
 
     // chooses spacing between axis
-    final xStep = maxLength - minLength > 150 ? 50.0 : 25.0;
-    final yStep = maxWeight - minWeight > 400
+    // Choose X-axis spacing based on the selected measurements
+    final xRange = maxLength - minLength;
+
+    final xStep = xRange >= 1000
+        ? 250.0
+        : xRange >= 500
         ? 100.0
-        : maxWeight - minWeight > 150
+        : xRange >= 250
         ? 50.0
+        : xRange >= 100
+        ? 25.0
+        : xRange >= 40
+        ? 10.0
+        : 5.0;
+    final yStep = maxWeight - minWeight > 600
+        ? 250.0
+        : maxWeight - minWeight > 200
+        ? 100.0
         : 25.0;
 
-    // adds space around the measurements
-    final chartMinX = math.max(0.0, ((minLength - 15) / xStep).floor() * xStep);
-    final chartMaxX = ((maxLength + 15) / xStep).ceil() * xStep;
+    // Round X-axis limits based on the selected measurements
+    final chartMinX = math.max(
+      0.0,
+      ((minLength - xStep / 2) / xStep).floor() * xStep,
+    );
 
+    final chartMaxX = ((maxLength + xStep / 2) / xStep).ceil() * xStep;
     final chartMinY = math.max(0.0, ((minWeight - 15) / yStep).floor() * yStep);
     final chartMaxY = ((maxWeight + 15) / yStep).ceil() * yStep;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('QA/QC Graphs')),
-
+      appBar: AppBar(
+        title: const Text('QA/QC Graphs'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, semanticLabel: 'Back'),
+          onPressed: () {
+            Navigator.of(context).maybePop();
+          },
+        ),
+      ),
       body: Padding(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.fromLTRB(20, 8, 20, 8),
         child: Column(
           children: [
             // chooses which graph to display
             DropdownButton<String>(
+              isDense: true,
               value: selectedGraph,
               items: const [
                 DropdownMenuItem(
@@ -527,8 +576,7 @@ class _QaqcScreenState extends ConsumerState<QaqcScreen> {
               },
             ),
 
-            const SizedBox(height: 12),
-
+            const SizedBox(height: 8),
             // displays title of selected graph
             Text(
               selectedGraph == 'Length vs. Weight'
@@ -541,10 +589,12 @@ class _QaqcScreenState extends ConsumerState<QaqcScreen> {
                   ? 'Grouped Survey Summary'
                   : 'Survey Pivot Table',
 
-              style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+              style: const TextStyle(fontSize: 19, fontWeight: FontWeight.bold),
             ),
 
-            const SizedBox(height: 16),
+            const SizedBox(height: 10),
+
+            // filters for graph data
 
             // filters for graph data
             Row(
@@ -755,7 +805,8 @@ class _QaqcScreenState extends ConsumerState<QaqcScreen> {
             if (customPlot && numericFields.isEmpty)
               const Text('No numeric measurements available.'),
 
-            const SizedBox(height: 16),
+            // Add space between filters and graph
+            const SizedBox(height: 22),
 
             Expanded(
               child: selectedGraph == 'Pivot Table'
@@ -777,14 +828,21 @@ class _QaqcScreenState extends ConsumerState<QaqcScreen> {
                                     label: Text(fieldLabel(pivotRowField)),
                                   ),
                                   for (final columnName in pivotColumns)
-                                    DataColumn(label: Text(columnName)),
-                                  const DataColumn(label: Text('Total')),
-
+                                    DataColumn(
+                                      label: Center(child: Text(columnName)),
+                                    ),
                                   const DataColumn(
-                                    label: Text('Avg. Length (mm)'),
+                                    label: Center(child: Text('Total')),
                                   ),
                                   const DataColumn(
-                                    label: Text('Avg. Weight (g)'),
+                                    label: Center(
+                                      child: Text('Avg. Length (mm)'),
+                                    ),
+                                  ),
+                                  const DataColumn(
+                                    label: Center(
+                                      child: Text('Avg. Weight (g)'),
+                                    ),
                                   ),
                                 ],
                                 rows: [
@@ -794,43 +852,60 @@ class _QaqcScreenState extends ConsumerState<QaqcScreen> {
                                         DataCell(Text(rowName)),
                                         for (final columnName in pivotColumns)
                                           DataCell(
-                                            Text(
-                                              '${pivotCounts[rowName]?[columnName] ?? 0}',
+                                            Center(
+                                              child: Text(
+                                                '${pivotCounts[rowName]?[columnName] ?? 0}',
+                                              ),
                                             ),
                                           ),
                                         DataCell(
-                                          Text(
-                                            '${pivotCounts[rowName]!.values.fold<int>(0, (total, count) => total + count)}',
-                                          ),
-                                        ),
-
-                                        DataCell(
-                                          Text(
-                                            getAverage(pivotLengths[rowName]),
+                                          Center(
+                                            child: Text(
+                                              '${pivotCounts[rowName]!.values.fold<int>(0, (total, count) => total + count)}',
+                                            ),
                                           ),
                                         ),
                                         DataCell(
-                                          Text(
-                                            getAverage(pivotWeights[rowName]),
+                                          Center(
+                                            child: Text(
+                                              getAverage(pivotLengths[rowName]),
+                                            ),
+                                          ),
+                                        ),
+                                        DataCell(
+                                          Center(
+                                            child: Text(
+                                              getAverage(pivotWeights[rowName]),
+                                            ),
                                           ),
                                         ),
                                       ],
                                     ),
-
                                   // totals for each column
                                   DataRow(
                                     cells: [
                                       const DataCell(Text('Total')),
                                       for (final columnName in pivotColumns)
                                         DataCell(
-                                          Text(
-                                            '${pivotColumnTotals[columnName] ?? 0}',
+                                          Center(
+                                            child: Text(
+                                              '${pivotColumnTotals[columnName] ?? 0}',
+                                            ),
                                           ),
                                         ),
-                                      DataCell(Text('$pivotTotal')),
-
-                                      DataCell(Text(getAverage(allLengths))),
-                                      DataCell(Text(getAverage(allWeights))),
+                                      DataCell(
+                                        Center(child: Text('$pivotTotal')),
+                                      ),
+                                      DataCell(
+                                        Center(
+                                          child: Text(getAverage(allLengths)),
+                                        ),
+                                      ),
+                                      DataCell(
+                                        Center(
+                                          child: Text(getAverage(allWeights)),
+                                        ),
+                                      ),
                                     ],
                                   ),
                                 ],
@@ -914,23 +989,10 @@ class _QaqcScreenState extends ConsumerState<QaqcScreen> {
                                         ? fishSpecies[index]
                                         : 'Unknown Species';
 
-                                    // checks if fish needs review
-                                    final needsReview =
-                                        index >= 0 &&
-                                        index < fishRowIds.length &&
-                                        unusualFishIds.contains(
-                                          fishRowIds[index],
-                                        ) &&
-                                        selectedGraph == 'Length vs. Weight';
-
-                                    final warning = needsReview
-                                        ? '\nPossible outlier - review'
-                                        : '';
-
                                     return ScatterTooltipItem(
                                       '$species\n'
                                       '${fieldLabel(xField)}: ${point.x.toStringAsFixed(1)}\n'
-                                      '${fieldLabel(yField)}: ${point.y.toStringAsFixed(1)}$warning',
+                                      '${fieldLabel(yField)}: ${point.y.toStringAsFixed(1)}',
                                       textStyle: const TextStyle(
                                         color: Colors.white,
                                         fontSize: 12,
@@ -958,7 +1020,7 @@ class _QaqcScreenState extends ConsumerState<QaqcScreen> {
                                   axisNameSize: 30,
                                   sideTitles: SideTitles(
                                     showTitles: true,
-                                    reservedSize: 45,
+                                    reservedSize: 60,
                                     interval: yStep,
                                   ),
                                 ),
@@ -972,10 +1034,16 @@ class _QaqcScreenState extends ConsumerState<QaqcScreen> {
                               ),
 
                               // horizontal gridlines
-                              gridData: const FlGridData(
+                              gridData: FlGridData(
                                 show: true,
                                 drawVerticalLine: false,
-                                horizontalInterval: 100,
+                                horizontalInterval: yStep,
+                                getDrawingHorizontalLine: (value) {
+                                  return FlLine(
+                                    color: const Color(0xFFB8C9D5),
+                                    strokeWidth: 0.6,
+                                  );
+                                },
                               ),
                             ),
                           )
@@ -985,14 +1053,24 @@ class _QaqcScreenState extends ConsumerState<QaqcScreen> {
                       BarChartData(
                         // uses species counts from database
                         barGroups: barGroups,
-                        maxY:
-                            (speciesCounts.values.fold<int>(
-                                      0,
-                                      (highest, count) =>
-                                          count > highest ? count : highest,
-                                    ) +
-                                    2)
-                                .toDouble(),
+
+                        // Show readable fish counts when hovering
+                        barTouchData: BarTouchData(
+                          touchTooltipData: BarTouchTooltipData(
+                            getTooltipColor: (_) => const Color(0xFF08345A),
+                            getTooltipItem: (group, groupIndex, rod, rodIndex) {
+                              return BarTooltipItem(
+                                '${rod.toY.toInt()}',
+                                const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                        maxY: barMaxY,
 
                         alignment: BarChartAlignment.spaceAround,
 
@@ -1004,11 +1082,11 @@ class _QaqcScreenState extends ConsumerState<QaqcScreen> {
                           rightTitles: const AxisTitles(
                             sideTitles: SideTitles(showTitles: false),
                           ),
-                          leftTitles: const AxisTitles(
+                          leftTitles: AxisTitles(
                             sideTitles: SideTitles(
                               showTitles: true,
-                              reservedSize: 35,
-                              interval: 1,
+                              reservedSize: 40,
+                              interval: countStep,
                             ),
                           ),
                           bottomTitles: AxisTitles(
@@ -1025,10 +1103,15 @@ class _QaqcScreenState extends ConsumerState<QaqcScreen> {
 
                                 return SideTitleWidget(
                                   meta: meta,
-                                  child: Text(
-                                    speciesList[index].replaceAll(' ', '\n'),
-                                    textAlign: TextAlign.center,
-                                    style: const TextStyle(fontSize: 10),
+                                  child: SizedBox(
+                                    width: 120,
+                                    child: Text(
+                                      speciesList[index],
+                                      textAlign: TextAlign.center,
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: const TextStyle(fontSize: 12),
+                                    ),
                                   ),
                                 );
                               },
@@ -1036,9 +1119,16 @@ class _QaqcScreenState extends ConsumerState<QaqcScreen> {
                           ),
                         ),
 
-                        gridData: const FlGridData(
+                        gridData: FlGridData(
                           show: true,
                           drawVerticalLine: false,
+                          horizontalInterval: countStep,
+                          getDrawingHorizontalLine: (value) {
+                            return FlLine(
+                              color: const Color(0xFFCFDDE7),
+                              strokeWidth: 0.7,
+                            );
+                          },
                         ),
                       ),
                     ),
