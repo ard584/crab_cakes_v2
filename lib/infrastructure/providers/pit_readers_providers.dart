@@ -2,7 +2,6 @@ import 'dart:convert';
 
 import 'dart:io' show Platform;
 
-
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 
@@ -15,7 +14,7 @@ import 'package:crab_cakes/application/scanner/usecases/connect_scanner.dart';
 import 'package:crab_cakes/application/scanner/usecases/disconnect_scanner.dart';
 import 'package:crab_cakes/application/scanner/usecases/list_devices.dart';
 
-//importing interfaces 
+//importing interfaces
 import 'package:crab_cakes/application/scanner/interfaces/scanner_connector.dart';
 import 'package:crab_cakes/application/scanner/interfaces/scanner_device_discovery.dart';
 
@@ -26,32 +25,37 @@ import 'package:crab_cakes/domain/value_objects/parse_result.dart';
 //importing concrete infrastructure implementations
 import 'package:crab_cakes/infrastructure/scanner/libserialport_adapter.dart';
 import 'package:crab_cakes/infrastructure/scanner/libserialport_device_discovery.dart';
+import 'package:crab_cakes/infrastructure/scanner/mac_scanner_discovery.dart';
 
 //importing domain-level tools
 import 'package:crab_cakes/domain/entities/scan_event.dart';
 import 'package:crab_cakes/domain/core/biomark_scan_parser.dart';
 
-//importing sound pieces for when connection occurs 
+//importing sound pieces for when connection occurs
 import 'package:crab_cakes/infrastructure/providers/sound_provider.dart';
 import 'package:crab_cakes/domain/enums/app_sound.dart';
 
 //------------------------------------------------------------------------------
 
-
-
 //Wiring INFRASTRUCTURE providers
-final scannerDiscoveryProvider = Provider<ScannerDeviceDiscovery>((ref) {
 
-  // Construct the concrete discovery implementation
-  if(Platform.isWindows) {
+final scannerDiscoveryProvider = Provider<ScannerDeviceDiscovery>((ref) {
+  // Use Windows scanner discovery on Windows.
+  if (Platform.isWindows) {
     return LibserialportDeviceDiscovery();
-  } else {
-    return DummyScannerDiscovery();
   }
+
+  // Use Mac scanner discovery on macOS.
+  if (Platform.isMacOS) {
+    return MacScannerDiscovery();
+  }
+
+  return DummyScannerDiscovery();
 });
 
 final scannerConnectorProvider = Provider<ScannerConnector>((ref) {
-  final connector = Platform.isWindows
+  // Use the real scanner connection on Windows and Mac.
+  final connector = (Platform.isWindows || Platform.isMacOS)
       ? LibserialportAdapter()
       : DummyScannerConnector();
 
@@ -61,7 +65,6 @@ final scannerConnectorProvider = Provider<ScannerConnector>((ref) {
 
   return connector;
 });
-
 
 // Wiring USE CASE providers (which read the infra providers)
 final listDevicesUsecaseProvider = Provider<ListDevices>((ref) {
@@ -86,10 +89,9 @@ final scanStreamProvider = Provider<Stream<String>>((ref) {
 
   //converting 8-bit unsigned integers into their respective utf-8 decoded strings
   return byteStream
-    .map((u8)=>u8 as List<int>)
-    .transform(utf8.decoder)
-    .transform(const LineSplitter());
-
+      .map((u8) => u8 as List<int>)
+      .transform(utf8.decoder)
+      .transform(const LineSplitter());
 });
 
 //provider for the SPECIFIC Biomark Parser
@@ -100,39 +102,39 @@ final biomarkScanParserProvider = Provider<BiomarkScanParser>((ref) {
 final scanEventProvider = StreamProvider<ParseResult<ScanEvent>>((ref) {
   final lines = ref.watch(scanStreamProvider);
   final parser = ref.watch(biomarkScanParserProvider);
-  
+
   return lines
-    .map((s)=>s.trim())
-    .where((s)=>s.isNotEmpty)
-    .map((raw)=>parser.parse(raw));
+      .map((s) => s.trim())
+      .where((s) => s.isNotEmpty)
+      .map((raw) => parser.parse(raw));
 });
 
 //-------------------- Wiring Complete -----------------------------------------
 
-
 //using use case providers for feature providers
 final showAllDevicesProvider = StateProvider<bool>((ref) => false);
 
-final discoveredDevicesProvider = FutureProvider<List<DiscoveredPort>>((ref) async {
+final discoveredDevicesProvider = FutureProvider<List<DiscoveredPort>>((
+  ref,
+) async {
   final showAll = ref.watch(showAllDevicesProvider);
   final listDevices = ref.read(listDevicesUsecaseProvider);
 
   // IMPORTANT: adjust this line to match your use case API
   final devices = showAll
-    ? await listDevices.all()
-    : await listDevices.likely();
-  
+      ? await listDevices.all()
+      : await listDevices.likely();
+
   devices.sort((a, b) => a.displayName.compareTo(b.displayName));
 
   // auto-select first if none selected
   final selected = ref.read(selectedDeviceIdProvider);
   if (selected == null && devices.isNotEmpty) {
-    ref.read(selectedDeviceIdProvider.notifier).state = devices.first.port; 
+    ref.read(selectedDeviceIdProvider.notifier).state = devices.first.port;
   }
 
   return devices;
 });
-
 
 //Defining Connection State
 class PitConnectionState {
@@ -166,7 +168,6 @@ class PitConnectionState {
   static const disconnected = PitConnectionState();
 }
 
-
 //Using the Use Cases to control UI
 
 // Store selected device id (or address)
@@ -182,7 +183,7 @@ class PitConnectionController extends StateNotifier<PitConnectionState> {
   }
 
   Future<void> connectSelected() async {
-    final selectedId = _ref.read(selectedDeviceIdProvider); 
+    final selectedId = _ref.read(selectedDeviceIdProvider);
     if (selectedId == null) {
       state = state.copyWith(error: Exception('No device selected'));
       return;
@@ -205,7 +206,7 @@ class PitConnectionController extends StateNotifier<PitConnectionState> {
       // await connect(deviceId: selectedId);
       final connectionSuccess = await connect.execute(selectedId);
 
-      if(connectionSuccess) {
+      if (connectionSuccess) {
         final wasConnected = state.isConnected;
 
         state = PitConnectionState(
@@ -217,7 +218,7 @@ class PitConnectionController extends StateNotifier<PitConnectionState> {
         //play the sound after reader has been successfully connected
         //a guard that makes sure it does not replay on redundant reconnects
         //NOTE: I dont have the pittag scanner to test if it works
-        if(!wasConnected){
+        if (!wasConnected) {
           _ref.read(soundServiceProvider).play(AppSound.readerDiscovered);
         }
       } else {
@@ -227,8 +228,6 @@ class PitConnectionController extends StateNotifier<PitConnectionState> {
           error: Exception("Could not connect to Scanner"),
         );
       }
-
-
     } catch (e) {
       state = PitConnectionState(
         isConnecting: false,
@@ -255,13 +254,11 @@ class PitConnectionController extends StateNotifier<PitConnectionState> {
   }
 }
 
-
 //adding Controller Provider
 final pitConnectionControllerProvider =
     StateNotifierProvider<PitConnectionController, PitConnectionState>((ref) {
-  return PitConnectionController(ref);
-});
-
+      return PitConnectionController(ref);
+    });
 
 // Selected Device Provider
 final selectedDeviceProvider = Provider<DiscoveredPort?>((ref) {
@@ -273,7 +270,7 @@ final selectedDeviceProvider = Provider<DiscoveredPort?>((ref) {
       if (devices.isEmpty) return null;
       // pick selected, or default to first
       return devices.firstWhere(
-        (d) => d.port == selectedId, 
+        (d) => d.port == selectedId,
         orElse: () => devices.first,
       );
     },

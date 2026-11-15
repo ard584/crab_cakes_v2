@@ -7,7 +7,10 @@ class UpdateRowsUseCase<TIdentifier extends RowIdentifier> {
 
   UpdateRowsUseCase({required this.repo});
 
-  void call({required String tableName, required List<DbRow<TIdentifier>> rows}) {
+  void call({
+    required String tableName,
+    required List<DbRow<TIdentifier>> rows,
+  }) {
     for (final row in rows) {
       repo.updateRow(tableName: tableName, row: row);
     }

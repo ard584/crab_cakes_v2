@@ -8,7 +8,6 @@ class ProjectSettings {
   final Map<String, List<String>> columnOrder;
   final ExportSettings export;
 
-
   const ProjectSettings({
     required this.scanner,
     required this.fieldConfig,
@@ -20,11 +19,10 @@ class ProjectSettings {
     'scanner': scanner.toJson(),
     'fieldConfig': fieldConfig.toJson(),
     'columnOrder': columnOrder,
-    'export':export.toJson(),
+    'export': export.toJson(),
   };
 
   factory ProjectSettings.fromJson(Map<String, dynamic> json) {
-
     final scannerJson = json["scanner"] ?? {};
     final fieldConfigJson = json["fieldConfig"] ?? {};
     final columnOrderJson = json["columnOrder"] ?? {};
@@ -35,13 +33,17 @@ class ProjectSettings {
         scannerJson is Map ? Map<String, dynamic>.from(scannerJson) : {},
       ),
       fieldConfig: FieldConfigSettings.fromJson(
-        fieldConfigJson is Map ? Map<String, dynamic>.from(fieldConfigJson) : {},
+        fieldConfigJson is Map
+            ? Map<String, dynamic>.from(fieldConfigJson)
+            : {},
       ),
       columnOrder: columnOrderJson is Map
-          ? Map<String, dynamic>.from(columnOrderJson).map((key, value) => MapEntry(
+          ? Map<String, dynamic>.from(columnOrderJson).map(
+              (key, value) => MapEntry(
                 key,
                 value is List ? List<String>.from(value) : <String>[],
-              ))
+              ),
+            )
           : {},
       export: ExportSettings.fromJson(
         exportJson is Map ? Map<String, dynamic>.from(exportJson) : {},
@@ -49,7 +51,7 @@ class ProjectSettings {
     );
   }
 
-  ProjectSettings copyWith({ 
+  ProjectSettings copyWith({
     ScannerSettings? scanner,
     FieldConfigSettings? fieldConfig,
     Map<String, List<String>>? columnOrder,
@@ -59,12 +61,18 @@ class ProjectSettings {
     bool clearFieldConfigSettings = false,
     bool clearColumnOrder = false,
     bool clearExportSettings = false,
-    }) {
+  }) {
     return ProjectSettings(
-      scanner: clearScannerSettings ? ScannerSettings.empty() : (scanner ?? this.scanner),
-      fieldConfig: clearFieldConfigSettings ? FieldConfigSettings.empty() : (fieldConfig ?? this.fieldConfig),
+      scanner: clearScannerSettings
+          ? ScannerSettings.empty()
+          : (scanner ?? this.scanner),
+      fieldConfig: clearFieldConfigSettings
+          ? FieldConfigSettings.empty()
+          : (fieldConfig ?? this.fieldConfig),
       columnOrder: clearColumnOrder ? {} : (columnOrder ?? this.columnOrder),
-      export: clearExportSettings ? ExportSettings.empty() : (export ?? this.export),
+      export: clearExportSettings
+          ? ExportSettings.empty()
+          : (export ?? this.export),
     );
   }
 

@@ -54,9 +54,7 @@ class _ScannerTargetSectionState extends ConsumerState<ScannerTargetSection> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Failed to save scanner target: $e'),
-          ),
+          SnackBar(content: Text('Failed to save scanner target: $e')),
         );
       }
     } finally {
@@ -107,8 +105,9 @@ class _ScannerTargetSectionState extends ConsumerState<ScannerTargetSection> {
                   return Text('Error loading tables: $error');
                 },
                 data: (tables) {
-                  final visibleTable =
-                      tables.contains(effectiveTable) ? effectiveTable : null;
+                  final visibleTable = tables.contains(effectiveTable)
+                      ? effectiveTable
+                      : null;
 
                   return columnsAsync.when(
                     loading: () => Column(
@@ -190,8 +189,8 @@ class _ScannerTargetSectionState extends ConsumerState<ScannerTargetSection> {
 
                       final visibleColumn =
                           visibleColumns.contains(effectiveColumn)
-                              ? effectiveColumn
-                              : null;
+                          ? effectiveColumn
+                          : null;
 
                       return Column(
                         crossAxisAlignment: CrossAxisAlignment.start,

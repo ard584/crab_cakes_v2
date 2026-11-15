@@ -2,18 +2,16 @@ import 'package:sqlite3/sqlite3.dart';
 import 'package:crab_cakes/application/project/interfaces/schema_structure_validator.dart';
 import 'package:crab_cakes/infrastructure/schema_discovery/schema_graph.dart';
 
-
 class SqliteSchemaStructureValidator implements SchemaStructureValidator {
   @override
   Future<bool> isValid(List<String> statements) async {
-    
     //construct a temporary database
     final Database db = sqlite3.openInMemory();
 
     try {
       db.execute('PRAGMA foreign_keys = ON;');
 
-      for(final statement in statements) {
+      for (final statement in statements) {
         db.execute(statement);
       }
 

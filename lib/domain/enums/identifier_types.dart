@@ -1,4 +1,1 @@
-enum IdentifierTypes {
-  pit,
-  dye
-}
+enum IdentifierTypes { pit, dye }

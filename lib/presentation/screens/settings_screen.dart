@@ -19,9 +19,7 @@ class SettingsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Settings'),
-      ),
+      appBar: AppBar(title: const Text('Settings')),
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(40.0),
@@ -35,7 +33,9 @@ class SettingsScreen extends ConsumerWidget {
 
               const ScannerTargetSection(),
 
-              const ReusableLeftAlignedText(text: 'Project Configuration Export'),
+              const ReusableLeftAlignedText(
+                text: 'Project Configuration Export',
+              ),
               Container(
                 padding: reusablePadding,
                 child: Row(
@@ -52,8 +52,9 @@ class SettingsScreen extends ConsumerWidget {
                       icon: const Icon(Icons.download),
                       label: const Text('Export Settings'),
                       onPressed: () async {
-                        final exportUsecase =
-                            ref.read(exportSettingsUsecaseProvider);
+                        final exportUsecase = ref.read(
+                          exportSettingsUsecaseProvider,
+                        );
 
                         if (exportUsecase == null) {
                           ScaffoldMessenger.of(context).showSnackBar(
@@ -72,7 +73,9 @@ class SettingsScreen extends ConsumerWidget {
                           if (context.mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(
-                                content: Text('Settings exported successfully.'),
+                                content: Text(
+                                  'Settings exported successfully.',
+                                ),
                               ),
                             );
                           }
@@ -80,9 +83,7 @@ class SettingsScreen extends ConsumerWidget {
                           if (context.mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
-                                content: Text(
-                                  'Failed to export settings: $e',
-                                ),
+                                content: Text('Failed to export settings: $e'),
                               ),
                             );
                           }
@@ -101,17 +102,14 @@ class SettingsScreen extends ConsumerWidget {
               ...AppSound.values.map(
                 (sound) => Padding(
                   padding: const EdgeInsets.only(bottom: 8),
-                  child: SoundSettingRow(
-                    sound: sound,
-                    label: sound.label,
-                  ),
+                  child: SoundSettingRow(sound: sound, label: sound.label),
                 ),
               ),
-
             ],
           ),
+        ),
       ),
-    ));
+    );
   }
 }
 
@@ -136,10 +134,7 @@ class ReusableLeftAlignedText extends StatelessWidget {
       alignment: Alignment.centerLeft,
       child: Text(
         text,
-        style: const TextStyle(
-          fontSize: 18,
-          fontWeight: FontWeight.w600,
-        ),
+        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
       ),
     );
   }

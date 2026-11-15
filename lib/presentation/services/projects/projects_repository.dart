@@ -14,7 +14,11 @@ class ProjectsRepository {
   final Uint8List deviceId;
   final GenerateUuid generateUuid;
 
-  ProjectsRepository({required this.db, required this.deviceId, required this.generateUuid});
+  ProjectsRepository({
+    required this.db,
+    required this.deviceId,
+    required this.generateUuid,
+  });
 
   // Create project
   Future<void> createProject({
@@ -51,22 +55,21 @@ class ProjectsRepository {
   Future updateProject(ProjectModel project) async {
     final now = _nowIsoUtc();
 
-    final test = await (db.update(
-      db.projects,
-    )..where((p) => p.id.equals(project.id))).write(
-      ProjectsCompanion(
-        title: Value(project.title),
-        description: Value(project.description),
-        updatedAt: Value(now),
-      ),
-    );
+    final test =
+        await (db.update(
+          db.projects,
+        )..where((p) => p.id.equals(project.id))).write(
+          ProjectsCompanion(
+            title: Value(project.title),
+            description: Value(project.description),
+            updatedAt: Value(now),
+          ),
+        );
 
     return test;
   }
 
   Future<List<ProjectModel>> getAllProjects() async {
-
-
     final res = await db.select(db.projects).get();
 
     final projects = res.map(

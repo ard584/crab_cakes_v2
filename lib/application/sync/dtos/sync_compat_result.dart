@@ -3,9 +3,9 @@ class SyncCompatibilityResult {
   final String? reason;
 
   const SyncCompatibilityResult.compatible()
-      : isCompatible = true,
-        reason = null;
+    : isCompatible = true,
+      reason = null;
 
   const SyncCompatibilityResult.incompatible(this.reason)
-      : isCompatible = false;
+    : isCompatible = false;
 }

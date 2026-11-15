@@ -1,7 +1,6 @@
 import 'package:crab_cakes/domain/entities/settings/field_config.dart';
 
 class FieldConfigSettings {
- 
   final Map<String, Map<String, FieldConfig>> configMap;
 
   FieldConfigSettings({required this.configMap});
@@ -27,12 +26,12 @@ class FieldConfigSettings {
     final newOuterMap = <String, Map<String, FieldConfig>>{};
 
     //recreating the current map
-    for(final entry in configMap.entries) {
+    for (final entry in configMap.entries) {
       newOuterMap[entry.key] = Map<String, FieldConfig>.from(entry.value);
     }
 
     //updating (or adding if not already present) specified table:config pair
-    final tableMap = newOuterMap.putIfAbsent(table, ()=>{});
+    final tableMap = newOuterMap.putIfAbsent(table, () => {});
     tableMap[col] = config;
 
     //returning NEW INSTANCE of the FieldConfigSettings object
@@ -43,12 +42,12 @@ class FieldConfigSettings {
   Map<String, dynamic> toJson() {
     final Map<String, Map<String, dynamic>> outMap = {};
 
-    for(final tableEntry in configMap.entries) {
+    for (final tableEntry in configMap.entries) {
       //initializing the inner map
       final table = tableEntry.key;
       final colMap = outMap.putIfAbsent(table, () => {});
 
-      for(final colEntry in tableEntry.value.entries) {
+      for (final colEntry in tableEntry.value.entries) {
         final col = colEntry.key;
         final config = colEntry.value;
 
@@ -64,23 +63,23 @@ class FieldConfigSettings {
     final Map<String, Map<String, FieldConfig>> parsedConfigMap = {};
 
     //iterating over every entry
-    for(final tableEntry in json.entries) {
+    for (final tableEntry in json.entries) {
       final table = tableEntry.key;
       final rawColMap = Map<String, dynamic>.from(tableEntry.value as Map);
 
       final Map<String, FieldConfig> parsedColMap = {};
 
       //iterating over the columns
-      for( final colEntry in rawColMap.entries) {
+      for (final colEntry in rawColMap.entries) {
         final col = colEntry.key;
         final rawConfig = Map<String, dynamic>.from(colEntry.value as Map);
 
         //creating a FieldConfig object for this specific column
         parsedColMap[col] = FieldConfig.fromJson(rawConfig);
       }
-    
-    //inserting the parsed column map for this specific table
-    parsedConfigMap[table] = parsedColMap;
+
+      //inserting the parsed column map for this specific table
+      parsedConfigMap[table] = parsedColMap;
     }
 
     return FieldConfigSettings(configMap: parsedConfigMap);
@@ -89,5 +88,4 @@ class FieldConfigSettings {
   factory FieldConfigSettings.empty() {
     return FieldConfigSettings(configMap: {});
   }
-
 }

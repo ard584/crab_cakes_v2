@@ -5,7 +5,6 @@ import 'package:crab_cakes/presentation/components/project_widget.dart';
 import 'package:crab_cakes/infrastructure/providers/pit_readers_providers.dart';
 import 'package:crab_cakes/presentation/screens/project_creation.dart';
 
-
 class PitReadersSection extends ConsumerStatefulWidget {
   const PitReadersSection({super.key});
 
@@ -35,7 +34,8 @@ class _PitReadersSectionState extends ConsumerState<PitReadersSection> {
       final conn = ref.read(pitConnectionControllerProvider);
 
       if (conn.connectedDeviceId != null) {
-        ref.read(selectedDeviceIdProvider.notifier).state = conn.connectedDeviceId;
+        ref.read(selectedDeviceIdProvider.notifier).state =
+            conn.connectedDeviceId;
       }
     });
   }
@@ -65,8 +65,8 @@ class _PitReadersSectionState extends ConsumerState<PitReadersSection> {
           title: const Text('Scanner Connection Failed'),
           content: Text(
             message.isEmpty
-              ? 'The scanner could not be connected. Make sure the reader is powered on, paired with this computer, and using the correct COM port.'
-              : message,
+                ? 'The scanner could not be connected. Make sure the reader is powered on, paired with this computer, and using the correct COM port.'
+                : message,
           ),
           actions: [
             TextButton(
@@ -104,9 +104,9 @@ class _PitReadersSectionState extends ConsumerState<PitReadersSection> {
     // - selected connected device => Disconnect
     // - selected different device => Connect
     final selectedDeviceIsConnected =
-      conn.isConnected &&
-      connectedDeviceId != null &&
-      effectiveSelectedDeviceId == connectedDeviceId;
+        conn.isConnected &&
+        connectedDeviceId != null &&
+        effectiveSelectedDeviceId == connectedDeviceId;
 
     // Keep the last confirmed connected device only as historical memory.
     //
@@ -154,16 +154,20 @@ class _PitReadersSectionState extends ConsumerState<PitReadersSection> {
                       }
 
                       // Final fallback: sort by COM port.
-                      return a.port.toLowerCase().compareTo(b.port.toLowerCase());
+                      return a.port.toLowerCase().compareTo(
+                        b.port.toLowerCase(),
+                      );
                     });
 
                     final effectiveSelectionStillExists =
-                      effectiveSelectedDeviceId != null &&
-                      sortedDevices.any((device) => device.port == effectiveSelectedDeviceId);
+                        effectiveSelectedDeviceId != null &&
+                        sortedDevices.any(
+                          (device) => device.port == effectiveSelectedDeviceId,
+                        );
 
                     final value = effectiveSelectionStillExists
-                      ? effectiveSelectedDeviceId
-                      : sortedDevices.first.port;
+                        ? effectiveSelectedDeviceId
+                        : sortedDevices.first.port;
 
                     return DropdownButtonHideUnderline(
                       child: DropdownButton<String>(
@@ -172,18 +176,28 @@ class _PitReadersSectionState extends ConsumerState<PitReadersSection> {
                         items: sortedDevices.map((d) {
                           return DropdownMenuItem(
                             value: d.port,
-                            child: Text(d.displayName, overflow: TextOverflow.ellipsis),
+                            child: Text(
+                              d.displayName,
+                              overflow: TextOverflow.ellipsis,
+                            ),
                           );
                         }).toList(),
                         onChanged: conn.isConnecting
-                          ? null
-                          : (newId) {
-                              if (newId == null) return;
+                            ? null
+                            : (newId) {
+                                if (newId == null) return;
 
-                              ref.read(selectedDeviceIdProvider.notifier).state = newId;
+                                ref
+                                        .read(selectedDeviceIdProvider.notifier)
+                                        .state =
+                                    newId;
 
-                              ref.read(pitConnectionControllerProvider.notifier).clearError();
-                            },
+                                ref
+                                    .read(
+                                      pitConnectionControllerProvider.notifier,
+                                    )
+                                    .clearError();
+                              },
                       ),
                     );
                   },
@@ -193,13 +207,14 @@ class _PitReadersSectionState extends ConsumerState<PitReadersSection> {
               const SizedBox(width: 8),
 
               SizedBox(
-                width: 120,
+                width: 170,
                 child: FilledButton(
                   onPressed: conn.isConnecting
                       ? null
                       : () async {
-                          final controller =
-                              ref.read(pitConnectionControllerProvider.notifier);
+                          final controller = ref.read(
+                            pitConnectionControllerProvider.notifier,
+                          );
 
                           if (selectedDeviceIsConnected) {
                             await controller.disconnect();
@@ -212,39 +227,41 @@ class _PitReadersSectionState extends ConsumerState<PitReadersSection> {
                           } else {
                             await controller.connectSelected();
 
-                            final latestConn =
-                              ref.read(pitConnectionControllerProvider);
+                            final latestConn = ref.read(
+                              pitConnectionControllerProvider,
+                            );
 
-                            if (mounted && latestConn.connectedDeviceId != null) {
+                            if (mounted &&
+                                latestConn.connectedDeviceId != null) {
                               setState(() {
                                 _lastConnectedDeviceId =
-                                  latestConn.connectedDeviceId;
+                                    latestConn.connectedDeviceId;
                               });
                             }
                           }
                         },
                   child: conn.isConnecting
-                    ? const SizedBox(
-                        width: 18,
-                        height: 18,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
+                      ? const SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : Text(
+                          selectedDeviceIsConnected ? 'Disconnect' : 'Connect',
                         ),
-                      )
-                    : Text(
-                        selectedDeviceIsConnected ? 'Disconnect' : 'Connect',
-                      ),
                 ),
               ),
 
               IconButton(
                 tooltip: 'Refresh devices',
                 onPressed: conn.isConnecting
-                  ? null
-                  : () {
-                      ref.read(pitConnectionControllerProvider.notifier).clearError();
-                      ref.invalidate(discoveredDevicesProvider);
-                    },
+                    ? null
+                    : () {
+                        ref
+                            .read(pitConnectionControllerProvider.notifier)
+                            .clearError();
+                        ref.invalidate(discoveredDevicesProvider);
+                      },
                 icon: const Icon(Icons.refresh),
               ),
             ],
@@ -257,20 +274,24 @@ class _PitReadersSectionState extends ConsumerState<PitReadersSection> {
               Checkbox(
                 value: showAll,
                 onChanged: conn.isConnecting
-                  ? null
-                  : (v) {
-                      ref.read(showAllDevicesProvider.notifier).state = v ?? false;
+                    ? null
+                    : (v) {
+                        ref.read(showAllDevicesProvider.notifier).state =
+                            v ?? false;
 
-                      // Clear old connection error when device discovery options change.
-                      ref.read(pitConnectionControllerProvider.notifier).clearError();
-                    },
+                        // Clear old connection error when device discovery options change.
+                        ref
+                            .read(pitConnectionControllerProvider.notifier)
+                            .clearError();
+                      },
               ),
               const Text('Show all'),
               if (hasConnectionError) ...[
                 const Spacer(),
                 IconButton(
                   tooltip: 'Show connection error',
-                  onPressed: () => _showConnectionErrorDialog(context, conn.error),
+                  onPressed: () =>
+                      _showConnectionErrorDialog(context, conn.error),
                   icon: Icon(
                     Icons.error_outline,
                     color: Theme.of(context).colorScheme.error,
@@ -292,7 +313,9 @@ class _PitReadersSectionState extends ConsumerState<PitReadersSection> {
                 ),
                 const SizedBox(width: 8),
                 const Text('Connecting to scanner...'),
-              ] else if (conn.isConnected && connectedDeviceId != null && !hasConnectionError) ...[
+              ] else if (conn.isConnected &&
+                  connectedDeviceId != null &&
+                  !hasConnectionError) ...[
                 const Icon(Icons.check_circle_outline, size: 18),
                 const SizedBox(width: 8),
                 Text('Connected to $connectedDeviceId'),
@@ -306,8 +329,8 @@ class _PitReadersSectionState extends ConsumerState<PitReadersSection> {
                 Expanded(
                   child: Text(
                     connectionErrorMessage.isEmpty
-                      ? 'Could not connect to scanner.'
-                      : connectionErrorMessage,
+                        ? 'Could not connect to scanner.'
+                        : connectionErrorMessage,
                     style: TextStyle(
                       color: Theme.of(context).colorScheme.error,
                     ),
@@ -315,13 +338,16 @@ class _PitReadersSectionState extends ConsumerState<PitReadersSection> {
                   ),
                 ),
                 TextButton(
-                  onPressed: () => _showConnectionErrorDialog(context, conn.error),
+                  onPressed: () =>
+                      _showConnectionErrorDialog(context, conn.error),
                   child: const Text('Details'),
                 ),
               ] else if (_lastConnectedDeviceId != null) ...[
                 const Icon(Icons.bluetooth_disabled, size: 18),
                 const SizedBox(width: 8),
-                Text('Scanner disconnected. Last connected: $_lastConnectedDeviceId'),
+                Text(
+                  'Scanner disconnected. Last connected: $_lastConnectedDeviceId',
+                ),
               ] else ...[
                 const Icon(Icons.bluetooth_disabled, size: 18),
                 const SizedBox(width: 8),

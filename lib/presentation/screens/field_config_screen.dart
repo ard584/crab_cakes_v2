@@ -32,19 +32,28 @@ class FieldConfigScreen extends ConsumerWidget {
               return const Center(child: Text("No project tables available."));
             }
 
-            final resolvedTableName = activeTableName ?? project.tables.keys.first;
+            final resolvedTableName =
+                activeTableName ?? project.tables.keys.first;
             final table = project.tables[resolvedTableName];
 
             if (table == null) {
-              return const Center(child: Text("Selected table could not be found."));
+              return const Center(
+                child: Text("Selected table could not be found."),
+              );
             }
 
             // Get filter setting from provider
-            final hideDoubleUnderscore = ref.watch(hideDoubleUnderscoreColumnsProvider);
+            final hideDoubleUnderscore = ref.watch(
+              hideDoubleUnderscoreColumnsProvider,
+            );
 
             // Apply filter based on provider setting
             final attributes = hideDoubleUnderscore
-                ? table.attributes.values.where((a) => !a.fields.name.startsWith(kColumnPrefixToHide)).toList()
+                ? table.attributes.values
+                      .where(
+                        (a) => !a.fields.name.startsWith(kColumnPrefixToHide),
+                      )
+                      .toList()
                 : table.attributes.values.toList();
 
             return settingsAsync.when(
@@ -57,7 +66,9 @@ class FieldConfigScreen extends ConsumerWidget {
                     _TableChoiceChips(
                       activeTableName: resolvedTableName,
                       onTableSelected: (tableName) {
-                        ref.read(activeTableProvider.notifier).setActiveTable(tableName);
+                        ref
+                            .read(activeTableProvider.notifier)
+                            .setActiveTable(tableName);
                       },
                     ),
                     const SizedBox(height: 18),
@@ -71,92 +82,136 @@ class FieldConfigScreen extends ConsumerWidget {
                     Expanded(
                       child: attributes.isEmpty
                           ? const _EmptyFieldConfigView()
-                          : ListView.separated( 
+                          : ListView.separated(
                               itemCount: attributes.length + 1,
                               separatorBuilder: (_, __) =>
                                   const SizedBox(height: 8),
                               itemBuilder: (context, index) {
-                              if (index == 0) {
-                                return Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
-                                  decoration: BoxDecoration(
-                                    color: Theme.of(context).colorScheme.surface,
-                                    borderRadius: BorderRadius.circular(10),
-                                    border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
-                                  ),
-                                  child: Row(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Expanded(
-                                        flex: 2,
-                                        child: Padding(
-                                          padding: const EdgeInsets.only(top: 6),
-                                          child: Text(
-                                            "Column Display Order",
-                                            style: Theme.of(context).textTheme.titleSmall,
+                                if (index == 0) {
+                                  return Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 14,
+                                      vertical: 14,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.surface,
+                                      borderRadius: BorderRadius.circular(10),
+                                      border: Border.all(
+                                        color: Theme.of(
+                                          context,
+                                        ).colorScheme.outlineVariant,
+                                      ),
+                                    ),
+                                    child: Row(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Expanded(
+                                          flex: 2,
+                                          child: Padding(
+                                            padding: const EdgeInsets.only(
+                                              top: 6,
+                                            ),
+                                            child: Text(
+                                              "Column Display Order",
+                                              style: Theme.of(
+                                                context,
+                                              ).textTheme.titleSmall,
+                                            ),
                                           ),
                                         ),
-                                      ),
-                                      const Expanded(
-                                        flex: 4,
-                                        child: Text("Reorder columns in catch history table"),
-                                      ),
-                                      Expanded(
-                                        flex: 3,
-                                        child: Row(
-                                          children: [
-                                            const Spacer(),
-                                            SizedBox(
-                                              width: 98,
-                                              child: OutlinedButton(
-                                                onPressed: () {
-                                                  final visibleColumns = attributes.where((attr) {
-                                                    final fieldName = attr.fields.name;
-                                                    final config = settings.fieldConfig.getConfig(
-                                                      table: resolvedTableName,
-                                                      col: fieldName,
-                                                    );
-                                                    return config?.showInCatchHistory ?? false;
-                                                  }).map((a) => a.fields.name).toList();
-                                                  
-                                                  final columnsToOrder = visibleColumns.isEmpty
-                                                      ? attributes.take(8).map((a) => a.fields.name).toList()
-                                                      : visibleColumns;
-                                                  
-                                                  showDialog(
-                                                    context: context,
-                                                    builder: (context) => ColumnOrderDialog(
-                                                      tableName: resolvedTableName,
-                                                      allColumns: columnsToOrder,
-                                                    ),
-                                                  );
-                                                },
-                                                child: const Text("Order"),
-                                              ),
-                                            ),
-                                          ],
+                                        const Expanded(
+                                          flex: 4,
+                                          child: Text(
+                                            "Reorder columns in catch history table",
+                                          ),
                                         ),
-                                      ),
-                                    ],
-                                  ),
-                                );
-                              }
-                                
+                                        Expanded(
+                                          flex: 3,
+                                          child: Row(
+                                            children: [
+                                              const Spacer(),
+                                              SizedBox(
+                                                width: 98,
+                                                child: OutlinedButton(
+                                                  onPressed: () {
+                                                    final visibleColumns = attributes
+                                                        .where((attr) {
+                                                          final fieldName =
+                                                              attr.fields.name;
+                                                          final config = settings
+                                                              .fieldConfig
+                                                              .getConfig(
+                                                                table:
+                                                                    resolvedTableName,
+                                                                col: fieldName,
+                                                              );
+                                                          return config
+                                                                  ?.showInCatchHistory ??
+                                                              false;
+                                                        })
+                                                        .map(
+                                                          (a) => a.fields.name,
+                                                        )
+                                                        .toList();
+
+                                                    final columnsToOrder =
+                                                        visibleColumns.isEmpty
+                                                        ? attributes
+                                                              .take(8)
+                                                              .map(
+                                                                (a) => a
+                                                                    .fields
+                                                                    .name,
+                                                              )
+                                                              .toList()
+                                                        : visibleColumns;
+
+                                                    showDialog(
+                                                      context: context,
+                                                      builder: (context) =>
+                                                          ColumnOrderDialog(
+                                                            tableName:
+                                                                resolvedTableName,
+                                                            allColumns:
+                                                                columnsToOrder,
+                                                          ),
+                                                    );
+                                                  },
+                                                  child: const Text("Order"),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                }
+
                                 final fieldIndex = index - 1;
                                 final attribute = attributes[fieldIndex];
                                 final fieldName = attribute.fields.name;
                                 final dataType = attribute.fields.dataType;
-                                final schemaRequired = attribute.fields.isNotNullable;
-                                final isForeignKey = attribute.fields.isForeignKey;
-                                final isPrimaryKey = attribute.fields.isPrimaryKey;
-                                final isAutoIncrement = attribute.fields.isAutoIncrement;
+                                final schemaRequired =
+                                    attribute.fields.isNotNullable;
+                                final isForeignKey =
+                                    attribute.fields.isForeignKey;
+                                final isPrimaryKey =
+                                    attribute.fields.isPrimaryKey;
+                                final isAutoIncrement =
+                                    attribute.fields.isAutoIncrement;
 
-                                final savedConfig = settings.fieldConfig.getConfig(
-                                  table: resolvedTableName,
-                                  col: fieldName,
-                                );
+                                final savedConfig = settings.fieldConfig
+                                    .getConfig(
+                                      table: resolvedTableName,
+                                      col: fieldName,
+                                    );
 
-                                final effectiveConfig = savedConfig ??
+                                final effectiveConfig =
+                                    savedConfig ??
                                     FieldConfig.defaultInstance().copyWith(
                                       isRequired: schemaRequired,
                                     );
@@ -172,35 +227,40 @@ class FieldConfigScreen extends ConsumerWidget {
                                   onEditPressed: () async {
                                     final shownCount = attributes.where((attr) {
                                       final fn = attr.fields.name;
-                                      final cfg = settings.fieldConfig.getConfig(
-                                        table: resolvedTableName,
-                                        col: fn,
-                                      );
+                                      final cfg = settings.fieldConfig
+                                          .getConfig(
+                                            table: resolvedTableName,
+                                            col: fn,
+                                          );
                                       return cfg?.showInCatchHistory ?? false;
                                     }).length;
 
                                     final updated =
                                         await showDialog<FieldConfig>(
-                                      context: context,
-                                      builder: (_) => FieldConfigDialog(
-                                        initialValue: effectiveConfig,
-                                        fieldName: fieldName,
-                                        dataType: dataType,
-                                        currentShownCount: shownCount,
-                                        schemaRequired: schemaRequired,
-                                        isForeignKey: isForeignKey,
-                                        isPrimaryKey: isPrimaryKey,
-                                        isAutoIncrement: isAutoIncrement,
-                                      ),
+                                          context: context,
+                                          builder: (_) => FieldConfigDialog(
+                                            initialValue: effectiveConfig,
+                                            fieldName: fieldName,
+                                            dataType: dataType,
+                                            currentShownCount: shownCount,
+                                            schemaRequired: schemaRequired,
+                                            isForeignKey: isForeignKey,
+                                            isPrimaryKey: isPrimaryKey,
+                                            isAutoIncrement: isAutoIncrement,
+                                          ),
+                                        );
+
+                                    if (updated == null || !context.mounted)
+                                      return;
+
+                                    final updateUsecase = ref.read(
+                                      updateFieldConfigUsecaseProvider,
                                     );
 
-                                    if (updated == null || !context.mounted) return;
-
-                                    final updateUsecase =
-                                        ref.read(updateFieldConfigUsecaseProvider);
-
                                     if (updateUsecase == null) {
-                                      ScaffoldMessenger.of(context).showSnackBar(
+                                      ScaffoldMessenger.of(
+                                        context,
+                                      ).showSnackBar(
                                         const SnackBar(
                                           content: Text(
                                             'No active project settings repository.',
@@ -216,38 +276,57 @@ class FieldConfigScreen extends ConsumerWidget {
                                         column: fieldName,
                                         config: updated,
                                       );
-                                      if (effectiveConfig.showInCatchHistory != updated.showInCatchHistory) {
-                                        final currentOrder = settings.columnOrder[resolvedTableName] ?? [];
+                                      if (effectiveConfig.showInCatchHistory !=
+                                          updated.showInCatchHistory) {
+                                        final currentOrder =
+                                            settings
+                                                .columnOrder[resolvedTableName] ??
+                                            [];
                                         List<String> newOrder;
                                         if (updated.showInCatchHistory) {
-                                          if (!currentOrder.contains(fieldName)) {
-                                            newOrder = [...currentOrder, fieldName];
+                                          if (!currentOrder.contains(
+                                            fieldName,
+                                          )) {
+                                            newOrder = [
+                                              ...currentOrder,
+                                              fieldName,
+                                            ];
                                           } else {
                                             newOrder = currentOrder;
                                           }
                                         } else {
-                                          newOrder = currentOrder.where((col) => col != fieldName).toList();
+                                          newOrder = currentOrder
+                                              .where((col) => col != fieldName)
+                                              .toList();
                                         }
-                                        final updateColumnOrderUsecase = ref.read(updateColumnOrderUsecaseProvider);
+                                        final updateColumnOrderUsecase = ref
+                                            .read(
+                                              updateColumnOrderUsecaseProvider,
+                                            );
                                         if (updateColumnOrderUsecase != null) {
-                                          await updateColumnOrderUsecase.execute(
-                                            tableName: resolvedTableName,
-                                            columnOrder: newOrder,
-                                          );
+                                          await updateColumnOrderUsecase
+                                              .execute(
+                                                tableName: resolvedTableName,
+                                                columnOrder: newOrder,
+                                              );
                                         }
                                       }
 
                                       ref.invalidate(projectSettingsProvider);
 
                                       if (!context.mounted) return;
-                                      ScaffoldMessenger.of(context).showSnackBar(
+                                      ScaffoldMessenger.of(
+                                        context,
+                                      ).showSnackBar(
                                         const SnackBar(
                                           content: Text('Field config saved.'),
                                         ),
                                       );
                                     } catch (e) {
                                       if (!context.mounted) return;
-                                      ScaffoldMessenger.of(context).showSnackBar(
+                                      ScaffoldMessenger.of(
+                                        context,
+                                      ).showSnackBar(
                                         SnackBar(
                                           content: Text(
                                             'Failed to save field config: $e',
@@ -335,7 +414,10 @@ class _FieldConfigHeader extends StatelessWidget {
         children: [
           Expanded(
             flex: 2,
-            child: Text("Column", style: TextStyle(fontWeight: FontWeight.bold)),
+            child: Text(
+              "Column",
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
           ),
           Expanded(
             flex: 4,
@@ -345,7 +427,7 @@ class _FieldConfigHeader extends StatelessWidget {
             ),
           ),
           Expanded(
-            flex:3,
+            flex: 3,
             child: Text(
               "Catch Table",
               style: TextStyle(fontWeight: FontWeight.bold),
@@ -399,7 +481,10 @@ class _FieldConfigRow extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(fieldName, style: Theme.of(context).textTheme.titleSmall),
+                  Text(
+                    fieldName,
+                    style: Theme.of(context).textTheme.titleSmall,
+                  ),
                   const SizedBox(height: 4),
                   Text(dataType, style: Theme.of(context).textTheme.bodySmall),
                   if (isPrimaryKey) ...[
@@ -443,7 +528,10 @@ class _FieldConfigRow extends ConsumerWidget {
               children: [
                 if (config.showInCatchHistory)
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
                     decoration: BoxDecoration(
                       color: scheme.primaryContainer,
                       borderRadius: BorderRadius.circular(4),
@@ -520,8 +608,7 @@ class _ConfigSummary extends StatelessWidget {
       summaryLines.add("Free text entry");
     }
 
-    if (!isForeignKey &&
-        (config.minValue != null || config.maxValue != null)) {
+    if (!isForeignKey && (config.minValue != null || config.maxValue != null)) {
       summaryLines.add(
         "Range: ${config.minValue?.toString() ?? '-∞'} to ${config.maxValue?.toString() ?? '∞'}",
       );
@@ -611,11 +698,11 @@ class _FieldConfigDialogState extends State<FieldConfigDialog> {
   late TextEditingController _helpTextController;
 
   bool get _canHideField => canHideField(
-        isForeignKey: widget.isForeignKey,
-        isPrimaryKey: widget.isPrimaryKey,
-        isAutoIncrement: widget.isAutoIncrement,
-        schemaRequired: widget.schemaRequired,
-      );
+    isForeignKey: widget.isForeignKey,
+    isPrimaryKey: widget.isPrimaryKey,
+    isAutoIncrement: widget.isAutoIncrement,
+    schemaRequired: widget.schemaRequired,
+  );
 
   @override
   void initState() {
@@ -654,7 +741,8 @@ class _FieldConfigDialogState extends State<FieldConfigDialog> {
   @override
   Widget build(BuildContext context) {
     final isNumeric = _looksNumeric(widget.dataType);
-    final canEnableShown = widget.initialValue.showInCatchHistory || widget.currentShownCount < 8;
+    final canEnableShown =
+        widget.initialValue.showInCatchHistory || widget.currentShownCount < 8;
 
     return AlertDialog(
       title: Text("Configure ${widget.fieldName}"),
@@ -670,7 +758,9 @@ class _FieldConfigDialogState extends State<FieldConfigDialog> {
                   margin: const EdgeInsets.only(bottom: 12),
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.surfaceContainerHighest,
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(
                       color: Theme.of(context).colorScheme.outlineVariant,
@@ -711,7 +801,9 @@ class _FieldConfigDialogState extends State<FieldConfigDialog> {
                 contentPadding: EdgeInsets.zero,
                 title: const Text("Required field"),
                 subtitle: widget.schemaRequired
-                    ? const Text("This column is already required by the schema.")
+                    ? const Text(
+                        "This column is already required by the schema.",
+                      )
                     : null,
                 value: _isRequired || widget.schemaRequired,
                 onChanged: widget.schemaRequired
@@ -727,7 +819,9 @@ class _FieldConfigDialogState extends State<FieldConfigDialog> {
                 SwitchListTile(
                   contentPadding: EdgeInsets.zero,
                   title: const Text("Sticky field"),
-                  subtitle: const Text("Keeps its value after a record is saved."),
+                  subtitle: const Text(
+                    "Keeps its value after a record is saved.",
+                  ),
                   value: _isSticky,
                   onChanged: (value) {
                     setState(() {
@@ -740,7 +834,9 @@ class _FieldConfigDialogState extends State<FieldConfigDialog> {
                 SwitchListTile(
                   contentPadding: EdgeInsets.zero,
                   title: const Text("Hidden field"),
-                  subtitle: const Text("Hides this field from the data entry form."),
+                  subtitle: const Text(
+                    "Hides this field from the data entry form.",
+                  ),
                   value: _isHidden,
                   onChanged: (value) {
                     setState(() {
@@ -748,7 +844,6 @@ class _FieldConfigDialogState extends State<FieldConfigDialog> {
                     });
                   },
                 ),
-
 
               SwitchListTile(
                 contentPadding: EdgeInsets.zero,
@@ -758,8 +853,8 @@ class _FieldConfigDialogState extends State<FieldConfigDialog> {
                       ? "Display this field in the catch history table."
                       : "Maximum of 8 fields can be shown (${widget.currentShownCount}/8 selected)",
                   style: TextStyle(
-                    color: canEnableShown 
-                        ? null 
+                    color: canEnableShown
+                        ? null
                         : Theme.of(context).colorScheme.error,
                   ),
                 ),
@@ -852,8 +947,9 @@ class _FieldConfigDialogState extends State<FieldConfigDialog> {
           onPressed: () {
             final updated = FieldConfig(
               useDropdown: widget.isForeignKey ? true : _useDropdown,
-              allowCustomValues:
-                  widget.isForeignKey ? false : _allowCustomValues,
+              allowCustomValues: widget.isForeignKey
+                  ? false
+                  : _allowCustomValues,
               isRequired: widget.schemaRequired ? true : _isRequired,
               showInCatchHistory: _showInCatchHistory,
               isSticky: widget.isForeignKey ? false : _isSticky,

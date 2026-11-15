@@ -7,9 +7,8 @@ final databaseConnectionProvider = Provider<SqliteDatabaseConnection>((ref) {
   return SqliteDatabaseConnection();
 });
 
-
 final activeDatabasePathProvider = StateProvider<String?>((ref) => null);
-  
+
 final activeDatabaseConnectionProvider =
     NotifierProvider<ActiveDatabaseConnectionNotifier, Database?>(
       ActiveDatabaseConnectionNotifier.new,
@@ -40,7 +39,3 @@ class ActiveDatabaseConnectionNotifier extends Notifier<Database?> {
     ref.read(activeDatabasePathProvider.notifier).state = path;
   }
 }
-
-
-
-

@@ -3,7 +3,6 @@
 //        Parse Success: The object simply stores whatever type it was created with
 //        Parse Failure: The object simply stores an error message
 
-
 class ParseResult<T> {
   const ParseResult();
 }

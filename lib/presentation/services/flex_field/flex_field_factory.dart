@@ -8,36 +8,32 @@ class FlexFieldFactory {
     required TextEditingController controller,
     InputDecoration? baseDecoration,
   }) {
-
     //check whether or not this is a drop down
-    if(config.settings.useDropdown) {
+    if (config.settings.useDropdown) {
       return _buildAutocompleteField(config, controller, baseDecoration);
-
     } else if (config.dataType == 'INTEGER' || config.dataType == 'REAL') {
       return _buildNumericField(config, controller, baseDecoration);
-
     } else {
-
       return _buildTextField(config, controller, baseDecoration);
     }
   }
 
   static Widget _buildAutocompleteField(
-  FlexFieldConfig config,
-  TextEditingController controller,
-  InputDecoration? baseDecoration,
-) {
-  return _FlexAutocompleteField(
-    config: config,
-    controller: controller,
-    baseDecoration: baseDecoration,
-  );
-}
-  
+    FlexFieldConfig config,
+    TextEditingController controller,
+    InputDecoration? baseDecoration,
+  ) {
+    return _FlexAutocompleteField(
+      config: config,
+      controller: controller,
+      baseDecoration: baseDecoration,
+    );
+  }
+
   static Widget _buildNumericField(
     FlexFieldConfig config,
-    TextEditingController controller, 
-    InputDecoration? baseDecoration, 
+    TextEditingController controller,
+    InputDecoration? baseDecoration,
   ) {
     final isReal = config.dataType == 'REAL';
 
@@ -72,49 +68,49 @@ class FlexFieldFactory {
           return 'Enter a valid number';
         }
 
-        if (config.settings.minValue != null && number < config.settings.minValue!) {
+        if (config.settings.minValue != null &&
+            number < config.settings.minValue!) {
           return 'Must be at least ${config.settings.minValue}';
         }
 
-        if (config.settings.maxValue != null && number > config.settings.maxValue!) {
+        if (config.settings.maxValue != null &&
+            number > config.settings.maxValue!) {
           return 'Must be at most ${config.settings.maxValue}';
         }
 
         return null;
-      });
-    }
-
+      },
+    );
+  }
 
   static Widget _buildTextField(
     FlexFieldConfig config,
-    TextEditingController controller, 
-    InputDecoration? baseDecoration, 
+    TextEditingController controller,
+    InputDecoration? baseDecoration,
   ) {
-      TextInputType keyboardType = TextInputType.text;
+    TextInputType keyboardType = TextInputType.text;
 
-      // TODO: Allow for injectable styling other than hint and label text
-      return TextFormField(
-        controller: controller,
-        keyboardType: keyboardType,
-        autovalidateMode: AutovalidateMode.onUserInteraction,
-        decoration: (baseDecoration ?? InputDecoration()).copyWith(
-          labelText: config.label,
-          hintText: config.defaultValue,
-        ),
-        validator: (value) {
-          final text = value?.trim() ?? '';
+    // TODO: Allow for injectable styling other than hint and label text
+    return TextFormField(
+      controller: controller,
+      keyboardType: keyboardType,
+      autovalidateMode: AutovalidateMode.onUserInteraction,
+      decoration: (baseDecoration ?? InputDecoration()).copyWith(
+        labelText: config.label,
+        hintText: config.defaultValue,
+      ),
+      validator: (value) {
+        final text = value?.trim() ?? '';
 
-          if (config.settings.isRequired && text.isEmpty) {
-            return 'This field is required';
-          }
+        if (config.settings.isRequired && text.isEmpty) {
+          return 'This field is required';
+        }
 
-          return null;
-        },
-      );
-
+        return null;
+      },
+    );
   }
 }
-
 
 //Class for the autocomplete field. Note, that this needs to be stateful because
 //because components like the focus node need to be owned by the field instance
@@ -164,44 +160,44 @@ class _FlexAutocompleteFieldState extends State<_FlexAutocompleteField> {
   }
 
   List<String> _getFilteredOptions(String query) {
-  final q = query.trim().toLowerCase();
-  final normalizedQuery = _normalizeDropdownValue(query).toLowerCase();
-  final all = widget.config.settings.options;
+    final q = query.trim().toLowerCase();
+    final normalizedQuery = _normalizeDropdownValue(query).toLowerCase();
+    final all = widget.config.settings.options;
 
-  if (q.isEmpty) return all;
+    if (q.isEmpty) return all;
 
-  final hasExactMatch = all.any(
-    (o) =>
-        _normalizeDropdownValue(o).toLowerCase() == normalizedQuery ||
-        o.trim().toLowerCase() == q,
-  );
+    final hasExactMatch = all.any(
+      (o) =>
+          _normalizeDropdownValue(o).toLowerCase() == normalizedQuery ||
+          o.trim().toLowerCase() == q,
+    );
 
-  if (hasExactMatch) {
-    return [];
+    if (hasExactMatch) {
+      return [];
+    }
+
+    bool optionStartsWith(String option) {
+      final rawOption = option.toLowerCase();
+      final normalizedOption = _normalizeDropdownValue(option).toLowerCase();
+
+      return rawOption.startsWith(q) || normalizedOption.startsWith(q);
+    }
+
+    bool optionContains(String option) {
+      final rawOption = option.toLowerCase();
+      final normalizedOption = _normalizeDropdownValue(option).toLowerCase();
+
+      return rawOption.contains(q) || normalizedOption.contains(q);
+    }
+
+    final starts = all.where(optionStartsWith);
+
+    final contains = all.where(
+      (o) => !optionStartsWith(o) && optionContains(o),
+    );
+
+    return [...starts, ...contains];
   }
-
-  bool optionStartsWith(String option) {
-    final rawOption = option.toLowerCase();
-    final normalizedOption = _normalizeDropdownValue(option).toLowerCase();
-
-    return rawOption.startsWith(q) || normalizedOption.startsWith(q);
-  }
-
-  bool optionContains(String option) {
-    final rawOption = option.toLowerCase();
-    final normalizedOption = _normalizeDropdownValue(option).toLowerCase();
-
-    return rawOption.contains(q) || normalizedOption.contains(q);
-  }
-
-  final starts = all.where(optionStartsWith);
-
-  final contains = all.where(
-    (o) => !optionStartsWith(o) && optionContains(o),
-  );
-
-  return [...starts, ...contains];
-}
 
   void _commitSelection(String value) {
     final normalizedValue = _normalizeDropdownValue(value);
@@ -241,7 +237,8 @@ class _FlexAutocompleteFieldState extends State<_FlexAutocompleteField> {
       return KeyEventResult.ignored;
     }
 
-    final selectedIndex = (_highlightedIndex != null &&
+    final selectedIndex =
+        (_highlightedIndex != null &&
             _highlightedIndex! >= 0 &&
             _highlightedIndex! < _currentOptions.length)
         ? _highlightedIndex!
@@ -263,7 +260,8 @@ class _FlexAutocompleteFieldState extends State<_FlexAutocompleteField> {
     // Optional: enforce that typed text must match one of the dropdown options.
     if (widget.config.settings.useDropdown &&
         !widget.config.settings.options.any(
-          (o) => _normalizeDropdownValue(o).toLowerCase() ==
+          (o) =>
+              _normalizeDropdownValue(o).toLowerCase() ==
               _normalizeDropdownValue(text).toLowerCase(),
         )) {
       return 'Select a valid option';
@@ -286,9 +284,8 @@ class _FlexAutocompleteFieldState extends State<_FlexAutocompleteField> {
       focusNode: _focusNode,
       displayStringForOption: (option) => option,
       optionsBuilder: (TextEditingValue textEditingValue) {
-
         //checking whether or not the user already selected an option
-        if(_suppressOptions) {
+        if (_suppressOptions) {
           _currentOptions = const [];
           _highlightedIndex = null;
           return const Iterable<String>.empty();
@@ -298,104 +295,106 @@ class _FlexAutocompleteFieldState extends State<_FlexAutocompleteField> {
         _currentOptions = results;
 
         // Reset highlight when the option list changes.
-        if (_highlightedIndex != null &&
-            _highlightedIndex! >= results.length) {
+        if (_highlightedIndex != null && _highlightedIndex! >= results.length) {
           _highlightedIndex = results.isEmpty ? null : 0;
         }
 
         return results;
       },
       onSelected: _commitSelection,
-      fieldViewBuilder: (
-        BuildContext context,
-        TextEditingController textController,
-        FocusNode focusNode,
-        VoidCallback onFieldSubmitted,
-      ) {
-        return Focus(
-          canRequestFocus: false,
-          skipTraversal: true,
-          onKeyEvent: (_, event) => _handleKeyEvent(context, event),
-          child: TextFormField(
-            autovalidateMode: AutovalidateMode.onUserInteraction,
-            onChanged: (_) {
-              if (_suppressOptions) {
-                setState(() {
-                  _suppressOptions = false;
-                });
-              }
-            },
-            controller: textController,
-            focusNode: focusNode,
-            decoration: decoration,
-            validator: _validator,
-            onFieldSubmitted: (_) {
-              if (_currentOptions.isNotEmpty) {
-                final selectedIndex = (_highlightedIndex != null &&
-                        _highlightedIndex! >= 0 &&
-                        _highlightedIndex! < _currentOptions.length)
-                    ? _highlightedIndex!
-                    : 0;
+      fieldViewBuilder:
+          (
+            BuildContext context,
+            TextEditingController textController,
+            FocusNode focusNode,
+            VoidCallback onFieldSubmitted,
+          ) {
+            return Focus(
+              canRequestFocus: false,
+              skipTraversal: true,
+              onKeyEvent: (_, event) => _handleKeyEvent(context, event),
+              child: TextFormField(
+                autovalidateMode: AutovalidateMode.onUserInteraction,
+                onChanged: (_) {
+                  if (_suppressOptions) {
+                    setState(() {
+                      _suppressOptions = false;
+                    });
+                  }
+                },
+                controller: textController,
+                focusNode: focusNode,
+                decoration: decoration,
+                validator: _validator,
+                onFieldSubmitted: (_) {
+                  if (_currentOptions.isNotEmpty) {
+                    final selectedIndex =
+                        (_highlightedIndex != null &&
+                            _highlightedIndex! >= 0 &&
+                            _highlightedIndex! < _currentOptions.length)
+                        ? _highlightedIndex!
+                        : 0;
 
-                _commitSelection(_currentOptions[selectedIndex]);
-              } else {
-                focusNode.nextFocus();
-              }
-            },
-          ),
-        );
-      },
-      optionsViewBuilder: (
-        BuildContext context,
-        AutocompleteOnSelected<String> onSelected,
-        Iterable<String> options,
-      ) {
-        final optionList = options.toList(growable: false);
-        _currentOptions = optionList;
-
-        if (optionList.isEmpty) {
-          return const SizedBox.shrink();
-        }
-
-        return Align(
-          alignment: Alignment.topLeft,
-          child: Material(
-            elevation: 4,
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(
-                maxHeight: 220,
-                minWidth: 250,
-              ),
-              child: ListView.builder(
-                padding: EdgeInsets.zero,
-                shrinkWrap: true,
-                itemCount: optionList.length,
-                itemBuilder: (context, index) {
-                  final option = optionList[index];
-
-                  return _AutocompleteOptionTile(
-                    index: index,
-                    option: option,
-                    onSelected: onSelected,
-                    onHighlightChanged: (highlighted) {
-                      if (highlighted && _highlightedIndex != index) {
-                        // Post-frame avoids state changes during build.
-                        WidgetsBinding.instance.addPostFrameCallback((_) {
-                          if (mounted) {
-                            setState(() {
-                              _highlightedIndex = index;
-                            });
-                          }
-                        });
-                      }
-                    },
-                  );
+                    _commitSelection(_currentOptions[selectedIndex]);
+                  } else {
+                    focusNode.nextFocus();
+                  }
                 },
               ),
-            ),
-          ),
-        );
-      },
+            );
+          },
+      optionsViewBuilder:
+          (
+            BuildContext context,
+            AutocompleteOnSelected<String> onSelected,
+            Iterable<String> options,
+          ) {
+            final optionList = options.toList(growable: false);
+            _currentOptions = optionList;
+
+            if (optionList.isEmpty) {
+              return const SizedBox.shrink();
+            }
+
+            return Align(
+              alignment: Alignment.topLeft,
+              child: Material(
+                elevation: 4,
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(
+                    maxHeight: 220,
+                    minWidth: 250,
+                  ),
+                  child: ListView.builder(
+                    padding: EdgeInsets.zero,
+                    shrinkWrap: true,
+                    itemCount: optionList.length,
+                    itemBuilder: (context, index) {
+                      final option = optionList[index];
+
+                      return _AutocompleteOptionTile(
+                        index: index,
+                        option: option,
+                        onSelected: onSelected,
+                        onHighlightChanged: (highlighted) {
+                          if (highlighted && _highlightedIndex != index) {
+                            // Post-frame avoids state changes during build.
+                            WidgetsBinding.instance.addPostFrameCallback((_) {
+                              if (mounted) {
+                                setState(() {
+                                  _highlightedIndex = index;
+                                });
+                              }
+                            });
+                          }
+                        },
+                      );
+                    },
+                  ),
+                ),
+              ),
+            );
+          },
     );
   }
 }
@@ -431,9 +430,6 @@ class _AutocompleteOptionTile extends StatelessWidget {
   }
 }
 
-
-
-
 // Basic type for figuring out correct field config
 // TODO: Determine if this is redundant compared to Attribute model
 class FlexFieldConfig {
@@ -444,7 +440,6 @@ class FlexFieldConfig {
 
   final FieldConfig settings;
 
-
   FlexFieldConfig({
     required this.label,
     required this.dataType,
@@ -452,10 +447,6 @@ class FlexFieldConfig {
     this.defaultValue,
   });
 }
-
-
-
-
 
 //================================ HELPER FUNCTIONS ============================
 String _normalizeDropdownValue(String value) {

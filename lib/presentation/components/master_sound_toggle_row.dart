@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:crab_cakes/infrastructure/providers/sound_provider.dart';
 
-//constants that deal with spacing for the master toggle 
+//constants that deal with spacing for the master toggle
 const double kSoundPreviewButtonSpacing = 93.0;
 const double kSoundToggleSpacing = 16.0;
 
@@ -24,10 +24,7 @@ class MasterSoundToggleRow extends ConsumerWidget {
       child: Row(
         children: [
           const Expanded(
-            child: Text(
-              'Enable All Sounds',
-              style: TextStyle(fontSize: 16),
-            ),
+            child: Text('Enable All Sounds', style: TextStyle(fontSize: 16)),
           ),
           Row(
             mainAxisSize: MainAxisSize.min,
@@ -58,10 +55,10 @@ class MasterSoundToggleRow extends ConsumerWidget {
                       : FontWeight.normal,
                 ),
               ),
-              
+
               const SizedBox(width: kSoundToggleSpacing),
 
-              // spacing 
+              // spacing
               const SizedBox(width: kSoundPreviewButtonSpacing),
             ],
           ),

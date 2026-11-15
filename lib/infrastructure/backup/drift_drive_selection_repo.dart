@@ -18,7 +18,9 @@ class DriftDriveSelectionRepository implements DriveSelectionRepository {
       await db.batch((batch) {
         batch.insertAll(
           db.selectedBackupTargets,
-          ids.map((id) => SelectedBackupTargetsCompanion.insert(targetId: id)).toList(),
+          ids
+              .map((id) => SelectedBackupTargetsCompanion.insert(targetId: id))
+              .toList(),
         );
       });
     });

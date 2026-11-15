@@ -1,7 +1,6 @@
 import 'package:crab_cakes/application/settings/interfaces/project_settings_repo.dart';
 
 class UpdateExportSettings {
-
   final ProjectSettingsRepo repo;
 
   UpdateExportSettings(this.repo);

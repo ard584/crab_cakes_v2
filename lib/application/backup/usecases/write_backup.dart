@@ -33,14 +33,14 @@ class WriteBackup {
 
     for (final target in selectedTargets) {
       final plan = await planner.prepareBackup(request, target);
-      
+
       await dbBackupWriter.writeDatabaseBackup(
-        sourceDbPath: request.sourceDbPath, 
+        sourceDbPath: request.sourceDbPath,
         destinationDbPath: plan.backupDbPath,
       );
 
       //writing a CSV version of the data if selected
-      if(request.includeTextExport && request.baseTable != null) {
+      if (request.includeTextExport && request.baseTable != null) {
         final delim = request.exportDelimiter ?? '\t';
 
         await backupExporter.export(
@@ -49,7 +49,6 @@ class WriteBackup {
           baseTable: request.baseTable!,
           delim: delim,
         );
-
       }
 
       //write the manifest that would be used to for data sync

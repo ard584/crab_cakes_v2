@@ -23,19 +23,15 @@ class FormSaveNotifier extends AsyncNotifier<void> {
       //fetch the CACHED project settings to extract the config map
       final settings = await ref.read(projectSettingsProvider.future);
 
-
       final configSettings = settings.fieldConfig;
-
 
       // Clear all fields after save except for sticky fields
       for (final attribute in table.attributes.values) {
-        
         //Fetch the domain-level configuration for this specific field
         final config = configSettings.getConfig(
-          table: table.name, 
-          col: attribute.fields.name
+          table: table.name,
+          col: attribute.fields.name,
         );
-        
 
         final isSticky = config?.isSticky ?? false;
         final isForeignKey = attribute.fields.fkInfo != null;

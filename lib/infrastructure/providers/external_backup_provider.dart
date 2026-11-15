@@ -3,13 +3,11 @@ import 'dart:convert';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:crab_cakes/application/backup/interfaces/backup_exporter.dart';
 
-
 //importing supporting provider files
 import 'package:crab_cakes/infrastructure/providers/active_database_connection_provider.dart';
 import 'package:crab_cakes/infrastructure/providers/app_db_provider.dart';
 
 import 'dart:io' show Platform;
-
 
 //importing dummy Infrastructure used when Platform is MAC-OS
 import 'package:crab_cakes/infrastructure/backup/dummies/dummy_backup_writer.dart';
@@ -45,7 +43,6 @@ import 'package:crab_cakes/infrastructure/backup/sqlite_backup_exporter.dart';
 
 //------------------------------------------------------------------------------------
 
-
 //Wiring INFRASTRUCTURE providers
 
 final backupExporterProvider = Provider<BackupExporter>((ref) {
@@ -60,19 +57,18 @@ final backupSettingsDbProvider = Provider<BackupSettingsDb>((ref) {
 
 final driveDiscoveryProvider = Provider<DriveDiscovery>((ref) {
   // Constructing the concrete discovery implementation
-  if(Platform.isWindows) {
+  if (Platform.isWindows) {
     return Win32DriveDiscovery();
-  }
-  else {
+  } else {
     return DummyDriveDiscovery();
   }
 });
 
 final driveSelectionRepoProvider = Provider<DriveSelectionRepository>((ref) {
   final db = ref.read(backupSettingsDbProvider);
-  
+
   //constructing the concrete drive repo implementation
-  if(Platform.isWindows) {
+  if (Platform.isWindows) {
     return DriftDriveSelectionRepository(db);
   } else {
     return DummyDriveSelectionRepo();
@@ -84,7 +80,7 @@ final backupPlannerProvider = Provider<BackupPlanner>((ref) {
 });
 
 final backupWriterProvider = Provider<DbBackupWriter>((ref) {
-  if(Platform.isWindows) {
+  if (Platform.isWindows) {
     return SqliteDbBackupWriter();
   } else {
     return DummyBackupWriter();
@@ -92,13 +88,12 @@ final backupWriterProvider = Provider<DbBackupWriter>((ref) {
 });
 
 final backupManifestWriterProvider = Provider<BackupManifestWriter>((ref) {
-  if(Platform.isWindows) {
+  if (Platform.isWindows) {
     return JsonManifestWriter();
   } else {
     return DummyManifestWriter();
   }
 });
-
 
 //Wiring USE CASE providers (which read the infra providers)
 final discoverDevicesProvider = Provider<DiscoverDrives>((ref) {
@@ -190,9 +185,8 @@ class BackupActionsNotifier extends AsyncNotifier<void> {
 //exposing the class
 final backupActionsProvider =
     AsyncNotifierProvider<BackupActionsNotifier, void>(
-  BackupActionsNotifier.new,
-);
-
+      BackupActionsNotifier.new,
+    );
 
 /// Provides the selected backup targets that are currently connected.
 ///

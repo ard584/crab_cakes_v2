@@ -28,7 +28,6 @@ class Attribute {
   //defining a simple getter for whether or not his attribute is a foreign key
   bool get isForeignKey => fkInfo != null;
 
-
   @override
   String toString() {
     return 'Attribute('
@@ -96,7 +95,6 @@ class AttributeList extends Iterable<Attribute> {
     return '[\n$attributesString\n]';
   }
 }
-
 
 class ForeignKeyInfo {
   final String referencedTable;

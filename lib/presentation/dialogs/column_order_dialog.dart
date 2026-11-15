@@ -95,15 +95,15 @@ class _ColumnOrderDialogState extends ConsumerState<ColumnOrderDialog> {
     if (!mounted) return;
     Navigator.of(context).pop();
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Column order saved')),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('Column order saved')));
   }
 
   @override
   Widget build(BuildContext context) {
     _loadCurrentOrder();
-    
+
     return Dialog(
       child: Container(
         width: 500,
@@ -190,14 +190,19 @@ class _ColumnOrderDialogState extends ConsumerState<ColumnOrderDialog> {
                                 vertical: 4,
                               ),
                               decoration: BoxDecoration(
-                                color: Theme.of(context).colorScheme.secondaryContainer,
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.secondaryContainer,
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               child: Text(
                                 '${index + 1}',
-                                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                  color: Theme.of(context).colorScheme.onSecondaryContainer,
-                                ),
+                                style: Theme.of(context).textTheme.bodySmall
+                                    ?.copyWith(
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.onSecondaryContainer,
+                                    ),
                               ),
                             ),
                           ),

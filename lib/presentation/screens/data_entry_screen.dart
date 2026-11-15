@@ -1,3 +1,4 @@
+import 'package:crab_cakes/presentation/components/pit_history_inline.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -35,8 +36,6 @@ import 'package:crab_cakes/domain/enums/app_sound.dart';
 
 import 'settings_screen.dart';
 
-
-
 class DataEntryScreen extends ConsumerStatefulWidget {
   const DataEntryScreen({super.key});
 
@@ -61,14 +60,18 @@ class _DataEntryState extends ConsumerState<DataEntryScreen> {
   bool _saveTriggeredByUser = false;
 
   void jumpToTop() {
-    scrollController.animateTo(0, duration: Duration(milliseconds: 150), curve: Curves.fastOutSlowIn);
+    scrollController.animateTo(
+      0,
+      duration: Duration(milliseconds: 150),
+      curve: Curves.fastOutSlowIn,
+    );
   }
 
   /// Method to centralize the save flow and allow it to be called from anywhere
-  /// regardless of if its via the button or a short cut. 
+  /// regardless of if its via the button or a short cut.
   Future<void> _saveRecordAndRunBackups() async {
-    //validating the form before submission. Invalid should already be 
-    //marked in read 
+    //validating the form before submission. Invalid should already be
+    //marked in read
     final isValid = _formKey.currentState?.validate() ?? false;
     if (!isValid) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -106,11 +109,13 @@ class _DataEntryState extends ConsumerState<DataEntryScreen> {
     final exportBaseTable = settings.export.baseTable;
     final exportDelimiter = settings.export.delimiter ?? '\t';
 
-    await ref.read(backupActionsProvider.notifier).backupCurrentProject(
-      includeTextExport: exportBaseTable != null,
-      baseTable: exportBaseTable,
-      exportDelimiter: exportDelimiter,
-    );
+    await ref
+        .read(backupActionsProvider.notifier)
+        .backupCurrentProject(
+          includeTextExport: exportBaseTable != null,
+          baseTable: exportBaseTable,
+          exportDelimiter: exportDelimiter,
+        );
 
     scrollController.animateTo(
       0,
@@ -128,7 +133,6 @@ class _DataEntryState extends ConsumerState<DataEntryScreen> {
     final activeTable = project?.tables[activeTableName];
     final fieldList = activeTable?.attributes.values.toList();
 
-    
     //setting up the stream subscription for scan detection
     ref.listen(scanEventProvider, (prev, next) {
       next.whenData((parseResult) {
@@ -148,12 +152,11 @@ class _DataEntryState extends ConsumerState<DataEntryScreen> {
           if (field.fields.name == targetCol) {
             //local variable to hold pit tag
             final scannedId = scan.id ?? "";
-            field.controller.text = scan.id ?? ""; 
-               
+            field.controller.text = scan.id ?? "";
+
             //if there is a valid scan play the tag accepted sound
             //Needs to be tested with pit tag reader
-            if (scannedId.isNotEmpty) 
-            {
+            if (scannedId.isNotEmpty) {
               ref.read(soundServiceProvider).play(AppSound.tagAccepted);
             }
 
@@ -172,7 +175,7 @@ class _DataEntryState extends ConsumerState<DataEntryScreen> {
       if (!_saveTriggeredByUser) return;
 
       next.whenOrNull(
-        data: (_){
+        data: (_) {
           //reset flag
           _saveTriggeredByUser = false;
           //success alert
@@ -266,30 +269,41 @@ class _DataEntryState extends ConsumerState<DataEntryScreen> {
                 return Column(
                   children: [
                     //made it a row to show status on the left followed by table on the
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+
+                    ExpansionTile(
+                      title: const Text(
+                        'Scanner Status, Backups, and Catch History',
+                      ),
+                      initiallyExpanded: false,
                       children: [
-                        // Left side
-                        Flexible(
-                          flex: 1,
-                          child: ConstrainedBox(
-                            constraints: const BoxConstraints(
-                              minWidth: 320,
-                              maxWidth: 520,
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Flexible(
+                              flex: 1,
+                              child: ConstrainedBox(
+                                constraints: const BoxConstraints(
+                                  minWidth: 320,
+                                  maxWidth: 520,
+                                ),
+                                child: const StatusPanel(),
+                              ),
                             ),
-                            child: const StatusPanel(),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          flex: 2,
-                          child: Align(
-                            alignment: Alignment.topRight,
-                            child: CatchHistorySection(tableName: activeTableName),
-                          ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              flex: 2,
+                              child: Align(
+                                alignment: Alignment.topRight,
+                                child: CatchHistorySection(
+                                  tableName: activeTableName,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),
+
                     const SizedBox(height: 12),
 
                     // Table switching
@@ -315,12 +329,20 @@ class _DataEntryState extends ConsumerState<DataEntryScreen> {
             ),
           ),
 
-          floatingActionButton: FloatingActionButton.extended(
-            focusNode: FocusNode(skipTraversal: true),
-            onPressed: _saveRecordAndRunBackups,
-            label: const Padding(
-              padding: EdgeInsets.all(20.0),
-              child: Text("Save Record (f12)"),
+          bottomNavigationBar: SafeArea(
+            top: false,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  FilledButton.icon(
+                    onPressed: _saveRecordAndRunBackups,
+                    icon: const Icon(Icons.save_outlined),
+                    label: const Text('Save Record (F12)'),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
@@ -328,7 +350,6 @@ class _DataEntryState extends ConsumerState<DataEntryScreen> {
     );
   }
 }
-
 
 class _TableFormSectionState extends ConsumerState<TableFormSection> {
   late final ScrollController? _scrollController;
@@ -345,7 +366,7 @@ class _TableFormSectionState extends ConsumerState<TableFormSection> {
     final tableName = ref.watch(activeTableProvider);
 
     if (tableName == null) {
-      return Center(child: CircularProgressIndicator(),);
+      return Center(child: CircularProgressIndicator());
     }
 
     final table = project?.tables[tableName];
@@ -358,18 +379,180 @@ class _TableFormSectionState extends ConsumerState<TableFormSection> {
     final hideDoubleUnderscore = ref.watch(hideDoubleUnderscoreColumnsProvider);
 
     // Apply filter based on provider setting
-    final attrbutes = hideDoubleUnderscore
-        ? table.attributes.values.where((a) => !a.fields.name.startsWith(kColumnPrefixToHide)).toList()
-        : table.attributes.values.toList();
 
-    return ListView.builder(
-      itemCount: attrbutes.length,
-      itemBuilder: (context, index) {
-        final attribute = attrbutes[index];
+    // Get the fields that should appear on the form.
 
-        return DynamicFlexField(tableName: tableName, attribute: attribute);
+    // Get the fields that should appear on the form.
+    final fields = table.attributes.values.where((attribute) {
+      final name = attribute.fields.name;
+
+      // Hide internal database fields.
+      if (hideDoubleUnderscore && name.startsWith(kColumnPrefixToHide)) {
+        return false;
+      }
+
+      // Hide automatically generated record IDs.
+      if (name == 'ID' &&
+          attribute.fields.isPrimaryKey &&
+          attribute.fields.dataType.toUpperCase() == 'INTEGER') {
+        return false;
+      }
+
+      return true;
+    }).toList();
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // Show more columns on larger screens.
+        int columnCount = 1;
+
+        if (constraints.maxWidth >= 1600) {
+          columnCount = 5;
+        } else if (constraints.maxWidth >= 1250) {
+          columnCount = 4;
+        } else if (constraints.maxWidth >= 900) {
+          columnCount = 3;
+        } else if (constraints.maxWidth >= 600) {
+          columnCount = 2;
+        }
+
+        const spacing = 10.0;
+
+        final fieldWidth =
+            (constraints.maxWidth - spacing * (columnCount - 1)) / columnCount;
+
+        // Track which fields have already been displayed.
+        final usedFields = <String>{};
+
+        // Get fields in the requested order.
+        List<AttributeFormField> getFields(List<String> names) {
+          final selected = <AttributeFormField>[];
+
+          for (final name in names) {
+            for (final field in fields) {
+              if (field.fields.name == name && !usedFields.contains(name)) {
+                selected.add(field);
+                usedFields.add(name);
+              }
+            }
+          }
+
+          return selected;
+        }
+
+        // Build one section of the form.
+        Widget buildSection(
+          String title,
+          List<AttributeFormField> sectionFields,
+        ) {
+          if (sectionFields.isEmpty) {
+            return const SizedBox.shrink();
+          }
+
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title, style: Theme.of(context).textTheme.titleMedium),
+
+                const SizedBox(height: 8),
+
+                Wrap(
+                  spacing: spacing,
+                  runSpacing: 8,
+                  children: sectionFields.map((attribute) {
+                    return SizedBox(
+                      width: fieldWidth,
+                      child: DynamicFlexField(
+                        tableName: tableName,
+                        attribute: attribute,
+                      ),
+                    );
+                  }).toList(),
+                ),
+              ],
+            ),
+          );
+        }
+
+        final sections = <Widget>[];
+
+        if (tableName == 'SPECIMEN') {
+          // Fish information comes first during fieldwork.
+          sections.add(
+            buildSection(
+              'Fish Information',
+              getFields([
+                'PIT_TAG',
+                'SPECIES',
+                'LENGTH_MM',
+                'FORK_LENGTH_MM',
+                'WEIGHT_G',
+              ]),
+            ),
+          );
+
+          // Display test history directly in the specimen form.
+          final pitTagField = table.attributes['PIT_TAG'];
+
+          if (pitTagField != null) {
+            sections.add(
+              PitHistoryInline(
+                tagController: pitTagField.controller,
+              ),
+            );
+          }
+
+          // Information connecting the fish to its survey.
+          sections.add(
+            buildSection(
+              'Survey Information',
+              getFields(['SAMPLE_ID', 'SURVEY_DATE', 'LOCATION', 'GEAR_TYPE']),
+            ),
+          );
+        } else if (tableName == 'SAMPLE') {
+          // Main information recorded for each sample.
+          sections.add(
+            buildSection(
+              'Sample Information',
+              getFields([
+                'TRIP_ID',
+                'SAMPLE_TYPE',
+                'SURVEY_DATE',
+                'LOCATION',
+                'GEAR_TYPE',
+                'SITE_ID',
+                'RIVER_MILE',
+                'START_TIME',
+                'END_TIME',
+              ]),
+            ),
+          );
+        }
+
+        // Keep all remaining fields available.
+        final remainingFields = fields.where((field) {
+          return !usedFields.contains(field.fields.name);
+        }).toList();
+
+        sections.add(
+          buildSection(
+            tableName == 'SPECIMEN'
+                ? 'Additional Fish Information'
+                : 'Additional Sample Information',
+            remainingFields,
+          ),
+        );
+
+        return SingleChildScrollView(
+          controller: _scrollController,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: sections,
+          ),
+        );
       },
-      controller: _scrollController,
     );
   }
 }
@@ -397,14 +580,10 @@ class DynamicFlexField extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     // final controllers = ref.watch(flexTableControllersProvider(tableName));
 
-
     //Fetch the domain-level configuration for this specific field
-    final fieldConfigAsync =  ref.watch(
+    final fieldConfigAsync = ref.watch(
       effectiveFieldConfigProvider(
-        FieldConfigKey(
-          tableName: tableName,
-          colName: attribute.fields.name,
-        ),
+        FieldConfigKey(tableName: tableName, colName: attribute.fields.name),
       ),
     );
 
@@ -421,52 +600,81 @@ class DynamicFlexField extends ConsumerWidget {
 
     //gathering reference table options only if the specific field is a Foreign Key (FK)
     final fkInfo = attribute.fields.fkInfo;
-    if(fkInfo != null) {
+    if (fkInfo != null) {
       final repo = ref.watch(projectDatabaseProvider);
       final rows = repo.getAllRows(fkInfo.referencedTable);
 
       final options = rows
-      .map((row) => row.values[fkInfo.referencedColumn])
-      .where((value) => value != null)
-      .map((value) => value.toString())
-      .toSet() // removes duplicates
-      .toList();
+          .map((row) => row.values[fkInfo.referencedColumn])
+          .where((value) => value != null)
+          .map((value) => value.toString())
+          .toSet() // removes duplicates
+          .toList();
 
       //copying the field config created earlier, but with the parent drop down options
       fieldConfig = fieldConfig.copyWith(
-        options: options, 
+        options: options,
         useDropdown: true,
         allowCustomValues: true,
         isSticky: true,
       );
     }
 
-    //defining the FlexFieldConfig object with the domain-level config added 
+    //defining the FlexFieldConfig object with the domain-level config added
+
+    // Give common survey fields readable labels.
+    const fieldLabels = {
+      'SAMPLE_ID': 'Sample ID',
+      'TRIP_ID': 'Trip ID',
+      'SITE_ID': 'Site ID',
+      'PIT_TAG': 'PIT Tag',
+      'SPECIES': 'Species',
+      'LENGTH_MM': 'Total Length (mm)',
+      'FORK_LENGTH_MM': 'Fork Length (mm)',
+      'WEIGHT_G': 'Weight (g)',
+      'SURVEY_DATE': 'Survey Date',
+      'LOCATION': 'Location',
+      'GEAR_TYPE': 'Gear Type',
+      'SAMPLE_TYPE': 'Sample Type',
+      'RIVER_MILE': 'River Mile',
+      'START_TIME': 'Start Time',
+      'END_TIME': 'End Time',
+    };
+
+    final fieldName = attribute.fields.name;
+
+    // Format any other field names automatically.
+    final readableName =
+        fieldLabels[fieldName] ??
+        fieldName
+            .toLowerCase()
+            .split('_')
+            .map((word) {
+              if (word.isEmpty) return '';
+              return word[0].toUpperCase() + word.substring(1);
+            })
+            .join(' ');
+
     final config = FlexFieldConfig(
-      label: attribute.fields.name,
+      label: readableName,
       dataType: attribute.fields.dataType,
       settings: fieldConfig,
     );
 
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12.0),
-      margin: const EdgeInsets.only(bottom: 16.0, top: 4.0),
-      decoration: BoxDecoration(
-        color: Theme.of(
-          context,
-        ).colorScheme.surfaceContainerHighest, // Light background color
-        borderRadius: BorderRadius.circular(10.0),
-        border: Border.all(color: Theme.of(context).colorScheme.onSecondary),
-      ),
-
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 3),
       child: FlexFieldFactory.createField(
         config: config,
-
-        // Placeholder for now, doesn't do anything
         controller: attribute.controller,
-
         baseDecoration: InputDecoration(
-          contentPadding: const EdgeInsets.symmetric(vertical: 14.0),
+          isDense: true,
+          filled: true,
+          fillColor: Colors.white,
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 10,
+            vertical: 10,
+          ),
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(6)),
         ),
       ),
     );
@@ -483,10 +691,7 @@ class DrawerSubmenu extends StatelessWidget {
     return Column(
       children: [
         ListTile(
-          leading: Icon(
-            Icons.home,
-            color: colorScheme.primary,
-          ),
+          leading: Icon(Icons.home, color: colorScheme.primary),
           title: Text(
             "Switch Project",
             style: TextStyle(
@@ -511,9 +716,7 @@ class DrawerSubmenu extends StatelessWidget {
             Navigator.pop(context);
             Navigator.push(
               context,
-              MaterialPageRoute(
-                builder: (context) => CheckDatabaseScreen(),
-              ),
+              MaterialPageRoute(builder: (context) => CheckDatabaseScreen()),
             );
           },
         ),
@@ -524,9 +727,7 @@ class DrawerSubmenu extends StatelessWidget {
             Navigator.pop(context);
             Navigator.push(
               context,
-              MaterialPageRoute(
-                builder: (context) => const QaqcScreen(),
-              ),
+              MaterialPageRoute(builder: (context) => const QaqcScreen()),
             );
           },
         ),
@@ -548,9 +749,7 @@ class DrawerSubmenu extends StatelessWidget {
             Navigator.pop(context);
             Navigator.push(
               context,
-              MaterialPageRoute(
-                builder: (context) => FieldConfigScreen(),
-              ),
+              MaterialPageRoute(builder: (context) => FieldConfigScreen()),
             );
           },
         ),

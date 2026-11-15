@@ -1,8 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-
 import 'package:crab_cakes/application/sync/interfaces/project_sync_repo.dart';
-
 
 import 'package:crab_cakes/application/sync/usecases/apply_sync_plan.dart';
 import 'package:crab_cakes/application/sync/usecases/build_sync_plan.dart';
@@ -27,10 +25,7 @@ final buildSyncPlanProvider = Provider<BuildSyncPlan>((ref) {
   final repo = ref.watch(projectSyncRepositoryProvider);
   final checkCompatibility = ref.watch(checkSyncCompatibilityProvider);
 
-  return BuildSyncPlan(
-    repo: repo,
-    checkCompat: checkCompatibility,
-  );
+  return BuildSyncPlan(repo: repo, checkCompat: checkCompatibility);
 });
 
 final applySyncPlanProvider = Provider<ApplySyncPlan>((ref) {
@@ -40,9 +35,7 @@ final applySyncPlanProvider = Provider<ApplySyncPlan>((ref) {
   return ApplySyncPlan(repo: repo, backupExporter: exporter);
 });
 
-
 //-------------------------- WIRING COMPLETE ----------------------------------
-
 
 class ProjectSyncState {
   final bool isLoading;
@@ -69,12 +62,13 @@ class ProjectSyncState {
     return ProjectSyncState(
       isLoading: isLoading ?? this.isLoading,
       errorMessage: clearError ? null : errorMessage ?? this.errorMessage,
-      successMessage: clearSuccess ? null : successMessage ?? this.successMessage,
+      successMessage: clearSuccess
+          ? null
+          : successMessage ?? this.successMessage,
       plan: clearPlan ? null : plan ?? this.plan,
     );
   }
 }
-
 
 class ProjectSyncNotifier extends Notifier<ProjectSyncState> {
   @override
@@ -122,10 +116,7 @@ class ProjectSyncNotifier extends Notifier<ProjectSyncState> {
         successMessage: 'Sync preview ready.',
       );
     } catch (e) {
-      state = state.copyWith(
-        isLoading: false,
-        errorMessage: e.toString(),
-      );
+      state = state.copyWith(isLoading: false, errorMessage: e.toString());
     }
   }
 
@@ -177,15 +168,12 @@ class ProjectSyncNotifier extends Notifier<ProjectSyncState> {
         successMessage: 'Sync completed successfully.',
       );
     } catch (e) {
-      state = state.copyWith(
-        isLoading: false,
-        errorMessage: e.toString(),
-      );
+      state = state.copyWith(isLoading: false, errorMessage: e.toString());
     }
   }
 }
 
 final projectSyncNotifierProvider =
     NotifierProvider<ProjectSyncNotifier, ProjectSyncState>(
-  ProjectSyncNotifier.new,
-);
+      ProjectSyncNotifier.new,
+    );

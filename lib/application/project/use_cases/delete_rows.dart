@@ -6,7 +6,10 @@ class DeleteRowsUseCase {
 
   DeleteRowsUseCase({required this.repo});
 
-  void call({required String tableName, required List<RowIdentifier> identifiers}) {
+  void call({
+    required String tableName,
+    required List<RowIdentifier> identifiers,
+  }) {
     for (final id in identifiers) {
       repo.deleteRowByRowID(tableName: tableName, id: id);
     }

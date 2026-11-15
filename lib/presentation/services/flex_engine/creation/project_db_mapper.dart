@@ -30,8 +30,10 @@ ProjectDb createDbObject(db) {
 
     // Return the instance
     return projectDb;
-  } catch(e) {
-    throw Exception("[createDbObject] Error occurred while mapping database: $e");
+  } catch (e) {
+    throw Exception(
+      "[createDbObject] Error occurred while mapping database: $e",
+    );
   }
 }
 
@@ -42,7 +44,7 @@ List<Attribute> _readAttributes(Database db, String tableName) {
   final fkRows = db.select('PRAGMA foreign_key_list($tableName)');
 
   //building a map that stores the child columns to ForeignKeyInfo objects
-  //basically a lookup table for all foreign key columns in the specified table 
+  //basically a lookup table for all foreign key columns in the specified table
   final Map<String, ForeignKeyInfo> fkMap = {
     for (final fk in fkRows)
       fk['from'] as String: ForeignKeyInfo(
@@ -57,13 +59,13 @@ List<Attribute> _readAttributes(Database db, String tableName) {
   // Iterate through attributes
   for (final attribute in attributes) {
     // Get formatted attribute and add it to attribute list
-   final columnName = attribute['name'] as String;
+    final columnName = attribute['name'] as String;
 
     attrList.add(
       _getAttribute(
         attribute,
         fkInfo: fkMap[columnName],
-        isAutoIncrement: isAutoIncrementColumn(db, tableName, columnName)
+        isAutoIncrement: isAutoIncrementColumn(db, tableName, columnName),
       ),
     );
   }
@@ -84,7 +86,11 @@ List<String> _readTableNames(Database db) {
   return tables.map((row) => row['name'] as String).toList();
 }
 
-Attribute _getAttribute(Row attribute, {ForeignKeyInfo? fkInfo, bool isAutoIncrement = false}) {
+Attribute _getAttribute(
+  Row attribute, {
+  ForeignKeyInfo? fkInfo,
+  bool isAutoIncrement = false,
+}) {
   // Format and return attribute
   return Attribute(
     columnID: attribute["cid"],
@@ -96,9 +102,7 @@ Attribute _getAttribute(Row attribute, {ForeignKeyInfo? fkInfo, bool isAutoIncre
     fkInfo: fkInfo,
     isAutoIncrement: isAutoIncrement,
   );
-
 }
-
 
 bool isAutoIncrementColumn(Database db, String tableName, String columnName) {
   final rows = db.select(

@@ -25,15 +25,13 @@ class BatteryIndicator extends ConsumerWidget {
           loading: () => const SizedBox(),
           error: (_, __) => const SizedBox(),
           data: (state) {
-            final isCharging = state == BatteryState.charging || state == BatteryState.full;
+            final isCharging =
+                state == BatteryState.charging || state == BatteryState.full;
 
             return Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                CustomBatteryWidget(
-                  level: level,
-                  isCharging: isCharging,
-                ),
+                CustomBatteryWidget(level: level, isCharging: isCharging),
                 const SizedBox(width: 6),
                 Text(
                   "$level%",
@@ -91,7 +89,7 @@ class CustomBatteryWidget extends StatelessWidget {
               ),
             ),
 
-            // make sure battery goes down or up smoothly 
+            // make sure battery goes down or up smoothly
             Positioned(
               left: 2,
               child: AnimatedContainer(
@@ -112,13 +110,8 @@ class CustomBatteryWidget extends StatelessWidget {
           const Positioned(
             top: 1,
             left: 9,
-            child: Icon(
-              Icons.bolt,
-              size: 14,
-              color: Colors.black,
-            ),
+            child: Icon(Icons.bolt, size: 14, color: Colors.black),
           ),
-          
       ],
     );
   }

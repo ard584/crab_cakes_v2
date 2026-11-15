@@ -1,4 +1,4 @@
-//UI components that holds the status of important comonents currently its just the battery 
+//UI components that holds the status of important comonents currently its just the battery
 //but if needed more can be added
 
 import 'package:flutter/material.dart';
@@ -16,10 +16,7 @@ class StatusPanel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      constraints: const BoxConstraints(
-        minWidth: 320,
-        maxWidth: 520,
-      ),
+      constraints: const BoxConstraints(minWidth: 320, maxWidth: 520),
       padding: const EdgeInsets.all(12.0),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surfaceContainerHighest,
@@ -28,10 +25,7 @@ class StatusPanel extends StatelessWidget {
       child: const Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Align(
-            alignment: Alignment.topRight,
-            child: BatteryStatusRow(),
-          ),
+          Align(alignment: Alignment.topRight, child: BatteryStatusRow()),
           SizedBox(height: 8),
           ScannerStatusPanel(),
           SizedBox(height: 10),
@@ -82,10 +76,7 @@ class ScannerStatusPanel extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'Scanner Status',
-          style: Theme.of(context).textTheme.titleSmall,
-        ),
+        Text('Scanner Status', style: Theme.of(context).textTheme.titleSmall),
         const SizedBox(height: 6),
 
         if (pitConnectionState.isConnecting)
@@ -140,7 +131,6 @@ class ScannerStatusPanel extends ConsumerWidget {
   }
 }
 
-
 class BackupStatusPanel extends ConsumerWidget {
   const BackupStatusPanel({super.key});
 
@@ -152,10 +142,7 @@ class BackupStatusPanel extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'Backup Status',
-          style: Theme.of(context).textTheme.titleSmall,
-        ),
+        Text('Backup Status', style: Theme.of(context).textTheme.titleSmall),
         const SizedBox(height: 6),
 
         targetsAsync.when(
@@ -197,9 +184,7 @@ class BackupStatusPanel extends ConsumerWidget {
             return _StatusLine(
               isWarning: !hasBaseTable,
               label: 'Export base table',
-              value: hasBaseTable
-                  ? baseTable
-                  : 'No base table selected',
+              value: hasBaseTable ? baseTable : 'No base table selected',
               helpTitle: 'Export base table',
               helpText:
                   'The base table controls the text export created during backups. Each exported row is based on this table, with related data included according to the project schema. '
@@ -250,16 +235,15 @@ class _StatusLine extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Icon(
-            isWarning ? Icons.warning_amber_rounded : Icons.check_circle_outline,
+            isWarning
+                ? Icons.warning_amber_rounded
+                : Icons.check_circle_outline,
             size: 18,
             color: color,
           ),
           const SizedBox(width: 6),
           Expanded(
-            child: Text(
-              '$label: $value',
-              style: TextStyle(color: color),
-            ),
+            child: Text('$label: $value', style: TextStyle(color: color)),
           ),
           IconButton(
             icon: const Icon(Icons.help_outline, size: 18),

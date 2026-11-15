@@ -6,16 +6,13 @@ import 'dart:ffi';
 import 'package:ffi/ffi.dart';
 import 'package:win32/win32.dart';
 
-
-/// Interface that allows access to a list of ALL COM ports established by the 
+/// Interface that allows access to a list of ALL COM ports established by the
 /// local machine. This means that the outgoing AND incoming ports are included
 /// within the list.
-/// 
+///
 class LibserialportDeviceDiscovery implements ScannerDeviceDiscovery {
-
   @override
   Future<List<DiscoveredPort>> listDevices() async {
-
     if (!Platform.isWindows) {
       return [];
     }
@@ -24,36 +21,33 @@ class LibserialportDeviceDiscovery implements ScannerDeviceDiscovery {
     List<DiscoveredPort> devices = [];
 
     //iterating over disovered ports
-    for(int i=0; i<ports.length; i++) {
+    for (int i = 0; i < ports.length; i++) {
       final port = ports[i];
 
       final instanceIdUpper = port.instanceId.toUpperCase();
       final looksBluetooth = instanceIdUpper.startsWith("BTHENUM");
-      
+
       final btAddr = bluetoothAddressFromInstanceId(port.instanceId);
       final hasBtAddr = btAddr != null && btAddr != 0;
-      
 
       //checking to see if the port is an OUTGOING bluetooth port
       final deviceName = hasBtAddr
-        ? (bluetoothDeviceNameFromAddress(btAddr) ?? "")
-        : "";
+          ? (bluetoothDeviceNameFromAddress(btAddr) ?? "")
+          : "";
 
       final candidate = DiscoveredPort(
-        deviceName, 
-        port.comName, 
-        port.friendlyName, 
+        deviceName,
+        port.comName,
+        port.friendlyName,
         looksBluetooth,
       );
 
       devices.add(candidate);
     }
-     
+
     return devices;
   }
-
 }
-
 
 //---------------- HELPER CLASSES AND FUNCTIONS --------------------------------
 class SerialPortInfo {
@@ -88,7 +82,7 @@ List<SerialPortInfo> enumerateSerialPorts({
     classGuid, // The GUID that represents all COM and LPT ports
     nullptr, // Enumerator ~ Tells windows not to filter by port type
     0, // hwndParent ~ Tells windows not to activate any windows UI
-    DIGCF_PRESENT,  // Filters the list to only currently present devices
+    DIGCF_PRESENT, // Filters the list to only currently present devices
   );
 
   //verify result set is valid
@@ -103,10 +97,13 @@ List<SerialPortInfo> enumerateSerialPorts({
   devInfo.ref.cbSize = sizeOf<SP_DEVINFO_DATA>();
 
   try {
-    for (var index = 0;
-        SetupDiEnumDeviceInfo(deviceInfoSet, index, devInfo) != 0;
-        index++) {
-      final friendly = _getDeviceRegistryStringProperty(
+    for (
+      var index = 0;
+      SetupDiEnumDeviceInfo(deviceInfoSet, index, devInfo) != 0;
+      index++
+    ) {
+      final friendly =
+          _getDeviceRegistryStringProperty(
             deviceInfoSet,
             devInfo,
             SPDRP_FRIENDLYNAME,
@@ -119,9 +116,10 @@ List<SerialPortInfo> enumerateSerialPorts({
 
       if (friendly == null) continue;
 
-      final comName = _getPortNameFromRegistry(deviceInfoSet, devInfo) ??
-        _extractComNameFromFriendly(friendly);
-        
+      final comName =
+          _getPortNameFromRegistry(deviceInfoSet, devInfo) ??
+          _extractComNameFromFriendly(friendly);
+
       if (comName == null) {
         if (!includeNonComFriendlyNames) continue;
       }
@@ -130,18 +128,22 @@ List<SerialPortInfo> enumerateSerialPorts({
       if (instanceId == null) continue;
 
       if (comName != null) {
-        results.add(SerialPortInfo(
-          comName: comName,
-          friendlyName: friendly,
-          instanceId: instanceId,
-        ));
+        results.add(
+          SerialPortInfo(
+            comName: comName,
+            friendlyName: friendly,
+            instanceId: instanceId,
+          ),
+        );
       } else if (includeNonComFriendlyNames) {
         // Fallback: keep it, but label as unknown COM. You can remove this block if you want.
-        results.add(SerialPortInfo(
-          comName: 'UNKNOWN',
-          friendlyName: friendly,
-          instanceId: instanceId,
-        ));
+        results.add(
+          SerialPortInfo(
+            comName: 'UNKNOWN',
+            friendlyName: friendly,
+            instanceId: instanceId,
+          ),
+        );
       }
     }
 
@@ -222,7 +224,10 @@ String? _getPortNameFromRegistry(
       final portName = buffer.cast<Utf16>().toDartString();
 
       // Defensive check: only accept real COM names.
-      final match = RegExp(r'^COM\d+$', caseSensitive: false).firstMatch(portName);
+      final match = RegExp(
+        r'^COM\d+$',
+        caseSensitive: false,
+      ).firstMatch(portName);
       if (match == null) {
         return null;
       }
@@ -304,7 +309,10 @@ String? _getDeviceRegistryStringProperty(
 }
 
 /// Reads device instance ID (a string like "BTHENUM\\...LOCALMFG&...").
-String? _getDeviceInstanceId(int deviceInfoSet, Pointer<SP_DEVINFO_DATA> devInfo) {
+String? _getDeviceInstanceId(
+  int deviceInfoSet,
+  Pointer<SP_DEVINFO_DATA> devInfo,
+) {
   final requiredSize = calloc<Uint32>();
 
   Pointer<Uint16> buffer = nullptr;
@@ -355,13 +363,14 @@ String? _getDeviceInstanceId(int deviceInfoSet, Pointer<SP_DEVINFO_DATA> devInfo
   }
 }
 
-
 /// Extract "(COM123)" from a friendly name string.
 String? _extractComNameFromFriendly(String friendlyName) {
-  final match = RegExp(r'\((COM\d+)\)', caseSensitive: false).firstMatch(friendlyName);
+  final match = RegExp(
+    r'\((COM\d+)\)',
+    caseSensitive: false,
+  ).firstMatch(friendlyName);
   return match?.group(1)?.toUpperCase();
 }
-
 
 /// Returns the remote Bluetooth address (as an integer) if present.
 /// Returns null if not a Bluetooth BTHENUM devnode.
@@ -386,52 +395,44 @@ int? bluetoothAddressFromInstanceId(String instanceId) {
 
 final DynamicLibrary _bthprops = DynamicLibrary.open('bthprops.cpl');
 
-typedef _BluetoothFindFirstRadioC = IntPtr Function(
-  Pointer<BLUETOOTH_FIND_RADIO_PARAMS> pParams,
-  Pointer<IntPtr> phRadio,
-);
-typedef _BluetoothFindFirstRadioDart = int Function(
-  Pointer<BLUETOOTH_FIND_RADIO_PARAMS> pParams,
-  Pointer<IntPtr> phRadio,
-);
+typedef _BluetoothFindFirstRadioC =
+    IntPtr Function(
+      Pointer<BLUETOOTH_FIND_RADIO_PARAMS> pParams,
+      Pointer<IntPtr> phRadio,
+    );
+typedef _BluetoothFindFirstRadioDart =
+    int Function(
+      Pointer<BLUETOOTH_FIND_RADIO_PARAMS> pParams,
+      Pointer<IntPtr> phRadio,
+    );
 
-
-typedef _BluetoothFindNextRadioC = Int32 Function(
-  IntPtr hFind,
-  Pointer<IntPtr> phRadio,
-);
-typedef _BluetoothFindNextRadioDart = int Function(
-  int hFind,
-  Pointer<IntPtr> phRadio,
-);
+typedef _BluetoothFindNextRadioC =
+    Int32 Function(IntPtr hFind, Pointer<IntPtr> phRadio);
+typedef _BluetoothFindNextRadioDart =
+    int Function(int hFind, Pointer<IntPtr> phRadio);
 
 typedef _BluetoothFindRadioCloseC = Int32 Function(IntPtr hFind);
 typedef _BluetoothFindRadioCloseDart = int Function(int hFind);
 
-typedef _BluetoothGetDeviceInfoC = Uint32 Function(
-  IntPtr hRadio,
-  Pointer<BLUETOOTH_DEVICE_INFO> pDeviceInfo,
-);
-typedef _BluetoothGetDeviceInfoDart = int Function(
-  int hRadio,
-  Pointer<BLUETOOTH_DEVICE_INFO> pDeviceInfo,
-);
+typedef _BluetoothGetDeviceInfoC =
+    Uint32 Function(IntPtr hRadio, Pointer<BLUETOOTH_DEVICE_INFO> pDeviceInfo);
+typedef _BluetoothGetDeviceInfoDart =
+    int Function(int hRadio, Pointer<BLUETOOTH_DEVICE_INFO> pDeviceInfo);
 
-
-final _BluetoothFindFirstRadio =
-    _bthprops.lookupFunction<_BluetoothFindFirstRadioC, _BluetoothFindFirstRadioDart>(
+final _BluetoothFindFirstRadio = _bthprops
+    .lookupFunction<_BluetoothFindFirstRadioC, _BluetoothFindFirstRadioDart>(
       'BluetoothFindFirstRadio',
     );
-final _BluetoothFindNextRadio =
-    _bthprops.lookupFunction<_BluetoothFindNextRadioC, _BluetoothFindNextRadioDart>(
+final _BluetoothFindNextRadio = _bthprops
+    .lookupFunction<_BluetoothFindNextRadioC, _BluetoothFindNextRadioDart>(
       'BluetoothFindNextRadio',
     );
-final _BluetoothFindRadioClose =
-    _bthprops.lookupFunction<_BluetoothFindRadioCloseC, _BluetoothFindRadioCloseDart>(
+final _BluetoothFindRadioClose = _bthprops
+    .lookupFunction<_BluetoothFindRadioCloseC, _BluetoothFindRadioCloseDart>(
       'BluetoothFindRadioClose',
     );
-final _BluetoothGetDeviceInfo =
-    _bthprops.lookupFunction<_BluetoothGetDeviceInfoC, _BluetoothGetDeviceInfoDart>(
+final _BluetoothGetDeviceInfo = _bthprops
+    .lookupFunction<_BluetoothGetDeviceInfoC, _BluetoothGetDeviceInfoDart>(
       'BluetoothGetDeviceInfo',
     );
 
@@ -492,8 +493,6 @@ final class BLUETOOTH_DEVICE_INFO extends Struct {
   external Array<Uint16> szName;
 }
 
-
-
 String _wcharArrayToString(Array<Uint16> arr, int maxLen) {
   final codeUnits = <int>[];
   for (var i = 0; i < maxLen; i++) {
@@ -504,7 +503,6 @@ String _wcharArrayToString(Array<Uint16> arr, int maxLen) {
   return String.fromCharCodes(codeUnits);
 }
 
-
 /// Returns the Windows Bluetooth device name for a Bluetooth address (ULL) if known.
 /// - Does NOT connect to the device.
 /// - Works when the device is remembered/paired/known to Windows.
@@ -512,7 +510,8 @@ String _wcharArrayToString(Array<Uint16> arr, int maxLen) {
 String? bluetoothDeviceNameFromAddress(int btAddressUll) {
   if (!Platform.isWindows) return null;
 
-  final pParams = calloc<BLUETOOTH_FIND_RADIO_PARAMS>()..ref.dwSize = sizeOf<BLUETOOTH_FIND_RADIO_PARAMS>();
+  final pParams = calloc<BLUETOOTH_FIND_RADIO_PARAMS>()
+    ..ref.dwSize = sizeOf<BLUETOOTH_FIND_RADIO_PARAMS>();
   final phRadio = calloc<IntPtr>();
 
   int hFind = 0;
@@ -526,7 +525,6 @@ String? bluetoothDeviceNameFromAddress(int btAddressUll) {
     while (true) {
       final hRadio = phRadio.value;
       if (hRadio != 0) {
-
         try {
           final info = calloc<BLUETOOTH_DEVICE_INFO>();
           try {

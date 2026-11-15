@@ -14,39 +14,34 @@ class TableRelationship {
   });
 }
 
-
 class SchemaGraph {
   final Set<String> tables;
   final List<TableRelationship> relationships;
 
-  SchemaGraph({
-    required this.tables,
-    required this.relationships,
-  });
+  SchemaGraph({required this.tables, required this.relationships});
 
   List<String> parentsOf(String table) {
     return relationships
-      .where((r)=> r.childTable == table)
-      .map((r)=>r.parentTable)
-      .toSet()
-      .toList();
+        .where((r) => r.childTable == table)
+        .map((r) => r.parentTable)
+        .toSet()
+        .toList();
   }
 
   List<String> childrenOf(String table) {
     return relationships
-      .where((r)=>r.parentTable == table)
-      .map((r)=>r.childTable)
-      .toSet()
-      .toList();
+        .where((r) => r.parentTable == table)
+        .map((r) => r.childTable)
+        .toSet()
+        .toList();
   }
 
   List<String> rootTables() {
-    return tables.where((r)=>(parentsOf(r).isEmpty)).toList();
+    return tables.where((r) => (parentsOf(r).isEmpty)).toList();
   }
 
   List<String> leafTables() {
-    
-    return tables.where((r)=>(childrenOf(r).isEmpty)).toList();
+    return tables.where((r) => (childrenOf(r).isEmpty)).toList();
   }
 
   List<String> allTables() {
@@ -86,9 +81,8 @@ class SchemaGraph {
   }
 
   List<TableRelationship> ancestorPathFromSelected(String selected) {
-
     //checking for edge case: Single table, no relationships
-    if(tables.length == 1 && tables.contains(selected)) {
+    if (tables.length == 1 && tables.contains(selected)) {
       //return an empty list as there are NO relationships in this schema
       return [];
     }
@@ -97,20 +91,19 @@ class SchemaGraph {
 
     //building all possible ancestry paths (in case there are multiple chains)
     final leafList = leafTables();
-    for(final leaf in leafList) {
+    for (final leaf in leafList) {
       pathList.add(ancestorPathFromLeaf(leaf));
     }
 
     //identifying which chain the selected table actually belongs to
-    for(final path in pathList) {
-
+    for (final path in pathList) {
       //checking if the selected table is the root of this path
-      if(path.isNotEmpty && path.last.parentTable == selected) {
+      if (path.isNotEmpty && path.last.parentTable == selected) {
         return path;
       }
 
-      for(final edge in path) {
-        if(edge.childTable == selected) {
+      for (final edge in path) {
+        if (edge.childTable == selected) {
           return path;
         }
       }
@@ -120,13 +113,15 @@ class SchemaGraph {
   }
 
   //returns the ordered list of table names from the root to the leaf table
-  List<String> orderedTablesRootToLeaf(List<TableRelationship> pathFromLeaf, String selected) {
-
+  List<String> orderedTablesRootToLeaf(
+    List<TableRelationship> pathFromLeaf,
+    String selected,
+  ) {
     //creating a list of table names, and populating the first one with the leaf
     final tables = <String>[];
 
     //guarding against single table case (no relationships)
-    if(pathFromLeaf.isEmpty) {
+    if (pathFromLeaf.isEmpty) {
       return [selected];
     }
 
@@ -134,7 +129,7 @@ class SchemaGraph {
     tables.add(pathFromLeaf.first.childTable);
 
     //populating the rest of the table names
-    for(final edge in pathFromLeaf) {
+    for (final edge in pathFromLeaf) {
       tables.add(edge.parentTable);
     }
 
@@ -147,9 +142,7 @@ String _quoteIdentifier(String identifier) {
   return '"${identifier.replaceAll('"', '""')}"';
 }
 
-
-SchemaGraph buildGraph( Database db ) {
-
+SchemaGraph buildGraph(Database db) {
   final tableList = db.select(''' 
     SELECT name
     FROM sqlite_master
@@ -161,14 +154,14 @@ SchemaGraph buildGraph( Database db ) {
   final tables = <String>{};
   final relationships = <TableRelationship>[];
 
-  for(final row in tableList) {
+  for (final row in tableList) {
     final tableName = row['name'] as String;
     tables.add(tableName);
 
     final quotedTableName = _quoteIdentifier(tableName);
     final fkRows = db.select('PRAGMA foreign_key_list($quotedTableName);');
 
-    for(final fk in fkRows) {
+    for (final fk in fkRows) {
       relationships.add(
         TableRelationship(
           childTable: tableName,

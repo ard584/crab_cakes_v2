@@ -3,6 +3,6 @@ abstract class UpdateGenerator {
     String table,
     Map<String, dynamic> data,
     dynamic identifier,
-    dynamic key
+    dynamic key,
   );
 }

@@ -23,8 +23,8 @@ class PlutoGridConstructor
 
     // Filter to exclude columns starting with __
     final visibleColumns = table.columns
-    .where((col) => !col.name.startsWith(kColumnPrefixToHide))
-    .toList();
+        .where((col) => !col.name.startsWith(kColumnPrefixToHide))
+        .toList();
 
     // Iterate through DbTable
     for (final column in visibleColumns) {
@@ -56,7 +56,12 @@ class PlutoGridConstructor
       final String title = column.name;
 
       // Construct PlutoColumn
-      final col = PlutoColumn(title: title, field: field, type: type, readOnly: readOnly);
+      final col = PlutoColumn(
+        title: title,
+        field: field,
+        type: type,
+        readOnly: readOnly,
+      );
 
       // Append to columns array
       columns.add(col);
@@ -80,21 +85,16 @@ class PlutoGridConstructor
 
   @override
   constructRow(DbTable table, DbRow row) {
-
     // Extract RowIdentifier
     final id = row.identifier;
-    
-    // Define PlutoRow
-    final PlutoRow plutoRow = PlutoRow(
-      cells: {},
-      key: ValueKey(id),
-    );
 
+    // Define PlutoRow
+    final PlutoRow plutoRow = PlutoRow(cells: {}, key: ValueKey(id));
 
     // Filter to exclude columns starting with __
-    final visibleEntries = row.values.entries.where(
-      (entry) => !entry.key.startsWith(kColumnPrefixToHide)
-    ).toList();
+    final visibleEntries = row.values.entries
+        .where((entry) => !entry.key.startsWith(kColumnPrefixToHide))
+        .toList();
 
     // Iterate through row
     for (final cell in visibleEntries) {

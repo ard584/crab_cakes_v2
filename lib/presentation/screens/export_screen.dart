@@ -136,25 +136,22 @@ class _ExportScreenState extends ConsumerState<ExportScreen> {
         selectedSyncDriveBPath!,
       );
 
-      await ref.read(projectSyncNotifierProvider.notifier).previewSync(
-            activeDbPath: dbPathA,
-            candidateDbPath: dbPathB,
-          );
+      await ref
+          .read(projectSyncNotifierProvider.notifier)
+          .previewSync(activeDbPath: dbPathA, candidateDbPath: dbPathB);
     } catch (e) {
       if (!context.mounted) return;
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Sync preview failed: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Sync preview failed: $e')));
     }
   }
 
   Future<void> _applyDriveSync(BuildContext context) async {
     if (selectedSyncDriveAPath == null || selectedSyncDriveBPath == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Select two drives before syncing.'),
-        ),
+        const SnackBar(content: Text('Select two drives before syncing.')),
       );
       return;
     }
@@ -184,7 +181,9 @@ class _ExportScreenState extends ConsumerState<ExportScreen> {
       // using the same base table and delimiter as normal backups/exports.
       final settings = await ref.read(projectSettingsProvider.future);
 
-      await ref.read(projectSyncNotifierProvider.notifier).applySync(
+      await ref
+          .read(projectSyncNotifierProvider.notifier)
+          .applySync(
             activeDbPath: dbPathA,
             candidateDbPath: dbPathB,
             activeExportPath: exportPathA,
@@ -201,9 +200,9 @@ class _ExportScreenState extends ConsumerState<ExportScreen> {
     } catch (e) {
       if (!context.mounted) return;
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Sync failed: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Sync failed: $e')));
     }
   }
 
@@ -327,9 +326,7 @@ class _ExportScreenState extends ConsumerState<ExportScreen> {
                         } catch (e) {
                           if (context.mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text('Export failed: $e'),
-                              ),
+                              SnackBar(content: Text('Export failed: $e')),
                             );
                           }
                         }
@@ -343,8 +340,9 @@ class _ExportScreenState extends ConsumerState<ExportScreen> {
               // ---------- BASE TABLE DROPDOWN ----------
               baseTablesAsync.when(
                 data: (tables) {
-                  final safeSelectedTable =
-                      tables.contains(selectedTable) ? selectedTable : null;
+                  final safeSelectedTable = tables.contains(selectedTable)
+                      ? selectedTable
+                      : null;
 
                   return DropdownButtonFormField<String>(
                     key: ValueKey('base-table-$safeSelectedTable'),
@@ -470,9 +468,7 @@ class _ExportSettingsInfoPanel extends StatelessWidget {
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(12.0),
-        border: Border.all(
-          color: Theme.of(context).colorScheme.outlineVariant,
-        ),
+        border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -526,9 +522,7 @@ class _DataSyncPanel extends StatelessWidget {
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(12.0),
-        border: Border.all(
-          color: Theme.of(context).colorScheme.outlineVariant,
-        ),
+        border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
       ),
       child: FutureBuilder<List<BackupTarget>>(
         future: drivesFuture,
@@ -545,15 +539,13 @@ class _DataSyncPanel extends StatelessWidget {
 
           final drivePaths = drives.map((drive) => drive.drivePath).toSet();
 
-          final safeSelectedDriveAPath =
-              drivePaths.contains(selectedDriveAPath)
-                  ? selectedDriveAPath
-                  : null;
+          final safeSelectedDriveAPath = drivePaths.contains(selectedDriveAPath)
+              ? selectedDriveAPath
+              : null;
 
-          final safeSelectedDriveBPath =
-              drivePaths.contains(selectedDriveBPath)
-                  ? selectedDriveBPath
-                  : null;
+          final safeSelectedDriveBPath = drivePaths.contains(selectedDriveBPath)
+              ? selectedDriveBPath
+              : null;
 
           final firstDriveOptions = drives
               .where((drive) => drive.drivePath != safeSelectedDriveBPath)
@@ -566,10 +558,7 @@ class _DataSyncPanel extends StatelessWidget {
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                'Data Sync',
-                style: Theme.of(context).textTheme.titleMedium,
-              ),
+              Text('Data Sync', style: Theme.of(context).textTheme.titleMedium),
               const SizedBox(height: 8),
               const Text(
                 'Select two backup drives to compare their CRABCAKES project databases. '
@@ -625,9 +614,7 @@ class _DataSyncPanel extends StatelessWidget {
               if (syncState.errorMessage != null) ...[
                 Text(
                   syncState.errorMessage!,
-                  style: TextStyle(
-                    color: Theme.of(context).colorScheme.error,
-                  ),
+                  style: TextStyle(color: Theme.of(context).colorScheme.error),
                 ),
                 const SizedBox(height: 14),
               ],
@@ -670,9 +657,7 @@ class _DataSyncPanel extends StatelessWidget {
 class _SyncPlanSummary extends StatelessWidget {
   final SyncPlan plan;
 
-  const _SyncPlanSummary({
-    required this.plan,
-  });
+  const _SyncPlanSummary({required this.plan});
 
   @override
   Widget build(BuildContext context) {
@@ -682,17 +667,12 @@ class _SyncPlanSummary extends StatelessWidget {
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(
-          color: Theme.of(context).colorScheme.outlineVariant,
-        ),
+        border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Sync Preview',
-            style: Theme.of(context).textTheme.titleSmall,
-          ),
+          Text('Sync Preview', style: Theme.of(context).textTheme.titleSmall),
           const SizedBox(height: 8),
           Text('Rows to copy into first drive: ${plan.totalInsertsToActive}'),
           Text(

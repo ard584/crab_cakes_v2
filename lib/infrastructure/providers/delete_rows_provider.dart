@@ -6,5 +6,4 @@ final deleteRowsProvider = Provider<DeleteRowsUseCase>((ref) {
   final repo = ref.watch(projectDatabaseProvider);
   final useCase = DeleteRowsUseCase(repo: repo);
   return useCase;
-
 });

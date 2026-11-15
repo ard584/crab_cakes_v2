@@ -15,15 +15,12 @@ class InvalidDbPathException implements Exception {
 
   @override
   String toString() {
-    var result = 'InvalidDbPathException($type): $message'
-    '${additionalMessage != null ? ', $additionalMessage' : ''}';
+    var result =
+        'InvalidDbPathException($type): $message'
+        '${additionalMessage != null ? ', $additionalMessage' : ''}';
     if (cause != null) result += '\nCause: $cause';
     return result;
   }
-  
 }
 
-enum InvalidDbPathErrorType {
-  invalidPath,
-  dbDoesNotExist
-}
+enum InvalidDbPathErrorType { invalidPath, dbDoesNotExist }

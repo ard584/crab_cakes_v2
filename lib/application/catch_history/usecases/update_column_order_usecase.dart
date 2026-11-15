@@ -10,7 +10,7 @@ class UpdateColumnOrderUsecase {
     required List<String> columnOrder,
   }) async {
     final currentSettings = await repository.getSettings();
-    
+
     final updatedColumnOrder = Map<String, List<String>>.from(
       currentSettings.columnOrder,
     );

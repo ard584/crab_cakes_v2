@@ -7,7 +7,6 @@ import 'package:crab_cakes/application/database_connection.dart';
 import 'package:crab_cakes/presentation/utils/logger.dart';
 
 class SqliteDatabaseConnection implements DatabaseConnection<Database> {
-  
   @override
   open(String path) {
     _isValidDbPath(path);
@@ -37,7 +36,7 @@ class SqliteDatabaseConnection implements DatabaseConnection<Database> {
 
       // Check if files exists
       final file = File(dbPath);
-      if(!file.existsSync()) {
+      if (!file.existsSync()) {
         log.d("FILE DOES NOT EXIST");
         throw Exception("File at $dbPath does not exist.");
       }

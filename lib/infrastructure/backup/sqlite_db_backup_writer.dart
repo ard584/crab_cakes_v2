@@ -7,14 +7,13 @@ import 'package:crab_cakes/application/backup/interfaces/db_backup_writer.dart';
 /// Class to implement the DbBackupWriter interface
 ///
 /// This class is in charge of writing specifically the Database backup to the
-/// given destination path. 
+/// given destination path.
 class SqliteDbBackupWriter implements DbBackupWriter {
-  
-  /// Function takes in 2 strings: 
+  /// Function takes in 2 strings:
   /// 1) The path to the source DB to be backed up
   /// 2) The path to the destination where the backup should be written to
-  /// 
-  /// It ensures that the source db exists, creates a snapshot of the source db, 
+  ///
+  /// It ensures that the source db exists, creates a snapshot of the source db,
   /// and verifies that the backup was successful
   /// * THIS FUNCTION CAN THROW IF SRC DB DOESN'T EXIST OR IF BACKUP FAILS
   @override

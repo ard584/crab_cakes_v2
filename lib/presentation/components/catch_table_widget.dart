@@ -17,94 +17,120 @@ class CatchHistoryTable extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-
     final settingsAsync = ref.watch(projectSettingsProvider);
-    
+
     return settingsAsync.when(
       data: (settings) {
         final viewModel = CatchHistoryViewModel(
-          db: db, 
+          db: db,
           table: table,
           settings: settings,
         );
         final catchHistory = HistoryCatch(viewModel: viewModel);
         final columnCount = viewModel.getColumnCount();
 
-    return SizedBox(
-      width: MediaQuery.of(context).size.width * 0.5,
-      height: 150,
-      child: Container(
-        padding: const EdgeInsets.all(0),
-        alignment: Alignment.centerRight,
-        child: Container(
-          decoration: const BoxDecoration(
-            border: Border(
-              left: BorderSide(color: Colors.black45, width: 1),
-              right: BorderSide(color: Colors.black45, width: 1),
-              bottom: BorderSide(color: Colors.black45, width: 1),
-              top: BorderSide(color: Colors.black45, width: 1),
-            ),
-          ),
-          child: SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Column(
-              children: [
-                // Header row
-                Container(
-                  decoration: const BoxDecoration(
-                    border: Border(bottom: BorderSide(color: Colors.black45, width: 2)),
-                  ),
-                  child: IntrinsicHeight(
-                    child: Row(
-                      children: List.generate(columnCount, (i) => [
-                        SizedBox(
-                          width: viewModel.getColumnWidth(i),
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 1),
-                            child: Text(
-                              catchHistory.getColumnName(i),
-                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                              overflow: TextOverflow.ellipsis,
-                              softWrap: false,
-                            ),
-                          ),
-                        ),
-                        if (i < columnCount - 1) const VerticalDivider(color: Colors.black45, width: 1, thickness: 1),
-                      ]).expand((e) => e).toList(),
-                    ),
-                  ),
+        return SizedBox(
+          width: MediaQuery.of(context).size.width * 0.5,
+          height: 150,
+          child: Container(
+            padding: const EdgeInsets.all(0),
+            alignment: Alignment.centerRight,
+            child: Container(
+              decoration: const BoxDecoration(
+                border: Border(
+                  left: BorderSide(color: Colors.black45, width: 1),
+                  right: BorderSide(color: Colors.black45, width: 1),
+                  bottom: BorderSide(color: Colors.black45, width: 1),
+                  top: BorderSide(color: Colors.black45, width: 1),
                 ),
-
-                const Divider(color: Colors.black45, height: 8),
-
-                // Data rows — most recent at bottom, oldest at top
-                ...List.generate(kHistoryRowCount, (i) {
-                  final reversedI = 4 - i;
-                  return Row(
-                    children: List.generate(columnCount, (j) => [
-                      SizedBox(
-                        width: viewModel.getColumnWidth(j),
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 8),
-                          child: Text(
-                            catchHistory.getValue(reversedI, j).toString(),
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(fontSize: 14),
-                            softWrap: false,
-                          ),
+              ),
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Column(
+                  children: [
+                    // Header row
+                    Container(
+                      decoration: const BoxDecoration(
+                        border: Border(
+                          bottom: BorderSide(color: Colors.black45, width: 2),
                         ),
                       ),
-                      if (j < columnCount - 1) const VerticalDivider(color: Colors.black45, width: 1, thickness: 1),
-                    ]).expand((e) => e).toList(),
-                  );
-                }),
-              ],
+                      child: IntrinsicHeight(
+                        child: Row(
+                          children: List.generate(
+                            columnCount,
+                            (i) => [
+                              SizedBox(
+                                width: viewModel.getColumnWidth(i),
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 1,
+                                  ),
+                                  child: Text(
+                                    catchHistory.getColumnName(i),
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 16,
+                                    ),
+                                    overflow: TextOverflow.ellipsis,
+                                    softWrap: false,
+                                  ),
+                                ),
+                              ),
+                              if (i < columnCount - 1)
+                                const VerticalDivider(
+                                  color: Colors.black45,
+                                  width: 1,
+                                  thickness: 1,
+                                ),
+                            ],
+                          ).expand((e) => e).toList(),
+                        ),
+                      ),
+                    ),
+
+                    const Divider(color: Colors.black45, height: 8),
+
+                    // Data rows — most recent at bottom, oldest at top
+                    ...List.generate(kHistoryRowCount, (i) {
+                      final reversedI = 4 - i;
+                      return Row(
+                        children: List.generate(
+                          columnCount,
+                          (j) => [
+                            SizedBox(
+                              width: viewModel.getColumnWidth(j),
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                ),
+                                child: Text(
+                                  catchHistory
+                                      .getValue(reversedI, j)
+                                      .toString(),
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(fontSize: 14),
+                                  softWrap: false,
+                                ),
+                              ),
+                            ),
+                            if (j < columnCount - 1)
+                              const VerticalDivider(
+                                color: Colors.black45,
+                                width: 1,
+                                thickness: 1,
+                              ),
+                          ],
+                        ).expand((e) => e).toList(),
+                      );
+                    }),
+                  ],
+                ),
+              ),
             ),
           ),
-        ),
-      ),
-    );
-    },  
+        );
+      },
       loading: () => const SizedBox(
         width: 100,
         height: 150,

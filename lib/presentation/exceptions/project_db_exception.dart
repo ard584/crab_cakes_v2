@@ -14,17 +14,13 @@ class ProjectDbException implements Exception {
   });
 
   @override
-    String toString() {
-    var result = 'ProjectDbException($type): $message'
-    '${additionalMessage != null ? ', $additionalMessage' : ''}';
+  String toString() {
+    var result =
+        'ProjectDbException($type): $message'
+        '${additionalMessage != null ? ', $additionalMessage' : ''}';
     if (cause != null) result += '\nCause: $cause';
     return result;
   }
-  
 }
 
-enum ProjectDbErrorType {
-  openFailed,
-  invalidSchema,
-  readFailed,
-}
+enum ProjectDbErrorType { openFailed, invalidSchema, readFailed }

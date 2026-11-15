@@ -41,10 +41,7 @@ class _SchemaInputSelectionState extends State<SchemaInputSelection> {
       segments: <ButtonSegment<Schema>>[
         ButtonSegment<Schema>(value: Schema.file, label: Text('File')),
         ButtonSegment<Schema>(value: Schema.text, label: Text('Text')),
-        ButtonSegment<Schema>(
-          value: Schema.json,
-          label: Text('Import JSON'),
-        ),
+        ButtonSegment<Schema>(value: Schema.json, label: Text('Import JSON')),
       ],
       selected: {widget.selected},
       onSelectionChanged: (Set<Schema> newSelection) {
@@ -150,9 +147,9 @@ class _ProjectCreationScreenState extends ConsumerState<ProjectCreationScreen> {
 
     if (sql.isEmpty) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Schema cannot be empty")),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text("Schema cannot be empty")));
       }
       return false;
     }
@@ -354,25 +351,29 @@ class _ProjectCreationScreenState extends ConsumerState<ProjectCreationScreen> {
                                 Navigator.pop(context);
                               }
                             } catch (error) {
-                                log.d("PROJECT CREATION ERROR: $error");
+                              log.d("PROJECT CREATION ERROR: $error");
 
-                                if (context.mounted) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text(_getProjectCreationErrorMessage(error)),
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                      _getProjectCreationErrorMessage(error),
                                     ),
-                                  );
-                                }
-                              } finally {
-                                if (context.mounted) {
-                                  setState(() {
-                                    isSubmitting = false;
-                                  });
-                                }
+                                  ),
+                                );
+                              }
+                            } finally {
+                              if (context.mounted) {
+                                setState(() {
+                                  isSubmitting = false;
+                                });
+                              }
                             }
                           },
 
-                    label: Text(isSubmitting ? 'Creating...' : 'Create Project'),
+                    label: Text(
+                      isSubmitting ? 'Creating...' : 'Create Project',
+                    ),
                   ),
                 ],
               ),

@@ -15,8 +15,6 @@ import 'dart:convert';
 import 'package:crypto/crypto.dart';
 
 class SqliteProjectDatabaseBuilder implements ProjectDatabaseBuilder {
-
-
   bool validateDb(Database db) {
     // Check for anything not a table or index
     final illegalStuff = db.select("""
@@ -80,25 +78,13 @@ class SqliteProjectDatabaseBuilder implements ProjectDatabaseBuilder {
     );
 
     // Sync metadata columns.
-    addColumnIfMissing(
-      '${kColumnPrefixToHide}row_guid',
-      'TEXT',
-    );
+    addColumnIfMissing('${kColumnPrefixToHide}row_guid', 'TEXT');
 
-    addColumnIfMissing(
-      '${kColumnPrefixToHide}created_at',
-      'TEXT',
-    );
+    addColumnIfMissing('${kColumnPrefixToHide}created_at', 'TEXT');
 
-    addColumnIfMissing(
-      '${kColumnPrefixToHide}updated_at',
-      'TEXT',
-    );
+    addColumnIfMissing('${kColumnPrefixToHide}updated_at', 'TEXT');
 
-    addColumnIfMissing(
-      '${kColumnPrefixToHide}deleted_at',
-      'TEXT',
-    );
+    addColumnIfMissing('${kColumnPrefixToHide}deleted_at', 'TEXT');
 
     final rowGuidIndexName = _quoteIdentifier(
       '${tableName}_${kColumnPrefixToHide}row_guid_unique_idx',
@@ -127,7 +113,6 @@ class SqliteProjectDatabaseBuilder implements ProjectDatabaseBuilder {
 
   @override
   Future<String> buildFromSchema(List<String> statements) async {
-
     final tempDbPath = await createProjectInTemp(statements);
     final appDir = await getApplicationSupportDirectory();
 
@@ -147,11 +132,7 @@ class SqliteProjectDatabaseBuilder implements ProjectDatabaseBuilder {
     return permanentPath;
   }
 
-  Future<String> createProjectInTemp(
-    List<String> statements
-  ) async {
-
-
+  Future<String> createProjectInTemp(List<String> statements) async {
     final tempDir = Directory.systemTemp.createTempSync();
     final dbTempPath = path.join(
       tempDir.path,
@@ -190,7 +171,9 @@ class SqliteProjectDatabaseBuilder implements ProjectDatabaseBuilder {
         db.execute(statement);
 
         // Get all tables in the database
-        final tables = db.select("SELECT name FROM sqlite_master WHERE type='table';");
+        final tables = db.select(
+          "SELECT name FROM sqlite_master WHERE type='table';",
+        );
 
         for (final table in tables) {
           final tableName = table['name'] as String;
@@ -255,26 +238,27 @@ class SqliteProjectDatabaseBuilder implements ProjectDatabaseBuilder {
       rethrow;
     } finally {
       //closing the database connection to prevent windows complaints
-      try {db.dispose();} catch (_){}
+      try {
+        db.dispose();
+      } catch (_) {}
     }
 
     return dbTempPath;
   }
 
   void createSystemTables(Database db, List<String> statements) {
-
     //generating the GUID and schema hash for the project
     final projectGuid = const Uuid().v4();
     final schemaHash = computeSchemaHash(db);
 
     final initialJson = jsonEncode({
-    'formatVersion': 1,
-    'projectGuid': projectGuid,
-    'schemaHash': schemaHash,
-    'syncVersion': 1,
-    'schemaSql': statements,
-    'settings': {},
-    'integrity': {},
+      'formatVersion': 1,
+      'projectGuid': projectGuid,
+      'schemaHash': schemaHash,
+      'syncVersion': 1,
+      'schemaSql': statements,
+      'settings': {},
+      'integrity': {},
     });
 
     //creating the Settings table (stores setting json), and inserting first row
@@ -285,15 +269,17 @@ class SqliteProjectDatabaseBuilder implements ProjectDatabaseBuilder {
       );
     ''');
 
-    db.execute('''
+    db.execute(
+      '''
       INSERT INTO __project_settings (id, settings_json)
       VALUES (1, ?);
-    ''', [initialJson]);
+    ''',
+      [initialJson],
+    );
   }
 
   String computeSchemaHash(Database db) {
     final schemaParts = <Map<String, Object?>>[];
-
 
     final tables = db.select('''
       SELECT name
@@ -328,7 +314,9 @@ class SqliteProjectDatabaseBuilder implements ProjectDatabaseBuilder {
           })
           .toList();
 
-      final foreignKeys = db.select('PRAGMA foreign_key_list($quotedTableName);');
+      final foreignKeys = db.select(
+        'PRAGMA foreign_key_list($quotedTableName);',
+      );
 
       final normalizedForeignKeys = foreignKeys
           .where((fk) {

@@ -2,18 +2,27 @@ import 'package:crab_cakes/domain/db_table.dart';
 import 'package:crab_cakes/domain/entities/row_identifier.dart';
 import 'package:crab_cakes/domain/models/db_row.dart';
 
-abstract interface class ActiveProjectRepository<TIdentifier extends RowIdentifier> {
-
+abstract interface class ActiveProjectRepository<
+  TIdentifier extends RowIdentifier
+> {
   // Loads the columns from the table
   DbTable getTableSchema(String tableName);
 
   // Load rows
   List<DbRow> getRows(String tableName, int limit, int offset);
   List<DbRow> getAllRows(String tableName);
-  List<DbRow> getRowsOrderedBy(String tableName, int limit, int offset, String orderColumn);
+  List<DbRow> getRowsOrderedBy(
+    String tableName,
+    int limit,
+    int offset,
+    String orderColumn,
+  );
 
   // Saves the current table
-  void insertRow({required String tableName, required Map<String, dynamic> values});
+  void insertRow({
+    required String tableName,
+    required Map<String, dynamic> values,
+  });
 
   // Updates row
   void updateRow({required String tableName, required DbRow<TIdentifier> row});

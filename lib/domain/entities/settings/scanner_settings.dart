@@ -17,11 +17,11 @@ class ScannerSettings {
   }
 
   ScannerSettings copyWith({
-    String? targetTable, 
+    String? targetTable,
     String? targetColumn,
     bool clearTargetTable = false,
     bool clearTargetCol = false,
-    }) {
+  }) {
     return ScannerSettings(
       targetTable: clearTargetTable ? null : (targetTable ?? this.targetTable),
       targetColumn: clearTargetCol ? null : (targetColumn ?? this.targetColumn),
@@ -31,5 +31,4 @@ class ScannerSettings {
   factory ScannerSettings.empty() {
     return ScannerSettings(targetTable: null, targetColumn: null);
   }
-
 }

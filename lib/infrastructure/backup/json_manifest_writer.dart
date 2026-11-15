@@ -6,8 +6,7 @@ import 'package:crab_cakes/application/backup/dtos/backup_request.dart';
 import 'package:crab_cakes/application/backup/interfaces/backup_manifest_writer.dart';
 
 class JsonManifestWriter implements BackupManifestWriter {
-
-  @override 
+  @override
   Future<void> writeManifest({
     required BackupRequest request,
     required BackupPlan plan,
@@ -35,8 +34,8 @@ class JsonManifestWriter implements BackupManifestWriter {
       },
     };
 
-    await File(plan.manifestPath).writeAsString(
-      const JsonEncoder.withIndent('  ').convert(manifest),
-    );
+    await File(
+      plan.manifestPath,
+    ).writeAsString(const JsonEncoder.withIndent('  ').convert(manifest));
   }
 }

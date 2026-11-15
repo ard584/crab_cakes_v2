@@ -10,10 +10,7 @@ class SettingsExporter implements ProjectSettingsExporter {
   final Database db;
   final ProjectJsonIntegrityService integrityService;
 
-  SettingsExporter(
-    this.db,
-    this.integrityService,
-  );
+  SettingsExporter(this.db, this.integrityService);
 
   // putting the name of the settings table as a variable to make changing it
   // (if necessary) in the future easier.

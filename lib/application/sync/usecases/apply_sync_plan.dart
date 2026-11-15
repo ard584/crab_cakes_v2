@@ -6,10 +6,7 @@ class ApplySyncPlan {
   final ProjectSyncRepo repo;
   final BackupExporter backupExporter;
 
-  ApplySyncPlan({
-    required this.repo,
-    required this.backupExporter,
-  });
+  ApplySyncPlan({required this.repo, required this.backupExporter});
 
   Future<void> call({
     required String activeDbPath,

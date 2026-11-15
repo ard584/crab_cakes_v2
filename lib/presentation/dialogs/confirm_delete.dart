@@ -34,7 +34,6 @@ Future<bool> confirmDelete(BuildContext context, String prompt) async {
                     ),
                     TextButton(
                       onPressed: () {
-
                         if (textController.text.compareTo('DELETE') == 0) {
                           Navigator.pop(context, true);
                         } else {

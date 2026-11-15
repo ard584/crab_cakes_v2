@@ -8,5 +8,4 @@ class GetBackupTargets {
   Future<Set<String>> execute() async {
     return repo.loadSelectedIds();
   }
-
 }
