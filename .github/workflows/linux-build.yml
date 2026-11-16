@@ -1,0 +1,45 @@
+name: Linux Compatibility Prototype
+
+on:
+  push:
+    branches:
+      - mia-prototypes-nov15
+
+jobs:
+  build-linux:
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Get project code
+        uses: actions/checkout@v4
+
+      - name: Install Linux dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            clang cmake ninja-build pkg-config \
+            libgtk-3-dev libstdc++-12-dev \
+            libsecret-1-dev libasound2-dev
+
+      - name: Install Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+
+      - name: Enable Linux desktop
+        run: flutter config --enable-linux-desktop
+
+      - name: Get project packages
+        run: flutter pub get
+
+      - name: Generate database files
+        run: dart run build_runner build --delete-conflicting-outputs
+
+      - name: Build Linux application
+        run: flutter build linux --release
+
+      - name: Save Linux build
+        uses: actions/upload-artifact@v4
+        with:
+          name: crab-cakes-linux
+          path: build/linux/x64/release/bundle/
