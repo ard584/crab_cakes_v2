@@ -1,3 +1,4 @@
+import 'package:crab_cakes/presentation/components/cloud_backup_section.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -27,6 +28,7 @@ class SettingsScreen extends ConsumerWidget {
             spacing: 16.0,
             children: <Widget>[
               const UsbBackupDrivesSection(),
+              const CloudBackupSection(),
 
               const ReusableLeftAlignedText(text: 'Paired PIT Readers'),
               const PitReadersSection(),
